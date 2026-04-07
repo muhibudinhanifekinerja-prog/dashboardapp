@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Inflasi & Perkembangan Harga</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-blue-800 text-white p-4 shadow-lg">
+        <h1 class="text-2xl font-bold">Dashboard Analisis Harga & Inflasi</h1>
+    </nav>
+
+    <div class="container mx-auto p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card md:col-span-2">
+                <h2 class="text-xl font-semibold mb-4">Tren Inflasi Nasional, Jateng, & Kota Tegal (YoY)</h2>
+                <canvas id="inflationChart" height="150"></canvas>
+            </div>
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">Ringkasan Inflasi Terbaru</h2>
+                <div id="latestInflation" class="space-y-4">
+                    </div>
+                <p class="text-xs text-gray-500 mt-4">*Data diintegrasikan melalui API BPS/Mock</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Indeks Perkembangan Harga (IPH) Mingguan</h2>
+                <select id="commodityFilter" class="border p-2 rounded">
+                    <option value="Beras Medium">Beras Medium</option>
+                    <option value="Cabai Merah Keriting">Cabai Merah Keriting</option>
+                    <option value="Bawang Merah">Bawang Merah</option>
+                </select>
+            </div>
+            <canvas id="iphChart" height="100"></canvas>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">Rekomendasi Intervensi</h2>
+                <ul id="recommendationList" class="space-y-2 list-disc pl-5">
+                    </ul>
+            </div>
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">Analisis HBKN (Ramadhan/Nataru)</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="p-2 text-left">Event</th>
+                                <th class="p-2 text-left">Komoditas Utama</th>
+                                <th class="p-2 text-right">Rata-rata Harga</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hbknTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Inflasi (Contoh data dari BPS untuk simulasi API)
+        const inflationData = {
+            labels: ['Jan 24', 'Feb 24', 'Mar 24', 'Apr 24', 'Mei 24', 'Jun 24'],
+            nasional: [2.57, 2.75, 3.05, 3.00, 2.84, 2.51],
+            jateng: [2.69, 2.98, 3.40, 3.27, 2.66, 2.34],
+            tegal: [2.40, 2.50, 3.10, 2.90, 2.50, 2.22]
+        };
+
+        // Render Inflation Chart
+        new Chart(document.getElementById('inflationChart'), {
+            type: 'line',
+            data: {
+                labels: inflationData.labels,
+                datasets: [
+                    { label: 'Nasional', data: inflationData.nasional, borderColor: 'blue', fill: false },
+                    { label: 'Jateng', data: inflationData.jateng, borderColor: 'green', fill: false },
+                    { label: 'Tegal', data: inflationData.tegal, borderColor: 'red', fill: false }
+                ]
+            }
+        });
+
+        // Load Data from Processed JSON (dashboard_data.json)
+        async function loadDashboard() {
+            try {
+                const response = await fetch('dashboard_data.json');
+                const data = await response.json();
+
+                // 1. Recommendation
+                const recList = document.getElementById('recommendationList');
+                data.recommendations.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<b>${item.nama_komoditas}</b> memiliki volatilitas tinggi (${(item.volatility * 100).toFixed(2)}%). Perlu pengawasan stok.`;
+                    recList.appendChild(li);
+                });
+
+                // 2. HBKN Table
+                const hbknTable = document.getElementById('hbknTable');
+                data.hbkn_analysis.slice(0, 5).forEach(row => {
+                    const tr = `<tr>
+                        <td class="p-2">${row.event}</td>
+                        <td class="p-2">${row.nama_komoditas}</td>
+                        <td class="p-2 text-right">Rp ${Math.round(row.mean).toLocaleString()}</td>
+                    </tr>`;
+                    hbknTable.innerHTML += tr;
+                });
+
+                // 3. IPH Chart logic
+                const iphCtx = document.getElementById('iphChart').getContext('2d');
+                let iphChartInstance;
+
+                function updateIPH(komoditas) {
+                    const filtered = data.weekly_iph.filter(d => d.komoditas === komoditas).slice(-20);
+                    const labels = filtered.map(d => `${d.month} W${d.week}`);
+                    const values = filtered.map(d => d.change_pct);
+
+                    if(iphChartInstance) iphChartInstance.destroy();
+                    iphChartInstance = new Chart(iphCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: `Perubahan Harga % (IPH) - ${komoditas}`,
+                                data: values,
+                                backgroundColor: values.map(v => v > 0 ? '#ef4444' : '#22c55e')
+                            }]
+                        },
+                        options: { scales: { y: { beginAtZero: true } } }
+                    });
+                }
+
+                document.getElementById('commodityFilter').addEventListener('change', (e) => updateIPH(e.target.value));
+                updateIPH('Beras Medium');
+
+            } catch (e) {
+                console.error("Error loading data:", e);
+                alert("Silakan pastikan file dashboard_data.json tersedia di server lokal.");
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
