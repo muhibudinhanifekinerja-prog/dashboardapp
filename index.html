@@ -2,150 +2,489 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Inflasi & Perkembangan Harga</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Dashboard Inflasi | Nasional, Jawa Tengah & Kota Tegal</title>
+    <!-- Tailwind CSS + Font Awesome + Chart.js + PapaParse -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; }
+        body { background: #f4f7fc; font-family: 'Inter', system-ui, sans-serif; }
+        .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+        .scroll-table { max-height: 400px; overflow-y: auto; display: block; }
+        .modal-transition { transition: opacity 0.2s ease; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <nav class="bg-blue-800 text-white p-4 shadow-lg">
-        <h1 class="text-2xl font-bold">Dashboard Analisis Harga & Inflasi</h1>
-    </nav>
+<body class="p-4 md:p-6">
 
-    <div class="container mx-auto p-6 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="card md:col-span-2">
-                <h2 class="text-xl font-semibold mb-4">Tren Inflasi Nasional, Jateng, & Kota Tegal (YoY)</h2>
-                <canvas id="inflationChart" height="150"></canvas>
+<div class="max-w-7xl mx-auto">
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-chart-line text-blue-600"></i> Dashboard Inflasi
+            </h1>
+            <p class="text-gray-500 text-sm">Perbandingan Nasional, Jawa Tengah & Kota Tegal | MTM, YTD, YoY</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <div class="bg-white rounded-xl shadow-sm px-4 py-2 flex items-center gap-2">
+                <i class="fas fa-dollar-sign text-green-600"></i>
+                <span id="usd-rate" class="font-mono font-semibold">USD/IDR: --</span>
             </div>
-            <div class="card">
-                <h2 class="text-xl font-semibold mb-4">Ringkasan Inflasi Terbaru</h2>
-                <div id="latestInflation" class="space-y-4">
-                    </div>
-                <p class="text-xs text-gray-500 mt-4">*Data diintegrasikan melalui API BPS/Mock</p>
+            <button id="resetDataBtn" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-xl text-sm font-semibold transition"><i class="fas fa-undo-alt"></i> Reset Data</button>
+        </div>
+    </div>
+
+    <!-- 9 CARDS : inflasi terakhir (MTM, YTD, YoY) untuk 3 wilayah -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+        <!-- Nasional Card -->
+        <div class="bg-white rounded-2xl shadow-md p-4 border-l-8 border-blue-500 card-hover">
+            <div class="flex justify-between items-start"><h2 class="font-bold text-lg"><i class="fas fa-flag-checkered text-blue-600 mr-1"></i> Nasional</h2><span class="text-xs bg-blue-100 px-2 py-1 rounded-full">terbaru</span></div>
+            <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                <div><p class="text-xs text-gray-500">MTM</p><p id="last_nasional_mtm" class="text-xl font-bold text-blue-700">-</p></div>
+                <div><p class="text-xs text-gray-500">YTD</p><p id="last_nasional_ytd" class="text-xl font-bold text-emerald-700">-</p></div>
+                <div><p class="text-xs text-gray-500">YoY</p><p id="last_nasional_yoy" class="text-xl font-bold text-purple-700">-</p></div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Indeks Perkembangan Harga (IPH) Mingguan</h2>
-                <select id="commodityFilter" class="border p-2 rounded">
-                    <option value="Beras Medium">Beras Medium</option>
-                    <option value="Cabai Merah Keriting">Cabai Merah Keriting</option>
-                    <option value="Bawang Merah">Bawang Merah</option>
-                </select>
+        <!-- Jawa Tengah Card -->
+        <div class="bg-white rounded-2xl shadow-md p-4 border-l-8 border-teal-500 card-hover">
+            <div class="flex justify-between items-start"><h2 class="font-bold text-lg"><i class="fas fa-map-marker-alt text-teal-600 mr-1"></i> Jawa Tengah</h2><span class="text-xs bg-teal-100 px-2 py-1 rounded-full">terbaru</span></div>
+            <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                <div><p class="text-xs text-gray-500">MTM</p><p id="last_jateng_mtm" class="text-xl font-bold text-blue-700">-</p></div>
+                <div><p class="text-xs text-gray-500">YTD</p><p id="last_jateng_ytd" class="text-xl font-bold text-emerald-700">-</p></div>
+                <div><p class="text-xs text-gray-500">YoY</p><p id="last_jateng_yoy" class="text-xl font-bold text-purple-700">-</p></div>
             </div>
-            <canvas id="iphChart" height="100"></canvas>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="card">
-                <h2 class="text-xl font-semibold mb-4">Rekomendasi Intervensi</h2>
-                <ul id="recommendationList" class="space-y-2 list-disc pl-5">
-                    </ul>
-            </div>
-            <div class="card">
-                <h2 class="text-xl font-semibold mb-4">Analisis HBKN (Ramadhan/Nataru)</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
-                        <thead>
-                            <tr class="bg-gray-200">
-                                <th class="p-2 text-left">Event</th>
-                                <th class="p-2 text-left">Komoditas Utama</th>
-                                <th class="p-2 text-right">Rata-rata Harga</th>
-                            </tr>
-                        </thead>
-                        <tbody id="hbknTable"></tbody>
-                    </table>
-                </div>
+        <!-- Kota Tegal Card -->
+        <div class="bg-white rounded-2xl shadow-md p-4 border-l-8 border-amber-500 card-hover">
+            <div class="flex justify-between items-start"><h2 class="font-bold text-lg"><i class="fas fa-city text-amber-600 mr-1"></i> Kota Tegal</h2><span class="text-xs bg-amber-100 px-2 py-1 rounded-full">terbaru</span></div>
+            <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                <div><p class="text-xs text-gray-500">MTM</p><p id="last_tegal_mtm" class="text-xl font-bold text-blue-700">-</p></div>
+                <div><p class="text-xs text-gray-500">YTD</p><p id="last_tegal_ytd" class="text-xl font-bold text-emerald-700">-</p></div>
+                <div><p class="text-xs text-gray-500">YoY</p><p id="last_tegal_yoy" class="text-xl font-bold text-purple-700">-</p></div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Data Inflasi (Contoh data dari BPS untuk simulasi API)
-        const inflationData = {
-            labels: ['Jan 24', 'Feb 24', 'Mar 24', 'Apr 24', 'Mei 24', 'Jun 24'],
-            nasional: [2.57, 2.75, 3.05, 3.00, 2.84, 2.51],
-            jateng: [2.69, 2.98, 3.40, 3.27, 2.66, 2.34],
-            tegal: [2.40, 2.50, 3.10, 2.90, 2.50, 2.22]
-        };
+    <!-- RINGKASAN ANALISA -->
+    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl shadow p-5 mb-8 border border-indigo-100">
+        <div class="flex items-center gap-2 mb-2"><i class="fas fa-chart-pie text-indigo-600 text-xl"></i><h2 class="text-xl font-semibold">📊 Ringkasan Analisa Inflasi</h2></div>
+        <div id="insight-text" class="text-gray-700 text-sm md:text-base leading-relaxed">Memuat analisis...</div>
+    </div>
 
-        // Render Inflation Chart
-        new Chart(document.getElementById('inflationChart'), {
-            type: 'line',
-            data: {
-                labels: inflationData.labels,
-                datasets: [
-                    { label: 'Nasional', data: inflationData.nasional, borderColor: 'blue', fill: false },
-                    { label: 'Jateng', data: inflationData.jateng, borderColor: 'green', fill: false },
-                    { label: 'Tegal', data: inflationData.tegal, borderColor: 'red', fill: false }
-                ]
-            }
-        });
+    <!-- GRAFIK + FILTER TAHUN & METRIK -->
+    <div class="bg-white rounded-2xl shadow-md p-4 md:p-5 mb-8">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
+            <h2 class="font-bold text-xl"><i class="fas fa-chart-line text-blue-600"></i> Tren Inflasi (Line Chart)</h2>
+            <div class="flex gap-3 flex-wrap">
+                <select id="chartYearFilter" class="border border-gray-300 rounded-xl px-3 py-2 bg-white text-sm shadow-sm">
+                    <option value="all">Semua Tahun</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+                <select id="chartMetricFilter" class="border border-gray-300 rounded-xl px-3 py-2 bg-white text-sm shadow-sm">
+                    <option value="mtm">Inflasi Bulanan (MTM)</option>
+                    <option value="ytd">Inflasi Tahun Kalender (YTD)</option>
+                    <option value="yoy">Inflasi Tahunan (YoY)</option>
+                </select>
+            </div>
+        </div>
+        <canvas id="inflationChart" width="400" height="250" style="max-height: 380px; width:100%"></canvas>
+    </div>
 
-        // Load Data from Processed JSON (dashboard_data.json)
-        async function loadDashboard() {
-            try {
-                const response = await fetch('dashboard_data.json');
-                const data = await response.json();
+    <!-- MANAJEMEN DATA: CRUD + FILTER TABEL + UPLOAD CSV -->
+    <div class="bg-white rounded-2xl shadow-md p-5 mb-8">
+        <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3 mb-4">
+            <h2 class="font-bold text-xl"><i class="fas fa-database text-green-600"></i> Manajemen Data Inflasi (CRUD)</h2>
+            <div class="flex gap-2">
+                <button id="openModalBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow"><i class="fas fa-plus-circle"></i> Tambah Manual</button>
+                <label class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer shadow"><i class="fas fa-upload"></i> Upload CSV <input type="file" id="csvUpload" accept=".csv" class="hidden"></label>
+            </div>
+        </div>
+        <div class="flex justify-between items-center gap-3 flex-wrap mb-3">
+            <div class="flex items-center gap-2"><i class="fas fa-filter text-gray-500"></i><span class="text-sm">Filter Tabel per Tahun:</span>
+                <select id="tableYearFilter" class="border rounded-lg px-2 py-1 text-sm">
+                    <option value="all">Semua Tahun</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            <div class="text-xs text-gray-500"><i class="fas fa-info-circle"></i> Edit/Hapus: klik ikon pada baris</div>
+        </div>
+        <div class="overflow-x-auto scroll-table border rounded-xl">
+            <table class="min-w-full text-sm text-left border-collapse">
+                <thead class="bg-gray-100 sticky top-0">
+                    <tr><th class="p-2">Thn</th><th>Bln</th><th>Wilayah</th><th>Nama</th><th>MTM(%)</th><th>YTD(%)</th><th>YoY(%)</th><th>Aksi</th></tr>
+                </thead>
+                <tbody id="dataTableBody"></tbody>
+            </table>
+        </div>
+        <div class="text-right text-xs text-gray-400 mt-2">Total data: <span id="totalDataCount">0</span> baris</div>
+    </div>
+</div>
 
-                // 1. Recommendation
-                const recList = document.getElementById('recommendationList');
-                data.recommendations.forEach(item => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<b>${item.nama_komoditas}</b> memiliki volatilitas tinggi (${(item.volatility * 100).toFixed(2)}%). Perlu pengawasan stok.`;
-                    recList.appendChild(li);
-                });
+<!-- MODAL TAMBAH/EDIT DATA -->
+<div id="dataModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-all">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative mx-4">
+        <div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold" id="modalTitle">Tambah Data Inflasi</h3><button id="closeModalBtn" class="text-gray-400 hover:text-gray-700"><i class="fas fa-times text-xl"></i></button></div>
+        <form id="dataForm">
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="grid grid-cols-2 gap-3 mb-3"><div><label class="text-xs font-semibold">Tahun</label><input type="number" id="tahun" required class="border p-2 rounded w-full"></div><div><label class="text-xs font-semibold">Bulan (1-12)</label><input type="number" id="bulan" min="1" max="12" required class="border p-2 rounded w-full"></div></div>
+            <div class="mb-3"><label class="text-xs font-semibold">Level Wilayah</label><select id="level_wilayah" class="border p-2 rounded w-full"><option value="nasional">Nasional</option><option value="provinsi">Provinsi</option><option value="kota">Kota</option></select></div>
+            <div class="mb-3"><label class="text-xs font-semibold">Nama Wilayah</label><input type="text" id="nama_wilayah" list="wilayahList" required class="border p-2 rounded w-full"><datalist id="wilayahList"><option>Nasional</option><option>Jawa Tengah</option><option>Kota Tegal</option></datalist></div>
+            <div class="grid grid-cols-3 gap-2 mb-4"><div><label>MTM (%)</label><input type="number" step="any" id="mtm" required class="border p-2 rounded w-full"></div><div><label>YTD (%)</label><input type="number" step="any" id="ytd" required class="border p-2 rounded w-full"></div><div><label>YoY (%)</label><input type="number" step="any" id="yoy" required class="border p-2 rounded w-full"></div></div>
+            <button type="submit" class="bg-blue-600 w-full text-white py-2 rounded-xl font-semibold">Simpan Data</button>
+        </form>
+    </div>
+</div>
 
-                // 2. HBKN Table
-                const hbknTable = document.getElementById('hbknTable');
-                data.hbkn_analysis.slice(0, 5).forEach(row => {
-                    const tr = `<tr>
-                        <td class="p-2">${row.event}</td>
-                        <td class="p-2">${row.nama_komoditas}</td>
-                        <td class="p-2 text-right">Rp ${Math.round(row.mean).toLocaleString()}</td>
-                    </tr>`;
-                    hbknTable.innerHTML += tr;
-                });
+<script>
+    // ----------------------------- DATA INISIAL (DARI CSV) ----------------------------------
+    const rawCSVData = `tahun,bulan,level_wilayah,nama_wilayah,inflasi_mtm,inflasi_ytd,inflasi_yoy,created_at
+2025,1,kota,Kota Tegal,-0.07,-0.07,2.41,50:47.2
+2025,2,kota,Kota Tegal,-0.95,-1.44,-0.11,50:47.2
+2025,3,kota,Kota Tegal,1.49,0.03,0.7,50:47.2
+2025,4,kota,Kota Tegal,1.56,1.59,2.04,50:47.2
+2025,5,kota,Kota Tegal,-0.44,1.14,2.04,50:47.2
+2025,6,kota,Kota Tegal,0.03,1.17,2.22,50:47.2
+2025,7,kota,Kota Tegal,0.41,1.59,2.65,50:47.2
+2025,8,kota,Kota Tegal,-0.02,1.57,2.62,50:47.2
+2025,9,kota,Kota Tegal,0.27,1.85,2.77,50:47.2
+2025,10,kota,Kota Tegal,0.41,2.27,2.98,50:47.2
+2025,11,kota,Kota Tegal,0.14,2.41,2.9,50:47.2
+2025,12,kota,Kota Tegal,0.41,2.83,2.83,50:47.2
+2025,1,provinsi,Jawa Tengah,-0.08,-0.08,2.69,50:47.2
+2025,2,provinsi,Jawa Tengah,-0.78,-1.23,-0.08,50:47.2
+2025,3,provinsi,Jawa Tengah,1.43,0.18,0.75,50:47.2
+2025,4,provinsi,Jawa Tengah,1.38,1.56,1.94,50:47.2
+2025,5,provinsi,Jawa Tengah,-0.49,1.06,1.66,50:47.2
+2025,6,provinsi,Jawa Tengah,-0.28,0.79,2.22,50:47.2
+2025,7,provinsi,Jawa Tengah,0.18,1.49,2.52,50:47.2
+2025,8,provinsi,Jawa Tengah,-0.1,1.39,2.48,50:47.2
+2025,9,provinsi,Jawa Tengah,0.21,1.61,2.65,50:47.2
+2025,10,provinsi,Jawa Tengah,0.4,2.01,2.86,50:47.2
+2025,11,provinsi,Jawa Tengah,0.19,2.2,2.79,50:47.2
+2025,12,provinsi,Jawa Tengah,0.5,2.72,2.72,50:47.2
+2025,1,nasional,Nasional,-0.76,-0.76,0.76,50:47.2
+2025,2,nasional,Nasional,-0.48,-1.24,-0.09,50:47.2
+2025,3,nasional,Nasional,1.65,0.39,1.03,50:47.2
+2025,4,nasional,Nasional,1.17,1.56,1.95,50:47.2
+2025,5,nasional,Nasional,-0.37,1.19,1.6,50:47.2
+2025,6,nasional,Nasional,0.19,1.38,1.87,50:47.2
+2025,7,nasional,Nasional,0.3,1.69,2.37,50:47.2
+2025,8,nasional,Nasional,-0.08,1.6,2.31,50:47.2
+2025,9,nasional,Nasional,0.21,1.82,2.65,50:47.2
+2025,10,nasional,Nasional,0.28,2.1,2.86,50:47.2
+2025,11,nasional,Nasional,0.17,2.27,2.72,50:47.2
+2025,12,nasional,Nasional,0.64,2.92,2.92,50:47.2
+2024,1,kota,Kota Tegal,-0.07,-0.07,2.41,11:47.0
+2024,2,kota,Kota Tegal,0.9,0.84,2.8,11:47.0
+2024,3,kota,Kota Tegal,0.67,1.51,3.41,11:47.0
+2024,4,kota,Kota Tegal,0.23,1.75,3.33,11:47.0
+2024,5,kota,Kota Tegal,-0.44,1.3,2.45,11:47.0
+2024,6,kota,Kota Tegal,0.15,1.15,2.29,11:47.0
+2024,7,kota,Kota Tegal,-0.01,1.14,2.16,11:47.0
+2024,8,kota,Kota Tegal,0.01,1.15,2.13,11:47.0
+2024,9,kota,Kota Tegal,0.13,1.28,2.03,11:47.0
+2024,10,kota,Kota Tegal,0.21,1.49,2.02,11:47.0
+2024,11,kota,Kota Tegal,0.22,1.71,1.89,11:47.0
+2024,12,kota,Kota Tegal,0.48,2.19,2.19,11:47.0
+2024,1,provinsi,Jawa Tengah,-0.08,-0.08,2.69,11:47.0
+2024,2,provinsi,Jawa Tengah,0.57,0.49,2.98,11:47.0
+2024,3,provinsi,Jawa Tengah,0.6,1.09,3.4,11:47.0
+2024,4,provinsi,Jawa Tengah,0.2,1.29,3.27,11:47.0
+2024,5,provinsi,Jawa Tengah,0.22,1.07,2.66,11:47.0
+2024,6,provinsi,Jawa Tengah,-0.28,0.79,2.22,11:47.0
+2024,7,provinsi,Jawa Tengah,-0.13,0.66,1.86,11:47.0
+2024,8,provinsi,Jawa Tengah,-0.07,0.59,1.77,11:47.0
+2024,9,provinsi,Jawa Tengah,0.05,0.64,1.57,11:47.0
+2024,10,provinsi,Jawa Tengah,0.19,0.83,1.6,11:47.0
+2024,11,provinsi,Jawa Tengah,0.26,1.09,1.33,11:47.0
+2024,12,provinsi,Jawa Tengah,0.57,1.67,1.67,11:47.0
+2024,1,nasional,Nasional,0.04,0.04,2.57,11:47.0
+2024,2,nasional,Nasional,0.37,0.41,2.75,11:47.0
+2024,3,nasional,Nasional,0.52,0.93,3.05,11:47.0
+2024,4,nasional,Nasional,0.25,1.19,3,11:47.0
+2024,5,nasional,Nasional,-0.03,1.16,2.84,11:47.0
+2024,6,nasional,Nasional,-0.08,1.07,2.51,11:47.0
+2024,7,nasional,Nasional,0.18,0.89,2.13,11:47.0
+2024,8,nasional,Nasional,-0.03,0.87,2.12,11:47.0
+2024,9,nasional,Nasional,-0.12,0.74,1.84,11:47.0
+2024,10,nasional,Nasional,0.08,0.82,1.71,11:47.0
+2024,11,nasional,Nasional,0.3,1.12,1.55,11:47.0
+2024,12,nasional,Nasional,0.44,1.57,1.57,11:47.0
+2026,1,kota,Kota Tegal,-0.24,-0.24,3.08,29:55.3
+2026,1,provinsi,Jawa Tengah,-0.35,-0.35,2.83,29:55.3
+2026,1,nasional,Nasional,-0.15,-0.15,3.55,29:55.3
+2026,2,kota,Kota Tegal,0.86,0.61,4.97,31:15.4
+2026,2,provinsi,Jawa Tengah,0.76,0.41,4.43,31:15.4
+2026,2,nasional,Nasional,0.68,0.53,4.76,31:15.4`;
 
-                // 3. IPH Chart logic
-                const iphCtx = document.getElementById('iphChart').getContext('2d');
-                let iphChartInstance;
+    let dataset = []; // menyimpan objek {tahun,bulan,level_wilayah,nama_wilayah,mtm,ytd,yoy}
 
-                function updateIPH(komoditas) {
-                    const filtered = data.weekly_iph.filter(d => d.komoditas === komoditas).slice(-20);
-                    const labels = filtered.map(d => `${d.month} W${d.week}`);
-                    const values = filtered.map(d => d.change_pct);
-
-                    if(iphChartInstance) iphChartInstance.destroy();
-                    iphChartInstance = new Chart(iphCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: `Perubahan Harga % (IPH) - ${komoditas}`,
-                                data: values,
-                                backgroundColor: values.map(v => v > 0 ? '#ef4444' : '#22c55e')
-                            }]
-                        },
-                        options: { scales: { y: { beginAtZero: true } } }
-                    });
-                }
-
-                document.getElementById('commodityFilter').addEventListener('change', (e) => updateIPH(e.target.value));
-                updateIPH('Beras Medium');
-
-            } catch (e) {
-                console.error("Error loading data:", e);
-                alert("Silakan pastikan file dashboard_data.json tersedia di server lokal.");
+    function parseCSVToArray(csvStr) {
+        const rows = csvStr.trim().split('\n');
+        const result = [];
+        for(let i=1; i<rows.length; i++) {
+            const cols = rows[i].split(',');
+            if(cols.length < 7) continue;
+            const tahun = parseInt(cols[0]);
+            const bulan = parseInt(cols[1]);
+            const level = cols[2].trim();
+            const nama = cols[3].trim();
+            const mtm = parseFloat(cols[4]);
+            const ytd = parseFloat(cols[5]);
+            const yoy = parseFloat(cols[6]);
+            if(!isNaN(tahun) && !isNaN(bulan)) {
+                result.push({ tahun, bulan, level_wilayah: level, nama_wilayah: nama, mtm, ytd, yoy });
             }
         }
+        return result;
+    }
 
-        loadDashboard();
-    </script>
+    // Inisialisasi / load data dari localStorage atau default
+    function loadData() {
+        const stored = localStorage.getItem('inflasi_db');
+        if(stored) {
+            dataset = JSON.parse(stored);
+        } else {
+            dataset = parseCSVToArray(rawCSVData);
+        }
+        renderAll();
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('inflasi_db', JSON.stringify(dataset));
+    }
+
+    function resetToOriginal() {
+        dataset = parseCSVToArray(rawCSVData);
+        saveToLocal();
+        renderAll();
+        alert("Data berhasil direset ke data awal (2024-2026)");
+    }
+
+    // Helper: get data terbaru per wilayah
+    function getLatestByWilayah(namaWilayah, level) {
+        const filtered = dataset.filter(d => d.nama_wilayah === namaWilayah && d.level_wilayah === level);
+        if(filtered.length === 0) return null;
+        return filtered.reduce((latest, curr) => {
+            if(curr.tahun > latest.tahun) return curr;
+            if(curr.tahun === latest.tahun && curr.bulan > latest.bulan) return curr;
+            return latest;
+        });
+    }
+
+    // Render semua: cards, tabel, grafik, insight
+    let chartInstance = null;
+    function renderAll() {
+        renderCards();
+        renderTable();
+        renderChart();
+        renderInsight();
+        document.getElementById('totalDataCount').innerText = dataset.length;
+    }
+
+    function renderCards() {
+        const nasional = getLatestByWilayah("Nasional", "nasional");
+        const jateng = getLatestByWilayah("Jawa Tengah", "provinsi");
+        const tegal = getLatestByWilayah("Kota Tegal", "kota");
+        document.getElementById('last_nasional_mtm').innerText = nasional ? nasional.mtm.toFixed(2) : '-';
+        document.getElementById('last_nasional_ytd').innerText = nasional ? nasional.ytd.toFixed(2) : '-';
+        document.getElementById('last_nasional_yoy').innerText = nasional ? nasional.yoy.toFixed(2) : '-';
+        document.getElementById('last_jateng_mtm').innerText = jateng ? jateng.mtm.toFixed(2) : '-';
+        document.getElementById('last_jateng_ytd').innerText = jateng ? jateng.ytd.toFixed(2) : '-';
+        document.getElementById('last_jateng_yoy').innerText = jateng ? jateng.yoy.toFixed(2) : '-';
+        document.getElementById('last_tegal_mtm').innerText = tegal ? tegal.mtm.toFixed(2) : '-';
+        document.getElementById('last_tegal_ytd').innerText = tegal ? tegal.ytd.toFixed(2) : '-';
+        document.getElementById('last_tegal_yoy').innerText = tegal ? tegal.yoy.toFixed(2) : '-';
+    }
+
+    function renderTable() {
+        const tahunFilter = document.getElementById('tableYearFilter').value;
+        let filtered = [...dataset];
+        if(tahunFilter !== 'all') filtered = filtered.filter(d => d.tahun == tahunFilter);
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+        filtered.forEach((item, idx) => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerText = item.tahun;
+            row.insertCell(1).innerText = item.bulan;
+            row.insertCell(2).innerText = item.level_wilayah;
+            row.insertCell(3).innerText = item.nama_wilayah;
+            row.insertCell(4).innerText = item.mtm.toFixed(2);
+            row.insertCell(5).innerText = item.ytd.toFixed(2);
+            row.insertCell(6).innerText = item.yoy.toFixed(2);
+            const actionCell = row.insertCell(7);
+            actionCell.className = "flex gap-2";
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '<i class="fas fa-edit text-blue-500"></i>';
+            editBtn.className = "hover:scale-110 transition";
+            editBtn.onclick = () => openEditModal(getOriginalIndex(item));
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '<i class="fas fa-trash-alt text-red-500"></i>';
+            delBtn.className = "hover:scale-110 transition";
+            delBtn.onclick = () => { if(confirm('Hapus data?')) deleteData(getOriginalIndex(item)); };
+            actionCell.appendChild(editBtn);
+            actionCell.appendChild(delBtn);
+        });
+    }
+
+    function getOriginalIndex(target) {
+        return dataset.findIndex(d => d.tahun === target.tahun && d.bulan === target.bulan && d.level_wilayah === target.level_wilayah && d.nama_wilayah === target.nama_wilayah);
+    }
+
+    function deleteData(idx) {
+        if(idx !== -1) { dataset.splice(idx,1); saveToLocal(); renderAll(); }
+    }
+
+    function openEditModal(item) {
+        document.getElementById('modalTitle').innerText = "Edit Data Inflasi";
+        document.getElementById('editIndex').value = getOriginalIndex(item);
+        document.getElementById('tahun').value = item.tahun;
+        document.getElementById('bulan').value = item.bulan;
+        document.getElementById('level_wilayah').value = item.level_wilayah;
+        document.getElementById('nama_wilayah').value = item.nama_wilayah;
+        document.getElementById('mtm').value = item.mtm;
+        document.getElementById('ytd').value = item.ytd;
+        document.getElementById('yoy').value = item.yoy;
+        document.getElementById('dataModal').classList.remove('hidden');
+    }
+
+    function addUpdateData(e) {
+        e.preventDefault();
+        const tahun = parseInt(document.getElementById('tahun').value);
+        const bulan = parseInt(document.getElementById('bulan').value);
+        const level = document.getElementById('level_wilayah').value;
+        const nama = document.getElementById('nama_wilayah').value.trim();
+        const mtm = parseFloat(document.getElementById('mtm').value);
+        const ytd = parseFloat(document.getElementById('ytd').value);
+        const yoy = parseFloat(document.getElementById('yoy').value);
+        if(isNaN(tahun) || isNaN(bulan) || isNaN(mtm) || isNaN(ytd) || isNaN(yoy)) { alert("Isi semua field dengan benar"); return; }
+        const editIdx = parseInt(document.getElementById('editIndex').value);
+        const newData = { tahun, bulan, level_wilayah: level, nama_wilayah: nama, mtm, ytd, yoy };
+        if(editIdx >= 0) {
+            dataset[editIdx] = newData;
+        } else {
+            // cek duplikat
+            const exist = dataset.some(d => d.tahun === tahun && d.bulan === bulan && d.level_wilayah === level && d.nama_wilayah === nama);
+            if(exist) { alert("Data untuk periode dan wilayah tersebut sudah ada! Gunakan edit."); return; }
+            dataset.push(newData);
+        }
+        saveToLocal();
+        renderAll();
+        closeModal();
+    }
+
+    function closeModal() { document.getElementById('dataModal').classList.add('hidden'); document.getElementById('editIndex').value = "-1"; document.getElementById('dataForm').reset(); }
+
+    // Grafik dinamis
+    async function renderChart() {
+        const year = document.getElementById('chartYearFilter').value;
+        const metric = document.getElementById('chartMetricFilter').value; // mtm, ytd, yoy
+        let filtered = [...dataset];
+        if(year !== 'all') filtered = filtered.filter(d => d.tahun == year);
+        // kelompokkan berdasarkan bulan & wilayah
+        const wilayahSet = ["Nasional", "Jawa Tengah", "Kota Tegal"];
+        const levelMap = { "Nasional":"nasional", "Jawa Tengah":"provinsi", "Kota Tegal":"kota" };
+        let timePoints = new Set();
+        filtered.forEach(d => { timePoints.add(`${d.tahun}-${d.bulan.toString().padStart(2,'0')}`); });
+        let sortedTimes = Array.from(timePoints).sort();
+        if(year !== 'all') {
+            // urutkan berdasarkan bulan numerik
+            sortedTimes.sort((a,b) => { let [ya,ma]=a.split('-'); let [yb,mb]=b.split('-'); return (ya==yb? parseInt(ma)-parseInt(mb): parseInt(ya)-parseInt(yb)); });
+        } else {
+            sortedTimes.sort();
+        }
+        const datasets = [];
+        for(let wil of wilayahSet) {
+            const levelWil = levelMap[wil];
+            const dataPoints = sortedTimes.map(t => {
+                const [th, bl] = t.split('-');
+                const item = filtered.find(d => d.tahun == parseInt(th) && d.bulan == parseInt(bl) && d.nama_wilayah === wil && d.level_wilayah === levelWil);
+                if(item) return metric === 'mtm' ? item.mtm : metric === 'ytd' ? item.ytd : item.yoy;
+                return null;
+            });
+            datasets.push({ label: wil, data: dataPoints, borderColor: wil === 'Nasional' ? '#3b82f6' : (wil === 'Jawa Tengah' ? '#14b8a6' : '#f59e0b'), tension: 0.2, fill: false, borderWidth: 2.5 });
+        }
+        const ctx = document.getElementById('inflationChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, { type: 'line', data: { labels: sortedTimes.map(t => t.replace('-','/')), datasets }, options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw?.toFixed(2)}%` } } } } });
+    }
+
+    // Insight analisis dinamis
+    function renderInsight() {
+        const nasionalYoyAvg = avgByWilayah("Nasional","nasional","yoy");
+        const jatengYoyAvg = avgByWilayah("Jawa Tengah","provinsi","yoy");
+        const tegalYoyAvg = avgByWilayah("Kota Tegal","kota","yoy");
+        const latestNas = getLatestByWilayah("Nasional","nasional");
+        let insight = `📈 Sepanjang data (2024-2026): Rata-rata inflasi tahunan (YoY) Nasional ${nasionalYoyAvg.toFixed(2)}%, Jawa Tengah ${jatengYoyAvg.toFixed(2)}%, Kota Tegal ${tegalYoyAvg.toFixed(2)}%. `;
+        if(latestNas) insight += `Per ${latestNas.bulan}/${latestNas.tahun}, Nasional tercatat MTM ${latestNas.mtm.toFixed(2)}%, YTD ${latestNas.ytd.toFixed(2)}%, YoY ${latestNas.yoy.toFixed(2)}%. `;
+        const maxMtm = dataset.reduce((max, d) => d.mtm > max.mtm ? d : max, dataset[0]);
+        if(maxMtm) insight += `Puncak inflasi bulanan (MTM) terjadi pada ${maxMtm.nama_wilayah} (${maxMtm.bulan}/${maxMtm.tahun}) sebesar ${maxMtm.mtm.toFixed(2)}%. `;
+        insight += `💡 Tren terkini (2026) menunjukkan inflasi YoY meningkat di semua wilayah, dipicu faktor musiman. Gunakan filter grafik untuk eksplorasi lebih dalam.`;
+        document.getElementById('insight-text').innerHTML = insight;
+    }
+    function avgByWilayah(nama, level, metric) {
+        const filtered = dataset.filter(d => d.nama_wilayah === nama && d.level_wilayah === level);
+        if(!filtered.length) return 0;
+        const sum = filtered.reduce((acc,cur) => acc + (metric==='mtm'?cur.mtm: metric==='ytd'?cur.ytd:cur.yoy),0);
+        return sum/filtered.length;
+    }
+
+    // Upload CSV (merge atau tambah / update)
+    function handleCSVUpload(file) {
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
+            const newRows = [];
+            results.data.forEach(row => {
+                const tahun = parseInt(row.tahun);
+                const bulan = parseInt(row.bulan);
+                const level = row.level_wilayah?.trim();
+                const nama = row.nama_wilayah?.trim();
+                const mtm = parseFloat(row.inflasi_mtm);
+                const ytd = parseFloat(row.inflasi_ytd);
+                const yoy = parseFloat(row.inflasi_yoy);
+                if(!isNaN(tahun) && !isNaN(bulan) && level && nama && !isNaN(mtm) && !isNaN(ytd) && !isNaN(yoy))
+                    newRows.push({ tahun, bulan, level_wilayah: level, nama_wilayah: nama, mtm, ytd, yoy });
+            });
+            // update or insert
+            for(let newItem of newRows) {
+                const idx = dataset.findIndex(d => d.tahun === newItem.tahun && d.bulan === newItem.bulan && d.level_wilayah === newItem.level_wilayah && d.nama_wilayah === newItem.nama_wilayah);
+                if(idx !== -1) dataset[idx] = newItem;
+                else dataset.push(newItem);
+            }
+            saveToLocal();
+            renderAll();
+            alert(`CSV berhasil diproses: ${newRows.length} baris ditambahkan/diupdate.`);
+        } });
+    }
+
+    // API USD/IDR
+    async function fetchUSDRate() {
+        try {
+            const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=IDR');
+            if(res.ok) { const data = await res.json(); const rate = data.rates.IDR; document.getElementById('usd-rate').innerHTML = `USD/IDR: ${rate.toFixed(2)}`; }
+            else throw new Error();
+        } catch(e) { document.getElementById('usd-rate').innerHTML = `USD/IDR: ~15.700 (estimasi)`; }
+    }
+
+    // Event Listener
+    document.getElementById('resetDataBtn').addEventListener('click', resetToOriginal);
+    document.getElementById('openModalBtn').addEventListener('click', () => { document.getElementById('modalTitle').innerText = "Tambah Data Inflasi"; document.getElementById('editIndex').value = "-1"; document.getElementById('dataForm').reset(); document.getElementById('dataModal').classList.remove('hidden'); });
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('dataForm').addEventListener('submit', addUpdateData);
+    document.getElementById('tableYearFilter').addEventListener('change', () => renderTable());
+    document.getElementById('chartYearFilter').addEventListener('change', () => renderChart());
+    document.getElementById('chartMetricFilter').addEventListener('change', () => renderChart());
+    document.getElementById('csvUpload').addEventListener('change', (e) => { if(e.target.files.length) handleCSVUpload(e.target.files[0]); e.target.value=''; });
+    window.onclick = (e) => { if(e.target === document.getElementById('dataModal')) closeModal(); };
+    loadData();
+    fetchUSDRate();
+    setInterval(fetchUSDRate, 60000);
+</script>
 </body>
 </html>
