@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dashboard Inflasi & Harga Pangan | Nasional, Jateng, Tegal</title>
+    <title>Dashboard Inflasi & Harga Pangan | Terpisah dari Data</title>
     <!-- Tailwind CSS + Font Awesome + Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -27,6 +27,7 @@
                 Dashboard Inflasi & Harga Pangan
             </h1>
             <p class="text-slate-500 text-sm mt-1">Inflasi MTM/YTD/YoY · Harga Komoditas · Analisis Pra-Pasca Hari Besar</p>
+            <p class="text-xs text-amber-600 mt-1"><i class="fas fa-database"></i> Data inflasi hanya dari file <strong>inflasi_data.csv</strong> (eksternal) atau upload manual.</p>
         </div>
         <div class="bg-white rounded-2xl shadow-md px-5 py-2 flex items-center gap-3 border">
             <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
@@ -110,8 +111,9 @@
                     <h3 class="font-bold text-slate-700 text-lg"><i class="fas fa-database text-green-600"></i> Manajemen Data Inflasi</h3>
                     <div class="flex gap-2">
                         <select id="filterTahunTabel" class="border rounded-xl px-3 py-1.5 text-sm bg-gray-50"><option value="all">Semua Tahun</option></select>
-                        <button id="resetDataBtn" class="bg-gray-200 hover:bg-gray-300 text-slate-700 px-3 py-1.5 rounded-xl text-sm"><i class="fas fa-undo-alt"></i> Reset</button>
+                        <button id="resetDataBtn" class="bg-gray-200 hover:bg-gray-300 text-slate-700 px-3 py-1.5 rounded-xl text-sm"><i class="fas fa-trash-alt"></i> Hapus Semua Data</button>
                         <button id="uploadCsvBtn" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-xl text-sm"><i class="fas fa-upload"></i> Upload CSV Inflasi</button>
+                        <button id="loadDefaultCsvBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-xl text-sm"><i class="fas fa-file-csv"></i> Muat inflasi_data.csv</button>
                     </div>
                 </div>
                 <!-- Form CRUD -->
@@ -139,7 +141,7 @@
                         </thead>
                         <tbody id="tabelDataBody"></tbody>
                     </table>
-                    <div id="noDataMsg" class="text-center py-6 text-slate-400 hidden">Tidak ada data untuk filter tahun ini.</div>
+                    <div id="noDataMsg" class="text-center py-6 text-slate-400 hidden">Tidak ada data. Upload file CSV atau gunakan tombol "Muat inflasi_data.csv".</div>
                     <div id="paginationControls" class="flex justify-between items-center mt-4 px-2">
                         <div class="text-xs text-slate-500" id="pageInfo">Halaman 1 dari 1</div>
                         <div class="flex gap-2">
@@ -167,10 +169,9 @@
             <div id="infoKomoditas" class="mt-3 text-sm text-amber-600"></div>
         </div>
 
-        <!-- Ringkasan analisis harga komoditas -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded-2xl shadow-md p-5">
-                <h3 class="font-bold text-slate-700"><i class="fas fa-chart-simple text-blue-500"></i> Tren Harga Komoditas Utama (per kg / satuan)</h3>
+                <h3 class="font-bold text-slate-700"><i class="fas fa-chart-simple text-blue-500"></i> Tren Harga Komoditas Utama</h3>
                 <canvas id="hargaKomoditasChart" height="200" style="max-height: 300px;"></canvas>
                 <div class="text-xs text-slate-400 mt-2">Klik legend untuk filter komoditas</div>
             </div>
@@ -179,7 +180,6 @@
                 <div id="analisisHariBesar" class="text-sm text-slate-600 space-y-3 max-h-80 overflow-y-auto"></div>
             </div>
         </div>
-        <!-- Tabel harga terbaru beberapa komoditas -->
         <div class="bg-white rounded-2xl shadow-md p-5">
             <h3 class="font-bold text-slate-700 mb-3"><i class="fas fa-table"></i> Harga Terbaru Komoditas</h3>
             <div class="overflow-x-auto">
@@ -191,103 +191,75 @@
         </div>
     </div>
 
-    <footer class="text-center text-slate-400 text-xs py-4 border-t">Dashboard Inflasi & Harga Pangan • Data eksternal CSV (inflasi_data.csv & harga_komoditas.csv) akan dimuat otomatis jika tersedia.</footer>
+    <footer class="text-center text-slate-400 text-xs py-4 border-t">Dashboard Inflasi & Harga Pangan • Data inflasi hanya dari file CSV eksternal (inflasi_data.csv) atau upload. Data komoditas via upload.</footer>
 </div>
 
 <script>
-    // ----------------------------- DATA INFLASI DEFAULT (FALLBACK) -----------------------------
-    const defaultData = [ /* Data default sama seperti sebelumnya - disisipkan lengkap agar tidak error jika file CSV tidak ada */
-        {tahun:2025,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.07,inflasi_ytd:-0.07,inflasi_yoy:2.41},
-        {tahun:2025,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.95,inflasi_ytd:-1.44,inflasi_yoy:-0.11},
-        {tahun:2025,bulan:3,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:1.49,inflasi_ytd:0.03,inflasi_yoy:0.7},
-        {tahun:2025,bulan:4,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:1.56,inflasi_ytd:1.59,inflasi_yoy:2.04},
-        {tahun:2025,bulan:5,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.44,inflasi_ytd:1.14,inflasi_yoy:2.04},
-        {tahun:2025,bulan:6,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.03,inflasi_ytd:1.17,inflasi_yoy:2.22},
-        {tahun:2025,bulan:7,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.41,inflasi_ytd:1.59,inflasi_yoy:2.65},
-        {tahun:2025,bulan:8,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.02,inflasi_ytd:1.57,inflasi_yoy:2.62},
-        {tahun:2025,bulan:9,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.27,inflasi_ytd:1.85,inflasi_yoy:2.77},
-        {tahun:2025,bulan:10,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.41,inflasi_ytd:2.27,inflasi_yoy:2.98},
-        {tahun:2025,bulan:11,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.14,inflasi_ytd:2.41,inflasi_yoy:2.9},
-        {tahun:2025,bulan:12,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.41,inflasi_ytd:2.83,inflasi_yoy:2.83},
-        {tahun:2025,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.08,inflasi_ytd:-0.08,inflasi_yoy:2.69},
-        {tahun:2025,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.78,inflasi_ytd:-1.23,inflasi_yoy:-0.08},
-        {tahun:2025,bulan:3,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:1.43,inflasi_ytd:0.18,inflasi_yoy:0.75},
-        {tahun:2025,bulan:4,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:1.38,inflasi_ytd:1.56,inflasi_yoy:1.94},
-        {tahun:2025,bulan:5,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.49,inflasi_ytd:1.06,inflasi_yoy:1.66},
-        {tahun:2025,bulan:6,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.28,inflasi_ytd:0.79,inflasi_yoy:2.22},
-        {tahun:2025,bulan:7,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.18,inflasi_ytd:1.49,inflasi_yoy:2.52},
-        {tahun:2025,bulan:8,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.1,inflasi_ytd:1.39,inflasi_yoy:2.48},
-        {tahun:2025,bulan:9,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.21,inflasi_ytd:1.61,inflasi_yoy:2.65},
-        {tahun:2025,bulan:10,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.4,inflasi_ytd:2.01,inflasi_yoy:2.86},
-        {tahun:2025,bulan:11,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.19,inflasi_ytd:2.2,inflasi_yoy:2.79},
-        {tahun:2025,bulan:12,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.5,inflasi_ytd:2.72,inflasi_yoy:2.72},
-        {tahun:2025,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.76,inflasi_ytd:-0.76,inflasi_yoy:0.76},
-        {tahun:2025,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.48,inflasi_ytd:-1.24,inflasi_yoy:-0.09},
-        {tahun:2025,bulan:3,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:1.65,inflasi_ytd:0.39,inflasi_yoy:1.03},
-        {tahun:2025,bulan:4,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:1.17,inflasi_ytd:1.56,inflasi_yoy:1.95},
-        {tahun:2025,bulan:5,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.37,inflasi_ytd:1.19,inflasi_yoy:1.6},
-        {tahun:2025,bulan:6,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.19,inflasi_ytd:1.38,inflasi_yoy:1.87},
-        {tahun:2025,bulan:7,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.3,inflasi_ytd:1.69,inflasi_yoy:2.37},
-        {tahun:2025,bulan:8,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.08,inflasi_ytd:1.6,inflasi_yoy:2.31},
-        {tahun:2025,bulan:9,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.21,inflasi_ytd:1.82,inflasi_yoy:2.65},
-        {tahun:2025,bulan:10,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.28,inflasi_ytd:2.1,inflasi_yoy:2.86},
-        {tahun:2025,bulan:11,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.17,inflasi_ytd:2.27,inflasi_yoy:2.72},
-        {tahun:2025,bulan:12,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.64,inflasi_ytd:2.92,inflasi_yoy:2.92},
-        {tahun:2024,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.07,inflasi_ytd:-0.07,inflasi_yoy:2.41},
-        {tahun:2024,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.9,inflasi_ytd:0.84,inflasi_yoy:2.8},
-        {tahun:2024,bulan:3,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.67,inflasi_ytd:1.51,inflasi_yoy:3.41},
-        {tahun:2024,bulan:4,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.23,inflasi_ytd:1.75,inflasi_yoy:3.33},
-        {tahun:2024,bulan:5,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.44,inflasi_ytd:1.3,inflasi_yoy:2.45},
-        {tahun:2024,bulan:6,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.15,inflasi_ytd:1.15,inflasi_yoy:2.29},
-        {tahun:2024,bulan:7,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.01,inflasi_ytd:1.14,inflasi_yoy:2.16},
-        {tahun:2024,bulan:8,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.01,inflasi_ytd:1.15,inflasi_yoy:2.13},
-        {tahun:2024,bulan:9,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.13,inflasi_ytd:1.28,inflasi_yoy:2.03},
-        {tahun:2024,bulan:10,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.21,inflasi_ytd:1.49,inflasi_yoy:2.02},
-        {tahun:2024,bulan:11,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.22,inflasi_ytd:1.71,inflasi_yoy:1.89},
-        {tahun:2024,bulan:12,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.48,inflasi_ytd:2.19,inflasi_yoy:2.19},
-        {tahun:2024,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.08,inflasi_ytd:-0.08,inflasi_yoy:2.69},
-        {tahun:2024,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.57,inflasi_ytd:0.49,inflasi_yoy:2.98},
-        {tahun:2024,bulan:3,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.6,inflasi_ytd:1.09,inflasi_yoy:3.4},
-        {tahun:2024,bulan:4,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.2,inflasi_ytd:1.29,inflasi_yoy:3.27},
-        {tahun:2024,bulan:5,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.22,inflasi_ytd:1.07,inflasi_yoy:2.66},
-        {tahun:2024,bulan:6,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.28,inflasi_ytd:0.79,inflasi_yoy:2.22},
-        {tahun:2024,bulan:7,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.13,inflasi_ytd:0.66,inflasi_yoy:1.86},
-        {tahun:2024,bulan:8,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.07,inflasi_ytd:0.59,inflasi_yoy:1.77},
-        {tahun:2024,bulan:9,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.05,inflasi_ytd:0.64,inflasi_yoy:1.57},
-        {tahun:2024,bulan:10,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.19,inflasi_ytd:0.83,inflasi_yoy:1.6},
-        {tahun:2024,bulan:11,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.26,inflasi_ytd:1.09,inflasi_yoy:1.33},
-        {tahun:2024,bulan:12,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.57,inflasi_ytd:1.67,inflasi_yoy:1.67},
-        {tahun:2024,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.04,inflasi_ytd:0.04,inflasi_yoy:2.57},
-        {tahun:2024,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.37,inflasi_ytd:0.41,inflasi_yoy:2.75},
-        {tahun:2024,bulan:3,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.52,inflasi_ytd:0.93,inflasi_yoy:3.05},
-        {tahun:2024,bulan:4,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.25,inflasi_ytd:1.19,inflasi_yoy:3},
-        {tahun:2024,bulan:5,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.03,inflasi_ytd:1.16,inflasi_yoy:2.84},
-        {tahun:2024,bulan:6,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.08,inflasi_ytd:1.07,inflasi_yoy:2.51},
-        {tahun:2024,bulan:7,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.18,inflasi_ytd:0.89,inflasi_yoy:2.13},
-        {tahun:2024,bulan:8,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.03,inflasi_ytd:0.87,inflasi_yoy:2.12},
-        {tahun:2024,bulan:9,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.12,inflasi_ytd:0.74,inflasi_yoy:1.84},
-        {tahun:2024,bulan:10,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.08,inflasi_ytd:0.82,inflasi_yoy:1.71},
-        {tahun:2024,bulan:11,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.3,inflasi_ytd:1.12,inflasi_yoy:1.55},
-        {tahun:2024,bulan:12,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.44,inflasi_ytd:1.57,inflasi_yoy:1.57},
-        {tahun:2026,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.24,inflasi_ytd:-0.24,inflasi_yoy:3.08},
-        {tahun:2026,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.35,inflasi_ytd:-0.35,inflasi_yoy:2.83},
-        {tahun:2026,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.15,inflasi_ytd:-0.15,inflasi_yoy:3.55},
-        {tahun:2026,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.86,inflasi_ytd:0.61,inflasi_yoy:4.97},
-        {tahun:2026,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.76,inflasi_ytd:0.41,inflasi_yoy:4.43},
-        {tahun:2026,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.68,inflasi_ytd:0.53,inflasi_yoy:4.76}
-    ];
-
+    // ----------------------------- GLOBAL VARIABLES -----------------------------
     let inflationData = [];
     let editMode = false, editIndex = null, chartInstance = null;
     let currentPage = 1, rowsPerPage = 10, filteredDataForTable = [];
 
+    let komoditasData = [];
+    let komoditasChart = null;
+
+    // ----------------------------- FUNGSI INFLASI -----------------------------
     function saveToLocalStorage() { localStorage.setItem('inflasiData', JSON.stringify(inflationData)); }
     function loadFromLocalStorage() {
         const stored = localStorage.getItem('inflasiData');
         if(stored) inflationData = JSON.parse(stored);
-        else { inflationData = JSON.parse(JSON.stringify(defaultData)); saveToLocalStorage(); }
+        else inflationData = [];
+        refreshAllUI();
     }
-    function resetToDefault() { inflationData = JSON.parse(JSON.stringify(defaultData)); saveToLocalStorage(); refreshAllUI(); }
+
+    function resetAllData() {
+        if(confirm('Hapus semua data inflasi yang tersimpan? Data tidak dapat dikembalikan kecuali upload ulang.')) {
+            inflationData = [];
+            saveToLocalStorage();
+            refreshAllUI();
+            alert('Semua data inflasi telah dihapus.');
+        }
+    }
+
+    function loadExternalInflasiCSV() {
+        fetch('inflasi_data.csv')
+            .then(response => {
+                if(!response.ok) throw new Error('File tidak ditemukan');
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, { header: true, skipEmptyLines: true, complete: (res) => {
+                    let data = res.data.map(r => ({
+                        tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah,
+                        inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy)
+                    })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan) && r.level_wilayah);
+                    if(data.length) {
+                        inflationData = data;
+                        saveToLocalStorage();
+                        refreshAllUI();
+                        alert(`Berhasil memuat ${data.length} data dari inflasi_data.csv`);
+                    } else {
+                        alert('File inflasi_data.csv tidak memiliki data valid.');
+                    }
+                }});
+            })
+            .catch(err => alert('File inflasi_data.csv tidak ditemukan. Silakan upload manual.'));
+    }
+
+    function handleUploadCsv(file) {
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
+            let newRows = res.data.map(r => ({
+                tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah,
+                inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy)
+            })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan) && r.level_wilayah);
+            if(newRows.length === 0) { alert('File CSV tidak valid. Pastikan kolom: tahun,bulan,level_wilayah,nama_wilayah,inflasi_mtm,inflasi_ytd,inflasi_yoy'); return; }
+            // Merge atau timpa? Di sini kita timpa data lama dengan data baru dari file (ganti total)
+            inflationData = newRows;
+            saveToLocalStorage();
+            refreshAllUI();
+            alert(`Berhasil memuat ${newRows.length} data dari file CSV. Data sebelumnya diganti.`);
+        }});
+    }
 
     function getLatestByWilayah(level, nama) {
         let filtered = inflationData.filter(d => d.level_wilayah === level && d.nama_wilayah === nama);
@@ -333,7 +305,11 @@
         const pageData = filteredDataForTable.slice(start,end);
         const tbody = document.getElementById('tabelDataBody');
         tbody.innerHTML = '';
-        if(totalRows===0) { document.getElementById('noDataMsg').classList.remove('hidden'); document.getElementById('paginationControls').classList.add('hidden'); return; }
+        if(totalRows===0) { 
+            document.getElementById('noDataMsg').classList.remove('hidden'); 
+            document.getElementById('paginationControls').classList.add('hidden'); 
+            return; 
+        }
         document.getElementById('noDataMsg').classList.add('hidden');
         document.getElementById('paginationControls').classList.remove('hidden');
         pageData.forEach(item => {
@@ -357,7 +333,7 @@
     function attachTableEvents() {
         document.querySelectorAll('.deleteBtn').forEach(btn => btn.addEventListener('click', (e) => {
             const tahun = parseInt(btn.dataset.tahun), bulan = parseInt(btn.dataset.bulan), level = btn.dataset.level;
-            if(confirm(`Hapus data?`)) {
+            if(confirm(`Hapus data ${btn.dataset.nama} ${tahun}-${bulan}?`)) {
                 inflationData = inflationData.filter(d => !(d.tahun===tahun && d.bulan===bulan && d.level_wilayah===level));
                 saveToLocalStorage(); refreshAllUI();
             }
@@ -468,71 +444,9 @@
         `;
     }
 
-    function handleUploadCsv(file) {
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
-            let newRows = res.data.map(r => ({
-                tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah,
-                inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy)
-            })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan) && r.level_wilayah);
-            let merged = [...inflationData];
-            newRows.forEach(nr => {
-                const idx = merged.findIndex(ex => ex.tahun===nr.tahun && ex.bulan===nr.bulan && ex.level_wilayah===nr.level_wilayah);
-                if(idx !== -1) merged[idx] = nr;
-                else merged.push(nr);
-            });
-            inflationData = merged;
-            saveToLocalStorage();
-            refreshAllUI();
-            alert(`Berhasil mengimpor ${newRows.length} data (merge/update).`);
-        }});
-    }
-
-    // Fungsi untuk memuat data inflasi dari file CSV eksternal (jika ada)
-    function loadExternalInflasiCSV() {
-        fetch('inflasi_data.csv')
-            .then(response => {
-                if(!response.ok) throw new Error('File tidak ditemukan');
-                return response.text();
-            })
-            .then(csvText => {
-                Papa.parse(csvText, { header: true, skipEmptyLines: true, complete: (res) => {
-                    let data = res.data.map(r => ({
-                        tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah,
-                        inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy)
-                    })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan) && r.level_wilayah);
-                    if(data.length) {
-                        inflationData = data;
-                        saveToLocalStorage();
-                        refreshAllUI();
-                        console.log('Data inflasi berhasil dimuat dari inflasi_data.csv');
-                    }
-                }});
-            })
-            .catch(err => console.log('Tidak ada file inflasi_data.csv, menggunakan data default.'));
-    }
-
-    // Fungsi untuk memuat data komoditas dari file CSV eksternal (jika ada)
-    function loadExternalKomoditasCSV() {
-        fetch('harga_komoditas.csv')
-            .then(response => {
-                if(!response.ok) throw new Error('File tidak ditemukan');
-                return response.text();
-            })
-            .then(csvText => {
-                Papa.parse(csvText, { header: true, skipEmptyLines: true, complete: (res) => {
-                    processKomoditasCSV(res.data);
-                    document.getElementById('infoKomoditas').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Data komoditas berhasil dimuat dari harga_komoditas.csv';
-                }});
-            })
-            .catch(err => console.log('Tidak ada file harga_komoditas.csv, silakan upload manual.'));
-    }
-
     function refreshAllUI() { updateTahunFilterOptions(); updateCards(); renderTable(); renderChart(); updateRingkasan(); }
 
     // ----------------------------- KOMODITAS HANDLER -----------------------------
-    let komoditasData = [];
-    let komoditasChart = null;
-
     function processKomoditasCSV(dataRows) {
         komoditasData = dataRows.filter(row => row.tanggal && row.nama_komoditas && row.harga && !isNaN(parseFloat(row.harga)) && parseFloat(row.harga)>0)
             .map(row => ({ tanggal: row.tanggal, nama_komoditas: row.nama_komoditas, harga: parseFloat(row.harga), satuan: row.satuan || 'kg' }));
@@ -562,7 +476,7 @@
     }
 
     function renderAnalisisHariBesar() {
-        const lebaranDates = ['2022-05-02','2023-04-22','2024-04-10']; // H-7 & H+7 dihitung
+        const lebaranDates = ['2022-05-02','2023-04-22','2024-04-10'];
         const nataruDates = ['2022-12-25','2023-12-25','2024-12-25'];
         const komoditasFokus = ['Beras Medium', 'Cabai Rawit Merah', 'Daging Ayam Ras', 'Telur Ayam Ras'];
         let html = '<div class="space-y-4">';
@@ -658,9 +572,10 @@
     document.getElementById('btnTambah').addEventListener('click', tambahData);
     document.getElementById('btnUpdate').addEventListener('click', updateData);
     document.getElementById('btnBatal').addEventListener('click', resetForm);
-    document.getElementById('resetDataBtn').addEventListener('click', resetToDefault);
+    document.getElementById('resetDataBtn').addEventListener('click', resetAllData);
     document.getElementById('uploadCsvBtn').addEventListener('click', () => document.getElementById('fileCsvInput').click());
     document.getElementById('fileCsvInput').addEventListener('change', (e) => { if(e.target.files.length) handleUploadCsv(e.target.files[0]); e.target.value=''; });
+    document.getElementById('loadDefaultCsvBtn').addEventListener('click', loadExternalInflasiCSV);
     document.getElementById('filterTahunTabel').addEventListener('change', renderTable);
     document.getElementById('filterTahunGrafik').addEventListener('change', renderChart);
     document.getElementById('metricGrafik').addEventListener('change', renderChart);
@@ -672,15 +587,15 @@
         if(file) Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => processKomoditasCSV(res.data) });
     });
 
-    // Inisialisasi: coba muat dari localStorage, lalu dari file eksternal jika perlu
+    // Inisialisasi
     loadFromLocalStorage();
-    refreshAllUI();
     fetchKurs();
     setInterval(fetchKurs, 300000);
-    // Coba muat file CSV eksternal (tidak mengganggu jika tidak ada)
+    // Coba muat file eksternal jika ada (tidak mengganggu)
     setTimeout(() => {
-        loadExternalInflasiCSV();
-        loadExternalKomoditasCSV();
+        if(inflationData.length === 0) {
+            loadExternalInflasiCSV();
+        }
     }, 500);
 </script>
 </body>
