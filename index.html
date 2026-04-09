@@ -44,7 +44,7 @@
         <button id="TabKomoditas" class="tab-btn px-5 py-2 text-sm font-medium rounded-t-lg transition bg-white text-slate-600 hover:text-blue-600">🛒 Perkembangan Harga Komoditas</button>
     </div>
 
-    <!-- ==================== TAB INFLASI (KONTEN LAMA) ==================== -->
+    <!-- ==================== TAB INFLASI ==================== -->
     <div id="panelInflasi" class="tab-panel">
         <!-- 3 Kartu Utama Inflasi -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -99,7 +99,7 @@
             <canvas id="inflationChart" height="100" style="max-height: 380px; width:100%"></canvas>
         </div>
 
-        <!-- Ringkasan Analisa & Manajemen Data Inflasi (CRUD, tabel, pagination) -->
+        <!-- Ringkasan Analisa & Manajemen Data Inflasi -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div class="lg:col-span-1 bg-white rounded-2xl shadow-md p-5">
                 <h3 class="font-bold text-slate-700 text-lg flex items-center gap-2"><i class="fas fa-chart-pie text-purple-500"></i> Ringkasan Analisa Inflasi</h3>
@@ -114,7 +114,7 @@
                         <button id="uploadCsvBtn" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-xl text-sm"><i class="fas fa-upload"></i> Upload CSV Inflasi</button>
                     </div>
                 </div>
-                <!-- Form CRUD inflasi (sama seperti sebelumnya) -->
+                <!-- Form CRUD -->
                 <div class="bg-slate-50 p-4 rounded-xl mb-5 border">
                     <div class="grid grid-cols-2 md:grid-cols-6 gap-3 items-end">
                         <div><label class="text-xs font-semibold">Tahun</label><input type="number" id="crudTahun" class="w-full border rounded-lg p-1.5 text-sm" value="2026"></div>
@@ -131,17 +131,21 @@
                         </div>
                     </div>
                 </div>
-                <!-- Tabel Data Inflasi dengan pagination -->
+                <!-- Tabel Data Inflasi + Pagination -->
                 <div class="overflow-x-auto scrollbar-thin">
                     <table class="min-w-full text-sm border-separate border-spacing-0">
-                        <thead class="bg-slate-100"><tr><th class="p-2 text-left">Tahun-Bulan</th><th>Wilayah</th><th>MTM(%)</th><th>YTD(%)</th><th>YoY(%)</th><th class="text-center">Aksi</th></tr></thead>
+                        <thead class="bg-slate-100">
+                            <tr><th class="p-2 text-left">Tahun-Bulan</th><th>Wilayah</th><th>MTM(%)</th><th>YTD(%)</th><th>YoY(%)</th><th class="text-center">Aksi</th></tr>
+                        </thead>
                         <tbody id="tabelDataBody"></tbody>
                     </table>
                     <div id="noDataMsg" class="text-center py-6 text-slate-400 hidden">Tidak ada data untuk filter tahun ini.</div>
                     <div id="paginationControls" class="flex justify-between items-center mt-4 px-2">
                         <div class="text-xs text-slate-500" id="pageInfo">Halaman 1 dari 1</div>
-                        <div class="flex gap-2"><button id="prevPageBtn" class="pagination-btn bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md text-sm disabled:opacity-50" disabled><i class="fas fa-chevron-left"></i> Sebelumnya</button>
-                        <button id="nextPageBtn" class="pagination-btn bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md text-sm disabled:opacity-50">Berikutnya <i class="fas fa-chevron-right"></i></button></div>
+                        <div class="flex gap-2">
+                            <button id="prevPageBtn" class="pagination-btn bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md text-sm disabled:opacity-50" disabled><i class="fas fa-chevron-left"></i> Sebelumnya</button>
+                            <button id="nextPageBtn" class="pagination-btn bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-md text-sm disabled:opacity-50">Berikutnya <i class="fas fa-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
                 <input type="file" id="fileCsvInput" accept=".csv" class="hidden">
@@ -154,11 +158,12 @@
         <div class="bg-white rounded-2xl shadow-md p-6 mb-6">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <h2 class="text-xl font-semibold text-slate-700"><i class="fas fa-chart-line text-green-600"></i> Analisis Harga Komoditas Pangan</h2>
-                <div>
-                    <label class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl cursor-pointer inline-flex items-center gap-2 text-sm"><i class="fas fa-upload"></i> Upload CSV (merged_harga_komoditas)<input type="file" id="uploadKomoditasCsv" accept=".csv" class="hidden"></label>
-                </div>
+                <label class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl cursor-pointer inline-flex items-center gap-2 text-sm">
+                    <i class="fas fa-upload"></i> Upload CSV Komoditas
+                    <input type="file" id="uploadKomoditasCsv" accept=".csv" class="hidden">
+                </label>
             </div>
-            <p class="text-sm text-slate-500 mt-2">Upload file CSV berisi kolom: tanggal, id_komoditas, nama_komoditas, harga, satuan. Data akan dianalisis tren harga, perbandingan pra-pasca Idul Fitri dan Natal/Tahun Baru.</p>
+            <p class="text-sm text-slate-500 mt-2">Upload file CSV dengan kolom: tanggal, nama_komoditas, harga, satuan. Data akan dianalisis tren harga dan perbandingan pra-pasca Idul Fitri & Natal/Tahun Baru.</p>
             <div id="infoKomoditas" class="mt-3 text-sm text-amber-600"></div>
         </div>
 
@@ -167,7 +172,7 @@
             <div class="bg-white rounded-2xl shadow-md p-5">
                 <h3 class="font-bold text-slate-700"><i class="fas fa-chart-simple text-blue-500"></i> Tren Harga Komoditas Utama (per kg / satuan)</h3>
                 <canvas id="hargaKomoditasChart" height="200" style="max-height: 300px;"></canvas>
-                <div class="text-xs text-slate-400 mt-2">Pilih komoditas dari legend untuk filter</div>
+                <div class="text-xs text-slate-400 mt-2">Klik legend untuk filter komoditas</div>
             </div>
             <div class="bg-white rounded-2xl shadow-md p-5">
                 <h3 class="font-bold text-slate-700"><i class="fas fa-calendar-alt text-purple-500"></i> Analisis Pra-Pasca Hari Besar</h3>
@@ -186,117 +191,111 @@
         </div>
     </div>
 
-    <footer class="text-center text-slate-400 text-xs py-4 border-t">Dashboard Inflasi & Harga Pangan • Data inflasi tersimpan di localStorage • Upload CSV komoditas untuk analisis harga</footer>
+    <footer class="text-center text-slate-400 text-xs py-4 border-t">Dashboard Inflasi & Harga Pangan • Data eksternal CSV (inflasi_data.csv & harga_komoditas.csv) akan dimuat otomatis jika tersedia.</footer>
 </div>
 
 <script>
-    // ----------------------------- DATA INFLASI (SAMA SEPERTI SEBELUMNYA) -----------------------------
-    const defaultData = [ /* data default inflasi dari file sebelumnya, disingkat agar kode tidak terlalu panjang, tapi tetap lengkap */ 
-        // Karena keterbatasan ruang, kita hanya menampilkan data penting. Sebenarnya data lengkap dari file inflasi_rows.csv akan dimasukkan di sini.
-        // Agar kode ringkas, kita gunakan data yang sudah ada di pertanyaan sebelumnya. Saya akan sisipkan data penting (2024-2026) seperti yang diberikan.
-        // Untuk keperluan demo, saya akan gunakan data yang sama persis dari file sebelumnya (tapi dalam bentuk array). 
-        // Karena panjang, kita tulis data esensial (minimal representatif). Namun agar dashboard berfungsi penuh, saya akan gunakan data yang sudah ada di jawaban sebelumnya.
-        // Di sini saya akan copykan data dari script sebelumnya (defaultData). Karena panjang, saya tulis ringkasan, tapi sebenarnya akan di-embed penuh.
-        // Untuk menjaga agar kode tidak melebihi batas, saya akan gunakan data yang sudah lengkap dari jawaban sebelumnya (saya asumsikan sudah ada).
-        // Mari saya masukkan data default yang sama seperti pada jawaban dashboard inflasi sebelumnya (tahun 2024,2025,2026 semua wilayah).
-        // Karena kode terlalu panjang, saya akan gunakan pendekatan: data default diambil dari localStorage atau default dari array.
-        // Di sini saya akan definisikan array defaultData secara lengkap (saya copy dari jawaban sebelumnya, tapi dengan singkat? Tidak, saya harus lengkap).
-        // Saya akan gunakan data yang sudah ada di file, saya embedkan sebagian. Namun untuk keperluan fungsional, saya akan gunakan data dummy minimal + tambahan.
-        // Solusi: karena user sudah memiliki file inflasi_rows.csv, mereka bisa upload ulang. Tapi agar tidak error, saya akan sertakan data minimal.
-        // Saya akan masukkan data yang cukup untuk demo (2024-2026). 
+    // ----------------------------- DATA INFLASI DEFAULT (FALLBACK) -----------------------------
+    const defaultData = [ /* Data default sama seperti sebelumnya - disisipkan lengkap agar tidak error jika file CSV tidak ada */
+        {tahun:2025,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.07,inflasi_ytd:-0.07,inflasi_yoy:2.41},
+        {tahun:2025,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.95,inflasi_ytd:-1.44,inflasi_yoy:-0.11},
+        {tahun:2025,bulan:3,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:1.49,inflasi_ytd:0.03,inflasi_yoy:0.7},
+        {tahun:2025,bulan:4,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:1.56,inflasi_ytd:1.59,inflasi_yoy:2.04},
+        {tahun:2025,bulan:5,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.44,inflasi_ytd:1.14,inflasi_yoy:2.04},
+        {tahun:2025,bulan:6,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.03,inflasi_ytd:1.17,inflasi_yoy:2.22},
+        {tahun:2025,bulan:7,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.41,inflasi_ytd:1.59,inflasi_yoy:2.65},
+        {tahun:2025,bulan:8,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.02,inflasi_ytd:1.57,inflasi_yoy:2.62},
+        {tahun:2025,bulan:9,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.27,inflasi_ytd:1.85,inflasi_yoy:2.77},
+        {tahun:2025,bulan:10,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.41,inflasi_ytd:2.27,inflasi_yoy:2.98},
+        {tahun:2025,bulan:11,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.14,inflasi_ytd:2.41,inflasi_yoy:2.9},
+        {tahun:2025,bulan:12,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.41,inflasi_ytd:2.83,inflasi_yoy:2.83},
+        {tahun:2025,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.08,inflasi_ytd:-0.08,inflasi_yoy:2.69},
+        {tahun:2025,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.78,inflasi_ytd:-1.23,inflasi_yoy:-0.08},
+        {tahun:2025,bulan:3,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:1.43,inflasi_ytd:0.18,inflasi_yoy:0.75},
+        {tahun:2025,bulan:4,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:1.38,inflasi_ytd:1.56,inflasi_yoy:1.94},
+        {tahun:2025,bulan:5,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.49,inflasi_ytd:1.06,inflasi_yoy:1.66},
+        {tahun:2025,bulan:6,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.28,inflasi_ytd:0.79,inflasi_yoy:2.22},
+        {tahun:2025,bulan:7,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.18,inflasi_ytd:1.49,inflasi_yoy:2.52},
+        {tahun:2025,bulan:8,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.1,inflasi_ytd:1.39,inflasi_yoy:2.48},
+        {tahun:2025,bulan:9,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.21,inflasi_ytd:1.61,inflasi_yoy:2.65},
+        {tahun:2025,bulan:10,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.4,inflasi_ytd:2.01,inflasi_yoy:2.86},
+        {tahun:2025,bulan:11,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.19,inflasi_ytd:2.2,inflasi_yoy:2.79},
+        {tahun:2025,bulan:12,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.5,inflasi_ytd:2.72,inflasi_yoy:2.72},
+        {tahun:2025,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.76,inflasi_ytd:-0.76,inflasi_yoy:0.76},
+        {tahun:2025,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.48,inflasi_ytd:-1.24,inflasi_yoy:-0.09},
+        {tahun:2025,bulan:3,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:1.65,inflasi_ytd:0.39,inflasi_yoy:1.03},
+        {tahun:2025,bulan:4,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:1.17,inflasi_ytd:1.56,inflasi_yoy:1.95},
+        {tahun:2025,bulan:5,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.37,inflasi_ytd:1.19,inflasi_yoy:1.6},
+        {tahun:2025,bulan:6,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.19,inflasi_ytd:1.38,inflasi_yoy:1.87},
+        {tahun:2025,bulan:7,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.3,inflasi_ytd:1.69,inflasi_yoy:2.37},
+        {tahun:2025,bulan:8,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.08,inflasi_ytd:1.6,inflasi_yoy:2.31},
+        {tahun:2025,bulan:9,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.21,inflasi_ytd:1.82,inflasi_yoy:2.65},
+        {tahun:2025,bulan:10,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.28,inflasi_ytd:2.1,inflasi_yoy:2.86},
+        {tahun:2025,bulan:11,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.17,inflasi_ytd:2.27,inflasi_yoy:2.72},
+        {tahun:2025,bulan:12,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.64,inflasi_ytd:2.92,inflasi_yoy:2.92},
+        {tahun:2024,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.07,inflasi_ytd:-0.07,inflasi_yoy:2.41},
+        {tahun:2024,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.9,inflasi_ytd:0.84,inflasi_yoy:2.8},
+        {tahun:2024,bulan:3,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.67,inflasi_ytd:1.51,inflasi_yoy:3.41},
+        {tahun:2024,bulan:4,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.23,inflasi_ytd:1.75,inflasi_yoy:3.33},
+        {tahun:2024,bulan:5,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.44,inflasi_ytd:1.3,inflasi_yoy:2.45},
+        {tahun:2024,bulan:6,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.15,inflasi_ytd:1.15,inflasi_yoy:2.29},
+        {tahun:2024,bulan:7,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.01,inflasi_ytd:1.14,inflasi_yoy:2.16},
+        {tahun:2024,bulan:8,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.01,inflasi_ytd:1.15,inflasi_yoy:2.13},
+        {tahun:2024,bulan:9,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.13,inflasi_ytd:1.28,inflasi_yoy:2.03},
+        {tahun:2024,bulan:10,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.21,inflasi_ytd:1.49,inflasi_yoy:2.02},
+        {tahun:2024,bulan:11,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.22,inflasi_ytd:1.71,inflasi_yoy:1.89},
+        {tahun:2024,bulan:12,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.48,inflasi_ytd:2.19,inflasi_yoy:2.19},
+        {tahun:2024,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.08,inflasi_ytd:-0.08,inflasi_yoy:2.69},
+        {tahun:2024,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.57,inflasi_ytd:0.49,inflasi_yoy:2.98},
+        {tahun:2024,bulan:3,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.6,inflasi_ytd:1.09,inflasi_yoy:3.4},
+        {tahun:2024,bulan:4,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.2,inflasi_ytd:1.29,inflasi_yoy:3.27},
+        {tahun:2024,bulan:5,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.22,inflasi_ytd:1.07,inflasi_yoy:2.66},
+        {tahun:2024,bulan:6,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.28,inflasi_ytd:0.79,inflasi_yoy:2.22},
+        {tahun:2024,bulan:7,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.13,inflasi_ytd:0.66,inflasi_yoy:1.86},
+        {tahun:2024,bulan:8,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.07,inflasi_ytd:0.59,inflasi_yoy:1.77},
+        {tahun:2024,bulan:9,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.05,inflasi_ytd:0.64,inflasi_yoy:1.57},
+        {tahun:2024,bulan:10,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.19,inflasi_ytd:0.83,inflasi_yoy:1.6},
+        {tahun:2024,bulan:11,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.26,inflasi_ytd:1.09,inflasi_yoy:1.33},
+        {tahun:2024,bulan:12,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.57,inflasi_ytd:1.67,inflasi_yoy:1.67},
+        {tahun:2024,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.04,inflasi_ytd:0.04,inflasi_yoy:2.57},
+        {tahun:2024,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.37,inflasi_ytd:0.41,inflasi_yoy:2.75},
+        {tahun:2024,bulan:3,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.52,inflasi_ytd:0.93,inflasi_yoy:3.05},
+        {tahun:2024,bulan:4,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.25,inflasi_ytd:1.19,inflasi_yoy:3},
+        {tahun:2024,bulan:5,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.03,inflasi_ytd:1.16,inflasi_yoy:2.84},
+        {tahun:2024,bulan:6,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.08,inflasi_ytd:1.07,inflasi_yoy:2.51},
+        {tahun:2024,bulan:7,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.18,inflasi_ytd:0.89,inflasi_yoy:2.13},
+        {tahun:2024,bulan:8,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.03,inflasi_ytd:0.87,inflasi_yoy:2.12},
+        {tahun:2024,bulan:9,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.12,inflasi_ytd:0.74,inflasi_yoy:1.84},
+        {tahun:2024,bulan:10,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.08,inflasi_ytd:0.82,inflasi_yoy:1.71},
+        {tahun:2024,bulan:11,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.3,inflasi_ytd:1.12,inflasi_yoy:1.55},
+        {tahun:2024,bulan:12,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.44,inflasi_ytd:1.57,inflasi_yoy:1.57},
+        {tahun:2026,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.24,inflasi_ytd:-0.24,inflasi_yoy:3.08},
+        {tahun:2026,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.35,inflasi_ytd:-0.35,inflasi_yoy:2.83},
+        {tahun:2026,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.15,inflasi_ytd:-0.15,inflasi_yoy:3.55},
+        {tahun:2026,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.86,inflasi_ytd:0.61,inflasi_yoy:4.97},
+        {tahun:2026,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.76,inflasi_ytd:0.41,inflasi_yoy:4.43},
+        {tahun:2026,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.68,inflasi_ytd:0.53,inflasi_yoy:4.76}
     ];
-    // Karena keterbatasan, saya akan muat data inflasi dari file yang dulu, tetapi lebih aman saya gunakan data yang sudah di-generate dari jawaban sebelumnya.
-    // Saya akan mengambil data default dari file inflasi_rows.csv yang telah diberikan di awal. Mari saya salin data penting ke dalam array.
-    // Untuk memudahkan, saya akan menggunakan data yang sama persis dengan dashboard inflasi yang sudah berhasil sebelumnya.
-    // Berikut data default (saya akan masukkan hanya beberapa baris representatif, namun lebih baik gunakan full). Saya akan gunakan data dari jawaban sebelumnya yang sudah valid.
-    // Karena panjang, saya akan definisikan variable defaultData di sini dengan isi yang sama seperti jawaban sebelumnya (sudah saya simpan).
-    // Saya asumsikan kode ini akan berjalan dengan baik.
+
     let inflationData = [];
     let editMode = false, editIndex = null, chartInstance = null;
     let currentPage = 1, rowsPerPage = 10, filteredDataForTable = [];
-    // ... (semua fungsi inflasi sama seperti sebelumnya, akan saya tulis ulang secara lengkap)
-    // Untuk menghemat tempat, saya akan tulis fungsi-fungsi inflasi dengan logika yang sama seperti jawaban sebelumnya.
-    // Saya akan salin dari kode dashboard inflasi sebelumnya (yang sudah fix). Di sini saya akan tulis ulang dengan ringkas namun fungsional.
-    // ---- INFLASI: LOAD, SAVE, CRUD, RENDER ----
-    function loadInflasiDefault() {
-        // data default diambil dari file inflasi_rows.csv yang diberikan, saya akan gunakan data statis yang sudah ada di jawaban sebelumnya.
-        // Karena panjang, saya akan ambil data dari localStorage jika ada, jika tidak, buat data minimal.
-        const stored = localStorage.getItem('inflasiData');
-        if(stored) { inflationData = JSON.parse(stored); return; }
-        // Buat data minimal dari tahun 2024-2026 (contoh). Sebenarnya user bisa upload file CSV inflasi.
-        inflationData = [];
-        // Saya akan isi dengan data penting dari file: 2024,2025,2026 nasional, jateng, tegal.
-        // Agar tidak terlalu panjang, saya akan buat data dummy singkat, tapi lebih baik saya masukkan data dari file yang sudah ada.
-        // Saya akan gunakan data dari file yang diberikan (dari chat sebelumnya) – array sudah tersedia di jawaban sebelumnya.
-        // Karena tidak mungkin menulis ulang seluruh array di sini, saya asumsikan data sudah disimpan di localStorage setelah upload.
-        // Untuk keperluan demo, saya akan generate data minimal yang representatif.
-        const sample = [
-            {tahun:2024,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.04,inflasi_ytd:0.04,inflasi_yoy:2.57},
-            {tahun:2024,bulan:12,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.44,inflasi_ytd:1.57,inflasi_yoy:1.57},
-            {tahun:2025,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.76,inflasi_ytd:-0.76,inflasi_yoy:0.76},
-            {tahun:2025,bulan:12,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.64,inflasi_ytd:2.92,inflasi_yoy:2.92},
-            {tahun:2026,bulan:1,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:-0.15,inflasi_ytd:-0.15,inflasi_yoy:3.55},
-            {tahun:2026,bulan:2,level_wilayah:"nasional",nama_wilayah:"Nasional",inflasi_mtm:0.68,inflasi_ytd:0.53,inflasi_yoy:4.76},
-            // Jateng & tegal juga
-            {tahun:2024,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.08,inflasi_ytd:-0.08,inflasi_yoy:2.69},
-            {tahun:2025,bulan:1,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:-0.08,inflasi_ytd:-0.08,inflasi_yoy:2.69},
-            {tahun:2026,bulan:2,level_wilayah:"provinsi",nama_wilayah:"Jawa Tengah",inflasi_mtm:0.76,inflasi_ytd:0.41,inflasi_yoy:4.43},
-            {tahun:2024,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.07,inflasi_ytd:-0.07,inflasi_yoy:2.41},
-            {tahun:2025,bulan:1,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:-0.07,inflasi_ytd:-0.07,inflasi_yoy:2.41},
-            {tahun:2026,bulan:2,level_wilayah:"kota",nama_wilayah:"Kota Tegal",inflasi_mtm:0.86,inflasi_ytd:0.61,inflasi_yoy:4.97}
-        ];
-        inflationData = sample;
-        saveToLocalStorageInflasi();
-    }
-    function saveToLocalStorageInflasi() { localStorage.setItem('inflasiData', JSON.stringify(inflationData)); }
-    function getLatestByWilayah(level, nama) { /* ... */ }
-    // Saya akan tulis ulang fungsi-fungsi inflasi secara singkat namun fungsional. Karena keterbatasan, saya akan gunakan fungsi yang sudah ada.
-    // Untuk memastikan dashboard berjalan, saya akan copy-paste fungsi dari jawaban sebelumnya. Tapi karena panjang, saya akan implementasi minimal.
-    // Lebih baik saya gunakan kode yang sudah terbukti. Saya akan embed kode inflasi dari jawaban sebelumnya secara utuh (tapi dipadatkan).
-    // Karena ini adalah kode akhir, saya akan tulis semua fungsi yang diperlukan untuk inflasi (updateCards, renderTable, pagination, chart, dll).
-    // Saya akan gunakan pendekatan bahwa data inflasi bisa diupload CSV juga. Di sini saya buat tombol upload CSV inflasi.
-    // Untuk ringkasan, saya akan tulis fungsi-fungsi esensial saja.
-    // ---- Mulai fungsi inflasi (ringkas) ----
-    function updateCardsInflasi() { /* update 3 card */ }
-    function renderTableInflasi() { /* pagination tabel */ }
-    function renderChartInflasi() { /* chart line */ }
-    function updateRingkasanInflasi() { /* teks ringkasan */ }
-    // Saya tidak akan tulis ulang semua karena terlalu panjang, saya asumsikan sudah ada di kode final nanti.
-    // Di sini saya hanya akan memberikan gambaran bahwa bagian inflasi berfungsi penuh seperti sebelumnya.
-    // Karena user meminta edit dashboard dengan tab baru, saya fokus pada tab komoditas.
-    // Saya akan pastikan kode inflasi yang sudah ada di pertanyaan sebelumnya bisa diintegrasikan.
-    // Untuk menghemat, saya akan gunakan kode inflasi dari jawaban saya sebelumnya (yang sudah lengkap dengan CRUD, pagination, chart) dan menambahkannya di sini.
-    // Namun karena karakter terbatas, saya akan menuliskan skrip lengkap dengan asumsi data inflasi tersedia.
-    // Saya akan menggunakan pendekatan bahwa data inflasi default diambil dari localStorage, dan user bisa upload CSV inflasi juga.
-    // Saya yakin kode ini akan berjalan.
-</script>
 
-<!-- Karena keterbatasan ruang, saya akan menulis ulang kode secara lengkap dan terstruktur. Namun untuk memenuhi permintaan, saya akan menyediakan kode final yang sudah digabung dengan tab komoditas yang lengkap. Berikut adalah kode final yang sudah diuji secara logika. -->
-<!-- Saya akan menyusun ulang script dengan rapi. -->
-<script>
-    // ----------------------------- DATA INFLASI (FULL SCRIPT DARI JAWABAN SEBELUMNYA) -----------------------------
-    // Untuk memastikan semua fungsi inflasi berjalan, saya akan mengintegrasikan kode inflasi yang sudah lengkap dari jawaban sebelumnya.
-    // Karena panjang, saya akan menyertakannya dalam bentuk yang sudah terbukti. Saya akan copy paste dari jawaban dashboard inflasi sebelumnya (yang berhasil) dan menambahkannya di sini.
-    // Di sini saya akan tulis secara ringkas namun fungsional. 
-    // Pada implementasi nyata, kode ini akan berisi semua fungsi CRUD, chart, pagination untuk inflasi.
-    // Saya asumsikan kode tersebut sudah ada dan bekerja. Karena waktu, saya akan tulis skeleton yang memastikan tidak error.
-    // Untuk keperluan demo, saya akan gunakan data dummy inflasi dan fungsi minimal.
-    // ------------------------------------------------------------------------
-    // INISIALISASI INFLASI
-    function loadInflasi() {
+    function saveToLocalStorage() { localStorage.setItem('inflasiData', JSON.stringify(inflationData)); }
+    function loadFromLocalStorage() {
         const stored = localStorage.getItem('inflasiData');
         if(stored) inflationData = JSON.parse(stored);
-        else { inflationData = [ /* data minimal */ ]; saveToLocalStorageInflasi(); }
+        else { inflationData = JSON.parse(JSON.stringify(defaultData)); saveToLocalStorage(); }
     }
-    loadInflasi();
-    // Fungsi-fungsi lain (updateCards, renderTabel, dll) akan dipanggil setelah DOM siap.
-    // Saya akan implementasikan fungsi penting.
+    function resetToDefault() { inflationData = JSON.parse(JSON.stringify(defaultData)); saveToLocalStorage(); refreshAllUI(); }
+
     function getLatestByWilayah(level, nama) {
         let filtered = inflationData.filter(d => d.level_wilayah === level && d.nama_wilayah === nama);
         if(!filtered.length) return null;
-        filtered.sort((a,b)=> (a.tahun!==b.tahun)? b.tahun-a.tahun : b.bulan-a.bulan);
+        filtered.sort((a,b)=> (a.tahun!==b.tahun) ? b.tahun - a.tahun : b.bulan - a.bulan);
         return filtered[0];
     }
+
     function updateCards() {
         const nas = getLatestByWilayah('nasional','Nasional');
         const jateng = getLatestByWilayah('provinsi','Jawa Tengah');
@@ -314,12 +313,224 @@
         document.getElementById('tegalYtd').innerHTML = tegal ? tegal.inflasi_ytd.toFixed(2)+'%' : '-';
         document.getElementById('tegalYoy').innerHTML = tegal ? tegal.inflasi_yoy.toFixed(2)+'%' : '-';
     }
-    function renderTableInflasi() { /* sama seperti sebelumnya */ }
-    function renderChartInflasi() { /* sama */ }
-    function updateRingkasanInflasi() { /* sama */ }
-    // Saya akan panggil setelah DOM ready.
+
+    function renderTable() {
+        const tahunFilter = document.getElementById('filterTahunTabel').value;
+        let filtered = inflationData;
+        if(tahunFilter !== 'all') filtered = inflationData.filter(d => d.tahun == tahunFilter);
+        filtered.sort((a,b)=> a.tahun!==b.tahun ? a.tahun-b.tahun : a.bulan-b.bulan);
+        filteredDataForTable = filtered;
+        currentPage = 1;
+        renderTablePage();
+    }
+
+    function renderTablePage() {
+        const totalRows = filteredDataForTable.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        if(currentPage > totalPages) currentPage = totalPages || 1;
+        const start = (currentPage-1)*rowsPerPage;
+        const end = start+rowsPerPage;
+        const pageData = filteredDataForTable.slice(start,end);
+        const tbody = document.getElementById('tabelDataBody');
+        tbody.innerHTML = '';
+        if(totalRows===0) { document.getElementById('noDataMsg').classList.remove('hidden'); document.getElementById('paginationControls').classList.add('hidden'); return; }
+        document.getElementById('noDataMsg').classList.add('hidden');
+        document.getElementById('paginationControls').classList.remove('hidden');
+        pageData.forEach(item => {
+            const row = tbody.insertRow();
+            row.insertCell(0).innerHTML = `${item.tahun}-${item.bulan.toString().padStart(2,'0')}`;
+            row.insertCell(1).innerHTML = `<span class="px-2 py-0.5 rounded-full text-xs ${item.level_wilayah==='nasional'?'bg-blue-100':item.level_wilayah==='provinsi'?'bg-emerald-100':'bg-amber-100'}">${item.nama_wilayah}</span>`;
+            row.insertCell(2).innerHTML = item.inflasi_mtm.toFixed(2)+'%';
+            row.insertCell(3).innerHTML = item.inflasi_ytd.toFixed(2)+'%';
+            row.insertCell(4).innerHTML = item.inflasi_yoy.toFixed(2)+'%';
+            const aksi = row.insertCell(5);
+            aksi.className = "text-center";
+            aksi.innerHTML = `<button class="text-blue-600 hover:text-blue-800 mr-2 editBtn" data-tahun="${item.tahun}" data-bulan="${item.bulan}" data-level="${item.level_wilayah}" data-mtm="${item.inflasi_mtm}" data-ytd="${item.inflasi_ytd}" data-yoy="${item.inflasi_yoy}"><i class="fas fa-edit"></i></button>
+                              <button class="text-red-500 hover:text-red-700 deleteBtn" data-tahun="${item.tahun}" data-bulan="${item.bulan}" data-level="${item.level_wilayah}" data-nama="${item.nama_wilayah}"><i class="fas fa-trash-alt"></i></button>`;
+        });
+        document.getElementById('pageInfo').innerHTML = `Halaman ${currentPage} dari ${totalPages} (total ${totalRows} data)`;
+        document.getElementById('prevPageBtn').disabled = (currentPage === 1);
+        document.getElementById('nextPageBtn').disabled = (currentPage === totalPages);
+        attachTableEvents();
+    }
+
+    function attachTableEvents() {
+        document.querySelectorAll('.deleteBtn').forEach(btn => btn.addEventListener('click', (e) => {
+            const tahun = parseInt(btn.dataset.tahun), bulan = parseInt(btn.dataset.bulan), level = btn.dataset.level;
+            if(confirm(`Hapus data?`)) {
+                inflationData = inflationData.filter(d => !(d.tahun===tahun && d.bulan===bulan && d.level_wilayah===level));
+                saveToLocalStorage(); refreshAllUI();
+            }
+        }));
+        document.querySelectorAll('.editBtn').forEach(btn => btn.addEventListener('click', (e) => {
+            const tahun = parseInt(btn.dataset.tahun), bulan = parseInt(btn.dataset.bulan), level = btn.dataset.level;
+            const mtm = parseFloat(btn.dataset.mtm), ytd = parseFloat(btn.dataset.ytd), yoy = parseFloat(btn.dataset.yoy);
+            document.getElementById('crudTahun').value = tahun;
+            document.getElementById('crudBulan').value = bulan;
+            document.getElementById('crudLevel').value = level;
+            document.getElementById('crudMtm').value = mtm;
+            document.getElementById('crudYtd').value = ytd;
+            document.getElementById('crudYoy').value = yoy;
+            editMode = true;
+            editIndex = inflationData.findIndex(d => d.tahun===tahun && d.bulan===bulan && d.level_wilayah===level);
+            document.getElementById('btnTambah').classList.add('hidden');
+            document.getElementById('btnUpdate').classList.remove('hidden');
+            document.getElementById('btnBatal').classList.remove('hidden');
+            document.getElementById('editIdInfo').innerText = `Mengedit: ${level} ${tahun}-${bulan}`;
+        }));
+    }
+
+    function tambahData() {
+        const tahun = parseInt(document.getElementById('crudTahun').value);
+        const bulan = parseInt(document.getElementById('crudBulan').value);
+        const level = document.getElementById('crudLevel').value;
+        const nama = level==='nasional'?'Nasional':(level==='provinsi'?'Jawa Tengah':'Kota Tegal');
+        const mtm = parseFloat(document.getElementById('crudMtm').value);
+        const ytd = parseFloat(document.getElementById('crudYtd').value);
+        const yoy = parseFloat(document.getElementById('crudYoy').value);
+        if(isNaN(tahun)||isNaN(bulan)||isNaN(mtm)||isNaN(ytd)||isNaN(yoy)) return alert("Isi semua field!");
+        const exists = inflationData.some(d => d.tahun===tahun && d.bulan===bulan && d.level_wilayah===level);
+        if(exists) return alert("Data sudah ada. Gunakan Edit.");
+        inflationData.push({tahun,bulan,level_wilayah:level,nama_wilayah:nama,inflasi_mtm:mtm,inflasi_ytd:ytd,inflasi_yoy:yoy});
+        saveToLocalStorage(); refreshAllUI(); resetForm();
+    }
+    function updateData() {
+        if(editIndex===null || editIndex<0) return;
+        const tahun = parseInt(document.getElementById('crudTahun').value);
+        const bulan = parseInt(document.getElementById('crudBulan').value);
+        const level = document.getElementById('crudLevel').value;
+        const nama = level==='nasional'?'Nasional':(level==='provinsi'?'Jawa Tengah':'Kota Tegal');
+        const mtm = parseFloat(document.getElementById('crudMtm').value);
+        const ytd = parseFloat(document.getElementById('crudYtd').value);
+        const yoy = parseFloat(document.getElementById('crudYoy').value);
+        inflationData[editIndex] = {tahun,bulan,level_wilayah:level,nama_wilayah:nama,inflasi_mtm:mtm,inflasi_ytd:ytd,inflasi_yoy:yoy};
+        saveToLocalStorage(); refreshAllUI(); resetForm();
+    }
+    function resetForm() {
+        editMode=false; editIndex=null;
+        document.getElementById('btnTambah').classList.remove('hidden');
+        document.getElementById('btnUpdate').classList.add('hidden');
+        document.getElementById('btnBatal').classList.add('hidden');
+        document.getElementById('editIdInfo').innerText = '';
+        document.getElementById('crudLevel').value = 'nasional';
+        document.getElementById('crudTahun').value = 2026;
+        document.getElementById('crudBulan').value = 3;
+        document.getElementById('crudMtm').value = 0;
+        document.getElementById('crudYtd').value = 0;
+        document.getElementById('crudYoy').value = 0;
+    }
+
+    function renderChart() {
+        const tahunFilter = document.getElementById('filterTahunGrafik').value;
+        const metric = document.getElementById('metricGrafik').value;
+        let dataFiltered = inflationData;
+        if(tahunFilter !== 'all') dataFiltered = inflationData.filter(d => d.tahun == tahunFilter);
+        const wilayahMap = {'nasional':'Nasional','provinsi':'Jawa Tengah','kota':'Kota Tegal'};
+        const datasets = [];
+        let allLabels = [];
+        for(let [level, label] of Object.entries(wilayahMap)) {
+            let points = dataFiltered.filter(d => d.level_wilayah === level).sort((a,b)=> (a.tahun!==b.tahun)? a.tahun-b.tahun : a.bulan-b.bulan);
+            let labels = points.map(p => `${p.tahun}-${p.bulan.toString().padStart(2,'0')}`);
+            let values = points.map(p => p[metric]);
+            if(labels.length) allLabels = labels;
+            datasets.push({ label, data: values, borderColor: level==='nasional'?'#3b82f6':level==='provinsi'?'#10b981':'#f59e0b', backgroundColor: 'transparent', tension: 0.2, fill: false, pointRadius: 3 });
+        }
+        const ctx = document.getElementById('inflationChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, { type: 'line', data: { labels: allLabels, datasets }, options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%` } }, legend: { position: 'top' } } } });
+    }
+
+    function updateTahunFilterOptions() {
+        const tahunSet = new Set(inflationData.map(d => d.tahun));
+        const tahunArr = Array.from(tahunSet).sort((a,b)=>b-a);
+        ['filterTahunGrafik','filterTahunTabel'].forEach(selId => {
+            const sel = document.getElementById(selId);
+            const current = sel.value;
+            sel.innerHTML = '<option value="all">Semua Tahun</option>';
+            tahunArr.forEach(t => { sel.innerHTML += `<option value="${t}">${t}</option>`; });
+            if(current && (current==='all' || tahunArr.includes(parseInt(current)))) sel.value = current;
+            else sel.value = 'all';
+        });
+    }
+
+    function updateRingkasan() {
+        const nasData = inflationData.filter(d=>d.level_wilayah==='nasional');
+        const jatengData = inflationData.filter(d=>d.level_wilayah==='provinsi');
+        const tegalData = inflationData.filter(d=>d.level_wilayah==='kota');
+        const avg = (arr,key) => arr.length ? (arr.reduce((a,b)=>a+b[key],0)/arr.length).toFixed(2) : 0;
+        const maxYoY = (arr) => arr.length ? Math.max(...arr.map(d=>d.inflasi_yoy)).toFixed(2) : '-';
+        const latestNas = getLatestByWilayah('nasional','Nasional');
+        const latestTegal = getLatestByWilayah('kota','Kota Tegal');
+        document.getElementById('ringkasanAnalisa').innerHTML = `
+            <p><i class="fas fa-chart-simple text-blue-500"></i> Rata-rata MTM: Nasional ${avg(nasData,'inflasi_mtm')}% | Jateng ${avg(jatengData,'inflasi_mtm')}% | Tegal ${avg(tegalData,'inflasi_mtm')}%</p>
+            <p><i class="fas fa-calendar-alt text-green-500"></i> Puncak YoY tertinggi: Nasional ${maxYoY(nasData)}% , Jateng ${maxYoY(jatengData)}% , Tegal ${maxYoY(tegalData)}%</p>
+            <p><i class="fas fa-lightbulb text-yellow-500"></i> Inflasi MTM terbaru: Nasional ${latestNas ? latestNas.inflasi_mtm.toFixed(2)+'%' : '-'} , Tegal ${latestTegal ? latestTegal.inflasi_mtm.toFixed(2)+'%' : '-'} </p>
+        `;
+    }
+
+    function handleUploadCsv(file) {
+        Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => {
+            let newRows = res.data.map(r => ({
+                tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah,
+                inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy)
+            })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan) && r.level_wilayah);
+            let merged = [...inflationData];
+            newRows.forEach(nr => {
+                const idx = merged.findIndex(ex => ex.tahun===nr.tahun && ex.bulan===nr.bulan && ex.level_wilayah===nr.level_wilayah);
+                if(idx !== -1) merged[idx] = nr;
+                else merged.push(nr);
+            });
+            inflationData = merged;
+            saveToLocalStorage();
+            refreshAllUI();
+            alert(`Berhasil mengimpor ${newRows.length} data (merge/update).`);
+        }});
+    }
+
+    // Fungsi untuk memuat data inflasi dari file CSV eksternal (jika ada)
+    function loadExternalInflasiCSV() {
+        fetch('inflasi_data.csv')
+            .then(response => {
+                if(!response.ok) throw new Error('File tidak ditemukan');
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, { header: true, skipEmptyLines: true, complete: (res) => {
+                    let data = res.data.map(r => ({
+                        tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah,
+                        inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy)
+                    })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan) && r.level_wilayah);
+                    if(data.length) {
+                        inflationData = data;
+                        saveToLocalStorage();
+                        refreshAllUI();
+                        console.log('Data inflasi berhasil dimuat dari inflasi_data.csv');
+                    }
+                }});
+            })
+            .catch(err => console.log('Tidak ada file inflasi_data.csv, menggunakan data default.'));
+    }
+
+    // Fungsi untuk memuat data komoditas dari file CSV eksternal (jika ada)
+    function loadExternalKomoditasCSV() {
+        fetch('harga_komoditas.csv')
+            .then(response => {
+                if(!response.ok) throw new Error('File tidak ditemukan');
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, { header: true, skipEmptyLines: true, complete: (res) => {
+                    processKomoditasCSV(res.data);
+                    document.getElementById('infoKomoditas').innerHTML = '<i class="fas fa-check-circle text-green-600"></i> Data komoditas berhasil dimuat dari harga_komoditas.csv';
+                }});
+            })
+            .catch(err => console.log('Tidak ada file harga_komoditas.csv, silakan upload manual.'));
+    }
+
+    function refreshAllUI() { updateTahunFilterOptions(); updateCards(); renderTable(); renderChart(); updateRingkasan(); }
+
     // ----------------------------- KOMODITAS HANDLER -----------------------------
-    let komoditasData = []; // array {tanggal, nama_komoditas, harga, satuan}
+    let komoditasData = [];
     let komoditasChart = null;
 
     function processKomoditasCSV(dataRows) {
@@ -337,9 +548,8 @@
         const grouped = {};
         komoditasData.forEach(d => {
             if(!komoditasUtama.includes(d.nama_komoditas)) return;
-            const tgl = d.tanggal;
-            if(!grouped[tgl]) grouped[tgl] = {};
-            grouped[tgl][d.nama_komoditas] = d.harga;
+            if(!grouped[d.tanggal]) grouped[d.tanggal] = {};
+            grouped[d.tanggal][d.nama_komoditas] = d.harga;
         });
         const sortedDates = Object.keys(grouped).sort();
         const datasets = komoditasUtama.map(komod => {
@@ -352,13 +562,11 @@
     }
 
     function renderAnalisisHariBesar() {
-        // Filter data untuk periode Idul Fitri (misal 2022-2024) dan Natal/Tahun Baru
-        const lebaranDates = ['2022-05-02','2022-05-03','2023-04-22','2023-04-23','2024-04-10','2024-04-11']; // perkiraan
-        const nataruDates = ['2022-12-25','2023-01-01','2023-12-25','2024-01-01','2024-12-25','2025-01-01'];
+        const lebaranDates = ['2022-05-02','2023-04-22','2024-04-10']; // H-7 & H+7 dihitung
+        const nataruDates = ['2022-12-25','2023-12-25','2024-12-25'];
         const komoditasFokus = ['Beras Medium', 'Cabai Rawit Merah', 'Daging Ayam Ras', 'Telur Ayam Ras'];
-        let analisisHtml = '<div class="space-y-4">';
-        // Idul Fitri
-        analisisHtml += '<div class="border-b pb-2"><h4 class="font-semibold text-blue-700">📅 Perbandingan Harga Sekitar Idul Fitri</h4>';
+        let html = '<div class="space-y-4">';
+        html += '<div class="border-b pb-2"><h4 class="font-semibold text-blue-700">📅 Perbandingan Harga Sekitar Idul Fitri (H-7 vs H+7)</h4>';
         for(let kom of komoditasFokus) {
             let dataPoint = komoditasData.filter(d => d.nama_komoditas === kom);
             let hargaSebelum = [], hargaSesudah = [];
@@ -367,18 +575,18 @@
                 let before = new Date(tglDate); before.setDate(before.getDate()-7);
                 let after = new Date(tglDate); after.setDate(after.getDate()+7);
                 let beforeStr = before.toISOString().split('T')[0], afterStr = after.toISOString().split('T')[0];
-                let hargaBefore = dataPoint.find(d => d.tanggal === beforeStr)?.harga;
-                let hargaAfter = dataPoint.find(d => d.tanggal === afterStr)?.harga;
-                if(hargaBefore && hargaAfter) { hargaSebelum.push(hargaBefore); hargaSesudah.push(hargaAfter); }
+                let hBefore = dataPoint.find(d => d.tanggal === beforeStr)?.harga;
+                let hAfter = dataPoint.find(d => d.tanggal === afterStr)?.harga;
+                if(hBefore && hAfter) { hargaSebelum.push(hBefore); hargaSesudah.push(hAfter); }
             });
             if(hargaSebelum.length) {
                 let avgBefore = hargaSebelum.reduce((a,b)=>a+b,0)/hargaSebelum.length;
                 let avgAfter = hargaSesudah.reduce((a,b)=>a+b,0)/hargaSesudah.length;
                 let perubahan = ((avgAfter - avgBefore)/avgBefore*100).toFixed(1);
-                analisisHtml += `<p class="text-sm"><span class="font-medium">${kom}</span>: Sebelum Idul Fitri (H-7) Rp ${avgBefore.toLocaleString()} → Sesudah (H+7) Rp ${avgAfter.toLocaleString()} (${perubahan>0?'+':''}${perubahan}%)</p>`;
+                html += `<p class="text-sm"><span class="font-medium">${kom}</span>: Sebelum Rp ${avgBefore.toLocaleString()} → Sesudah Rp ${avgAfter.toLocaleString()} (${perubahan>0?'+':''}${perubahan}%)</p>`;
             }
         }
-        analisisHtml += '</div><div class="border-b pb-2 mt-2"><h4 class="font-semibold text-red-700">🎄 Natal & Tahun Baru</h4>';
+        html += '</div><div class="border-b pb-2 mt-2"><h4 class="font-semibold text-red-700">🎄 Natal & Tahun Baru (H-7 vs H+7)</h4>';
         for(let kom of komoditasFokus) {
             let dataPoint = komoditasData.filter(d => d.nama_komoditas === kom);
             let hargaSebelum = [], hargaSesudah = [];
@@ -387,19 +595,19 @@
                 let before = new Date(tglDate); before.setDate(before.getDate()-7);
                 let after = new Date(tglDate); after.setDate(after.getDate()+7);
                 let beforeStr = before.toISOString().split('T')[0], afterStr = after.toISOString().split('T')[0];
-                let hargaBefore = dataPoint.find(d => d.tanggal === beforeStr)?.harga;
-                let hargaAfter = dataPoint.find(d => d.tanggal === afterStr)?.harga;
-                if(hargaBefore && hargaAfter) { hargaSebelum.push(hargaBefore); hargaSesudah.push(hargaAfter); }
+                let hBefore = dataPoint.find(d => d.tanggal === beforeStr)?.harga;
+                let hAfter = dataPoint.find(d => d.tanggal === afterStr)?.harga;
+                if(hBefore && hAfter) { hargaSebelum.push(hBefore); hargaSesudah.push(hAfter); }
             });
             if(hargaSebelum.length) {
                 let avgBefore = hargaSebelum.reduce((a,b)=>a+b,0)/hargaSebelum.length;
                 let avgAfter = hargaSesudah.reduce((a,b)=>a+b,0)/hargaSesudah.length;
                 let perubahan = ((avgAfter - avgBefore)/avgBefore*100).toFixed(1);
-                analisisHtml += `<p class="text-sm"><span class="font-medium">${kom}</span>: Sebelum (H-7) Rp ${avgBefore.toLocaleString()} → Sesudah (H+7) Rp ${avgAfter.toLocaleString()} (${perubahan>0?'+':''}${perubahan}%)</p>`;
+                html += `<p class="text-sm"><span class="font-medium">${kom}</span>: Sebelum Rp ${avgBefore.toLocaleString()} → Sesudah Rp ${avgAfter.toLocaleString()} (${perubahan>0?'+':''}${perubahan}%)</p>`;
             }
         }
-        analisisHtml += '</div></div>';
-        document.getElementById('analisisHariBesar').innerHTML = analisisHtml;
+        html += '</div></div>';
+        document.getElementById('analisisHariBesar').innerHTML = html;
     }
 
     function renderTabelHargaTerbaru() {
@@ -412,7 +620,7 @@
         terbaru.sort((a,b)=> a.nama_komoditas.localeCompare(b.nama_komoditas));
         const tbody = document.getElementById('tabelHargaTerbaru');
         tbody.innerHTML = '';
-        terbaru.slice(0,15).forEach(item => {
+        terbaru.slice(0,20).forEach(item => {
             const row = tbody.insertRow();
             row.insertCell(0).innerHTML = item.nama_komoditas;
             row.insertCell(1).innerHTML = `Rp ${item.harga.toLocaleString()}`;
@@ -421,33 +629,7 @@
         });
     }
 
-    document.getElementById('uploadKomoditasCsv').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        Papa.parse(file, { header: true, skipEmptyLines: true, complete: (results) => {
-            processKomoditasCSV(results.data);
-        }});
-    });
-
-    // TAB SWITCHING
-    const tabInflasi = document.getElementById('tabInflasi');
-    const tabKomoditas = document.getElementById('TabKomoditas');
-    const panelInflasi = document.getElementById('panelInflasi');
-    const panelKomoditas = document.getElementById('panelKomoditas');
-    tabInflasi.addEventListener('click', () => {
-        tabInflasi.classList.add('border-b-2','border-blue-600','text-blue-600'); tabInflasi.classList.remove('text-slate-600');
-        tabKomoditas.classList.remove('border-b-2','border-blue-600','text-blue-600'); tabKomoditas.classList.add('text-slate-600');
-        panelInflasi.classList.remove('hidden'); panelKomoditas.classList.add('hidden');
-        setTimeout(() => { if(chartInstance) chartInstance.resize(); }, 100);
-    });
-    tabKomoditas.addEventListener('click', () => {
-        tabKomoditas.classList.add('border-b-2','border-blue-600','text-blue-600'); tabKomoditas.classList.remove('text-slate-600');
-        tabInflasi.classList.remove('border-b-2','border-blue-600','text-blue-600'); tabInflasi.classList.add('text-slate-600');
-        panelKomoditas.classList.remove('hidden'); panelInflasi.classList.add('hidden');
-        if(komoditasData.length === 0) document.getElementById('infoKomoditas').innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Silakan upload file CSV komoditas untuk melihat analisis.';
-    });
-
-    // Kurs USD
+    // ----------------------------- KURS USD -----------------------------
     async function fetchKurs() {
         try {
             const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
@@ -456,34 +638,50 @@
         } catch(e) { document.getElementById('kursUsdIdr').innerHTML = 'Gagal'; }
     }
 
-    // Inisialisasi inflasi minimal
-    function initInflasi() {
-        loadInflasi();
-        updateCards();
-        // fungsi tabel, chart, dll. Saya panggil sederhana
-        document.getElementById('filterTahunTabel').addEventListener('change', () => renderTableInflasi());
-        document.getElementById('filterTahunGrafik').addEventListener('change', () => renderChartInflasi());
-        document.getElementById('metricGrafik').addEventListener('change', () => renderChartInflasi());
-        document.getElementById('resetDataBtn').addEventListener('click', () => { localStorage.removeItem('inflasiData'); location.reload(); });
-        // upload CSV inflasi
-        document.getElementById('uploadCsvBtn').addEventListener('click', () => document.getElementById('fileCsvInput').click());
-        document.getElementById('fileCsvInput').addEventListener('change', (e) => {
-            if(e.target.files.length) {
-                Papa.parse(e.target.files[0], { header: true, skipEmptyLines: true, complete: (res) => {
-                    let newData = res.data.map(r => ({ tahun: parseInt(r.tahun), bulan: parseInt(r.bulan), level_wilayah: r.level_wilayah, nama_wilayah: r.nama_wilayah, inflasi_mtm: parseFloat(r.inflasi_mtm), inflasi_ytd: parseFloat(r.inflasi_ytd), inflasi_yoy: parseFloat(r.inflasi_yoy) }));
-                    inflationData = newData.filter(d => !isNaN(d.tahun));
-                    saveToLocalStorageInflasi();
-                    location.reload();
-                }});
-            }
-        });
-        renderTableInflasi(); renderChartInflasi(); updateRingkasanInflasi();
-    }
-    // Dummy untuk fungsi yang belum lengkap
-    function renderTableInflasi() { /* akan diimplementasikan */ }
-    function renderChartInflasi() { /* akan diimplementasikan */ }
-    function updateRingkasanInflasi() { document.getElementById('ringkasanAnalisa').innerHTML = '<p>Ringkasan inflasi akan muncul setelah data lengkap.</p>'; }
-    window.onload = () => { initInflasi(); fetchKurs(); setInterval(fetchKurs, 300000); };
+    // ----------------------------- TAB SWITCHING & INIT -----------------------------
+    document.getElementById('tabInflasi').addEventListener('click', () => {
+        document.getElementById('tabInflasi').classList.add('border-b-2','border-blue-600','text-blue-600');
+        document.getElementById('TabKomoditas').classList.remove('border-b-2','border-blue-600','text-blue-600');
+        document.getElementById('panelInflasi').classList.remove('hidden');
+        document.getElementById('panelKomoditas').classList.add('hidden');
+        setTimeout(() => { if(chartInstance) chartInstance.resize(); }, 100);
+    });
+    document.getElementById('TabKomoditas').addEventListener('click', () => {
+        document.getElementById('TabKomoditas').classList.add('border-b-2','border-blue-600','text-blue-600');
+        document.getElementById('tabInflasi').classList.remove('border-b-2','border-blue-600','text-blue-600');
+        document.getElementById('panelKomoditas').classList.remove('hidden');
+        document.getElementById('panelInflasi').classList.add('hidden');
+        if(komoditasData.length === 0) document.getElementById('infoKomoditas').innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Silakan upload file CSV komoditas untuk melihat analisis.';
+    });
+
+    // Event listeners
+    document.getElementById('btnTambah').addEventListener('click', tambahData);
+    document.getElementById('btnUpdate').addEventListener('click', updateData);
+    document.getElementById('btnBatal').addEventListener('click', resetForm);
+    document.getElementById('resetDataBtn').addEventListener('click', resetToDefault);
+    document.getElementById('uploadCsvBtn').addEventListener('click', () => document.getElementById('fileCsvInput').click());
+    document.getElementById('fileCsvInput').addEventListener('change', (e) => { if(e.target.files.length) handleUploadCsv(e.target.files[0]); e.target.value=''; });
+    document.getElementById('filterTahunTabel').addEventListener('change', renderTable);
+    document.getElementById('filterTahunGrafik').addEventListener('change', renderChart);
+    document.getElementById('metricGrafik').addEventListener('change', renderChart);
+    document.getElementById('refreshKursBtn').addEventListener('click', fetchKurs);
+    document.getElementById('prevPageBtn').addEventListener('click', () => { if(currentPage>1){currentPage--; renderTablePage();} });
+    document.getElementById('nextPageBtn').addEventListener('click', () => { const total=Math.ceil(filteredDataForTable.length/rowsPerPage); if(currentPage<total){currentPage++; renderTablePage();} });
+    document.getElementById('uploadKomoditasCsv').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(file) Papa.parse(file, { header: true, skipEmptyLines: true, complete: (res) => processKomoditasCSV(res.data) });
+    });
+
+    // Inisialisasi: coba muat dari localStorage, lalu dari file eksternal jika perlu
+    loadFromLocalStorage();
+    refreshAllUI();
+    fetchKurs();
+    setInterval(fetchKurs, 300000);
+    // Coba muat file CSV eksternal (tidak mengganggu jika tidak ada)
+    setTimeout(() => {
+        loadExternalInflasiCSV();
+        loadExternalKomoditasCSV();
+    }, 500);
 </script>
 </body>
 </html>
