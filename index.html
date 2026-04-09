@@ -1,660 +1,1616 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-  <title>Dashboard Data · Inflasi & Kurs</title>
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- PapaParse untuk CSV -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TPID Dashboard — Kota Tegal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --border:#30363d;--border2:#484f58;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --primary:#2ea043;--primary2:#3fb950;
+  --accent:#d29922;--accent2:#e3b341;
+  --blue:#1f6feb;--blue2:#388bfd;
+  --red:#da3633;--red2:#f85149;
+  --purple:#8957e5;
+  --teal:#0e9488;--teal2:#14b8a6;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 4px 20px rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;overflow-x:hidden}
 
-    body {
-      background: #f4f7fc;
-      padding: 24px;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-    }
+/* SIDEBAR */
+#sidebar{width:250px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;transition:.3s}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo .logo-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:800;color:var(--accent2);line-height:1.2}
+.sidebar-logo .logo-sub{font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:.5px;text-transform:uppercase}
+.sidebar-logo .logo-badge{display:inline-block;background:var(--primary);color:#fff;font-size:9px;padding:2px 8px;border-radius:20px;margin-top:8px;font-weight:700;letter-spacing:.5px}
+nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section{padding:8px 16px 4px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;border-radius:0;font-size:13px;color:var(--text2);transition:.15s;border-left:3px solid transparent;text-decoration:none}
+.nav-item:hover{background:var(--bg3);color:var(--text);border-left-color:var(--border2)}
+.nav-item.active{background:rgba(46,160,67,.12);color:var(--primary2);border-left-color:var(--primary)}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
 
-    .dashboard {
-      max-width: 1400px;
-      width: 100%;
-    }
+/* MAIN */
+#main{margin-left:250px;flex:1;min-height:100vh;overflow-y:auto}
+.page{display:none;padding:28px 32px;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-header{margin-bottom:28px}
+.page-header h1{font-family:'Playfair Display',serif;font-size:28px;font-weight:800;color:var(--text)}
+.page-header p{color:var(--text2);font-size:14px;margin-top:6px}
+.page-header .breadcrumb{font-size:12px;color:var(--text3);margin-bottom:8px;letter-spacing:.3px}
 
-    /* Header */
-    .dashboard-header {
-      margin-bottom: 28px;
-    }
-    .dashboard-header h1 {
-      font-size: 2.4rem;
-      font-weight: 600;
-      color: #1e293b;
-      letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .dashboard-header h1 i {
-      color: #2563eb;
-      font-size: 2rem;
-    }
-    .subtitle {
-      color: #475569;
-      margin-top: 6px;
-      font-weight: 400;
-      border-left: 4px solid #3b82f6;
-      padding-left: 16px;
-    }
+/* CARDS */
+.cards-grid{display:grid;gap:16px}
+.cards-3{grid-template-columns:repeat(3,1fr)}
+.cards-4{grid-template-columns:repeat(4,1fr)}
+.cards-2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.card-sm{padding:16px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+.card-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.card-value{font-size:32px;font-weight:800;line-height:1;margin-bottom:6px}
+.card-label{font-size:12px;color:var(--text2)}
+.card-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:10px}
+.badge-up{background:rgba(218,54,51,.15);color:var(--red2)}
+.badge-down{background:rgba(46,160,67,.15);color:var(--primary2)}
+.badge-neutral{background:rgba(139,148,158,.1);color:var(--text2)}
+.badge-gold{background:rgba(210,153,34,.15);color:var(--accent2)}
 
-    /* Cards */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 32px;
-    }
-    .stat-card {
-      background: white;
-      border-radius: 24px;
-      padding: 24px 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.02), 0 2px 6px rgba(0,0,0,0.03);
-      border: 1px solid #e9eef3;
-      transition: transform 0.15s ease, box-shadow 0.2s;
-    }
-    .stat-card:hover {
-      box-shadow: 0 16px 28px rgba(0,0,0,0.06);
-      transform: translateY(-2px);
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .card-header i {
-      font-size: 2rem;
-      color: #2563eb;
-      background: #eef2ff;
-      padding: 10px;
-      border-radius: 16px;
-    }
-    .card-header h3 {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: #0f172a;
-    }
-    .region-badge {
-      font-size: 0.8rem;
-      background: #e2e8f0;
-      color: #334155;
-      padding: 4px 10px;
-      border-radius: 30px;
-      margin-left: 8px;
-    }
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      text-align: center;
-    }
-    .stat-item {
-      flex: 1;
-    }
-    .stat-label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #64748b;
-      margin-bottom: 6px;
-    }
-    .stat-value {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #0f172a;
-      line-height: 1.2;
-    }
-    .stat-unit {
-      font-size: 0.9rem;
-      color: #64748b;
-      margin-left: 2px;
-    }
-    .trend-icon {
-      font-size: 0.9rem;
-      margin-left: 5px;
-    }
-    .positive { color: #10b981; }
-    .negative { color: #ef4444; }
+/* CHART CONTAINERS */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.chart-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.chart-card p{font-size:12px;color:var(--text3);margin-bottom:16px}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap canvas{border-radius:8px}
 
-    /* Filter Bar */
-    .filter-section {
-      background: white;
-      border-radius: 20px;
-      padding: 18px 24px;
-      margin-bottom: 28px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.02);
-      border: 1px solid #e2e8f0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 20px 30px;
-    }
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .filter-group label {
-      font-weight: 500;
-      color: #334155;
-    }
-    .filter-select {
-      padding: 10px 16px;
-      border-radius: 40px;
-      border: 1.5px solid #d1d5db;
-      background: white;
-      font-size: 0.95rem;
-      color: #1e293b;
-      cursor: pointer;
-      outline: none;
-      transition: border 0.15s;
-    }
-    .filter-select:hover {
-      border-color: #2563eb;
-    }
-    .year-chips {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .chip {
-      background: #f1f5f9;
-      padding: 6px 16px;
-      border-radius: 40px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #1e293b;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.1s;
-      user-select: none;
-    }
-    .chip.active {
-      background: #2563eb;
-      color: white;
-      border-color: #2563eb;
-    }
-    .chip:hover {
-      background: #e2e8f0;
-    }
-    .chip.active:hover {
-      background: #1d4ed8;
-    }
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--bg3);color:var(--text2);font-weight:600;padding:10px 14px;text-align:left;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-pos{color:var(--red2);font-weight:600}
+.td-neg{color:var(--primary2);font-weight:600}
+.td-neutral{color:var(--text2)}
 
-    /* Chart containers */
-    .chart-row {
-      display: grid;
-      grid-template-columns: 1.8fr 1.2fr;
-      gap: 24px;
-      margin-bottom: 30px;
-    }
-    .chart-card {
-      background: white;
-      border-radius: 24px;
-      padding: 20px 20px 16px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.02);
-      border: 1px solid #e9eef3;
-    }
-    .chart-title {
-      font-weight: 600;
-      font-size: 1.25rem;
-      margin-bottom: 12px;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .chart-wrapper {
-      position: relative;
-      height: 260px;
-      width: 100%;
-    }
-    .full-width {
-      grid-column: span 2;
-    }
+/* FILTERS */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px}
+.filter-group{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
+select,input[type=text],input[type=number]{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);padding:7px 12px;font-size:13px;outline:none;font-family:inherit;transition:.2s}
+select:focus,input:focus{border-color:var(--blue2)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.2s;font-family:inherit}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary2)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
+.btn-secondary:hover{background:var(--bg4);border-color:var(--text3)}
+.btn-danger{background:rgba(218,54,51,.15);color:var(--red2);border:1px solid rgba(218,54,51,.3)}
+.btn-danger:hover{background:rgba(218,54,51,.25)}
+.btn-accent{background:rgba(210,153,34,.15);color:var(--accent2);border:1px solid rgba(210,153,34,.3)}
+.btn-accent:hover{background:rgba(210,153,34,.25)}
+.btn-sm{padding:5px 10px;font-size:12px}
 
-    /* Loading & footer */
-    .loading-text {
-      text-align: center;
-      padding: 20px;
-      color: #64748b;
-    }
-    .footer-note {
-      margin-top: 28px;
-      text-align: right;
-      font-size: 0.8rem;
-      color: #94a3b8;
-    }
+/* INFLASI INDICATOR */
+.inflasi-big{font-family:'Playfair Display',serif;font-size:52px;font-weight:800;line-height:1}
+.inflasi-region{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;margin-bottom:8px}
+.inflasi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden}
+.inflasi-card::before{content:'';position:absolute;top:0;right:0;width:120px;height:120px;border-radius:50%;opacity:.05;transform:translate(30px,-30px)}
+.inflasi-card.nasional::before{background:var(--blue);border-color:var(--blue)}
+.inflasi-card.jateng::before{background:var(--teal)}
+.inflasi-card.kota::before{background:var(--accent)}
+.metric-row{display:flex;gap:16px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.metric-item{flex:1;text-align:center}
+.metric-item .val{font-size:18px;font-weight:700}
+.metric-item .lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
 
-    @media (max-width: 900px) {
-      body { padding: 16px; }
-      .card-grid { grid-template-columns: 1fr; }
-      .chart-row { grid-template-columns: 1fr; }
-      .full-width { grid-column: span 1; }
-      .filter-section { flex-direction: column; align-items: flex-start; }
-    }
-  </style>
+/* HBK */
+.hbk-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content}
+.hbk-tab{padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:.15s}
+.hbk-tab.active{background:var(--bg3);color:var(--text)}
+
+/* CRUD */
+.crud-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.crud-tab{padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;transition:.15s}
+.crud-tab.active{color:var(--primary2);border-bottom-color:var(--primary)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:28px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.form-field input,.form-field select{width:100%}
+.form-full{grid-column:1/-1}
+
+/* AI */
+.ai-chat{display:flex;flex-direction:column;height:480px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.ai-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--bg)}
+.msg{max-width:75%;display:flex;flex-direction:column;gap:4px}
+.msg.user{align-self:flex-end;align-items:flex-end}
+.msg.ai{align-self:flex-start;align-items:flex-start}
+.msg-bubble{padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6}
+.msg.user .msg-bubble{background:var(--blue);color:#fff;border-radius:12px 12px 4px 12px}
+.msg.ai .msg-bubble{background:var(--bg3);border:1px solid var(--border);border-radius:12px 12px 12px 4px}
+.msg-time{font-size:10px;color:var(--text3)}
+.ai-input-row{display:flex;gap:8px;padding:14px;background:var(--bg2);border-top:1px solid var(--border)}
+.ai-input-row input{flex:1}
+.ai-key-row{padding:12px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text2)}
+.ai-key-row input{flex:1;font-family:monospace}
+.quick-prompts{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--bg2);border-top:1px solid var(--border)}
+.qp-btn{padding:5px 12px;border-radius:20px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-size:12px;cursor:pointer;transition:.15s}
+.qp-btn:hover{border-color:var(--blue2);color:var(--text)}
+
+/* KURS TICKER */
+.kurs-ticker{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 16px;display:flex;align-items:center;gap:16px;font-size:13px;margin-bottom:20px}
+.kurs-ticker .kurs-val{font-weight:800;font-size:16px;color:var(--accent2)}
+.kurs-ticker .kurs-lbl{color:var(--text2)}
+.kurs-ticker .kurs-change{font-size:12px}
+.loading-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--primary);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* HARGA HARIAN TABLE */
+.harga-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.harga-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;display:flex;flex-direction:column;gap:4px}
+.harga-item .komoditas{font-size:12px;color:var(--text2);font-weight:500}
+.harga-item .harga{font-size:20px;font-weight:800;color:var(--text)}
+.harga-item .satuan{font-size:10px;color:var(--text3)}
+.harga-item .perubahan{font-size:11px;font-weight:600;margin-top:4px}
+
+/* HET indicator */
+.het-bar{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px}
+.het-line{flex:1;height:4px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative}
+.het-fill{height:100%;border-radius:4px;transition:.3s}
+.het-normal{background:var(--primary)}
+.het-warning{background:var(--accent)}
+.het-danger{background:var(--red)}
+
+/* SECTION DIVIDER */
+.section-gap{margin:28px 0}
+.section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* SCROLL */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 18px;font-size:13px;box-shadow:var(--shadow);animation:slideUp .3s ease;display:flex;align-items:center;gap:10px}
+.toast.success{border-left:3px solid var(--primary)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--blue)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* STAT PILL */
+.stat-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stat-pill{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;display:flex;gap:8px;align-items:center}
+.stat-pill .sp-lbl{color:var(--text3)}
+.stat-pill .sp-val{font-weight:700;color:var(--text)}
+
+/* INFO BOX */
+.info-box{background:rgba(31,111,235,.08);border:1px solid rgba(31,111,235,.25);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:var(--text2);margin-bottom:16px;display:flex;gap:10px}
+.info-box .ib-icon{font-size:16px;margin-top:1px}
+
+/* HBK PERIOD CARDS */
+.period-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.period-card h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.period-card .period-date{font-size:12px;color:var(--text3);margin-bottom:16px}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2)}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:11px;transition:.2s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--primary)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
+
+/* RESPONSIVE tweaks */
+@media(max-width:900px){
+  #sidebar{width:60px}
+  .nav-item span{display:none}
+  .nav-section{display:none}
+  .sidebar-logo .logo-title,.sidebar-logo .logo-sub,.sidebar-logo .logo-badge{display:none}
+  #main{margin-left:60px}
+  .cards-3,.cards-4{grid-template-columns:1fr 1fr}
+  .page{padding:16px}
+}
+</style>
 </head>
 <body>
-<div class="dashboard">
-  <div class="dashboard-header">
-    <h1><i class="fas fa-chart-pie"></i> Dashboard Data</h1>
-    <div class="subtitle">Inflasi · Kota Tegal, Jawa Tengah & Nasional</div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">TPID Dashboard</div>
+    <div class="logo-sub">Kota Tegal · Jawa Tengah</div>
+    <span class="logo-badge">▸ LIVE DATA</span>
+  </div>
+  <nav>
+    <div class="nav-section">Utama</div>
+    <a class="nav-item active" data-page="beranda" onclick="navigate('beranda')">
+      <span class="nav-icon">🏠</span><span>Beranda</span>
+    </a>
+    <div class="nav-section">Analisis</div>
+    <a class="nav-item" data-page="hbk" onclick="navigate('hbk')">
+      <span class="nav-icon">🌙</span><span>Analisis HBK</span>
+    </a>
+    <a class="nav-item" data-page="detail" onclick="navigate('detail')">
+      <span class="nav-icon">📊</span><span>Detail Harga</span>
+    </a>
+    <div class="nav-section">Kelola Data</div>
+    <a class="nav-item" data-page="crud" onclick="navigate('crud')">
+      <span class="nav-icon">🗄️</span><span>Manajemen Data</span>
+    </a>
+    <div class="nav-section">Intelijen</div>
+    <a class="nav-item" data-page="ai" onclick="navigate('ai')">
+      <span class="nav-icon">🤖</span><span>AI Rekomendasi</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    v2.0 · TPID Kota Tegal<br>
+    <span id="sidebar-date" style="font-size:10px;color:var(--text3)"></span>
+  </div>
+</aside>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+<!-- ============ PAGE: BERANDA ============ -->
+<section class="page active" id="page-beranda">
+  <div class="page-header">
+    <div class="breadcrumb">Dashboard</div>
+    <h1>📈 Beranda Ekonomi Daerah</h1>
+    <p>Ringkasan inflasi, kurs, dan pergerakan harga komoditas strategis terkini</p>
   </div>
 
-  <!-- Card data terakhir -->
-  <div class="card-grid" id="latestCards">
-    <div class="stat-card">
-      <div class="card-header"><i class="fas fa-city"></i><h3>Kota Tegal <span class="region-badge">lokal</span></h3></div>
-      <div class="stats-row" id="card-tegal">
-        <div class="stat-item"><div class="stat-label">MTM</div><div class="stat-value" id="tegal-mtm">—</div></div>
-        <div class="stat-item"><div class="stat-label">YTD</div><div class="stat-value" id="tegal-ytd">—</div></div>
-        <div class="stat-item"><div class="stat-label">YoY</div><div class="stat-value" id="tegal-yoy">—</div></div>
+  <!-- KURS TICKER -->
+  <div class="kurs-ticker" id="kurs-ticker">
+    <span class="kurs-lbl">💵 USD/IDR</span>
+    <span class="kurs-val" id="kurs-usd">Memuat…</span>
+    <span class="kurs-change" id="kurs-change"></span>
+    <span style="margin-left:auto;color:var(--text3);font-size:11px" id="kurs-time"></span>
+  </div>
+
+  <!-- INFLASI CARDS -->
+  <div class="section-title">Inflasi Bulanan Terkini (MtM)</div>
+  <div class="cards-grid cards-3" style="margin-bottom:24px" id="inflasi-cards">
+    <div class="inflasi-card nasional" style="border-color:rgba(31,111,235,.3)">
+      <div class="inflasi-region">🇮🇩 Nasional</div>
+      <div class="inflasi-big" id="infl-nasional-val" style="color:var(--blue2)">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">% (MtM)</div>
+      <div class="metric-row">
+        <div class="metric-item"><div class="val" id="infl-nas-ytd">—</div><div class="lbl">YtD</div></div>
+        <div class="metric-item"><div class="val" id="infl-nas-yoy">—</div><div class="lbl">YoY</div></div>
+        <div class="metric-item"><div class="val" id="infl-nas-per">—</div><div class="lbl">Periode</div></div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="card-header"><i class="fas fa-map"></i><h3>Jawa Tengah <span class="region-badge">provinsi</span></h3></div>
-      <div class="stats-row" id="card-jateng">
-        <div class="stat-item"><div class="stat-label">MTM</div><div class="stat-value" id="jateng-mtm">—</div></div>
-        <div class="stat-item"><div class="stat-label">YTD</div><div class="stat-value" id="jateng-ytd">—</div></div>
-        <div class="stat-item"><div class="stat-label">YoY</div><div class="stat-value" id="jateng-yoy">—</div></div>
+    <div class="inflasi-card jateng" style="border-color:rgba(14,148,136,.3)">
+      <div class="inflasi-region">🏛️ Jawa Tengah</div>
+      <div class="inflasi-big" id="infl-jateng-val" style="color:var(--teal2)">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">% (MtM)</div>
+      <div class="metric-row">
+        <div class="metric-item"><div class="val" id="infl-jt-ytd">—</div><div class="lbl">YtD</div></div>
+        <div class="metric-item"><div class="val" id="infl-jt-yoy">—</div><div class="lbl">YoY</div></div>
+        <div class="metric-item"><div class="val" id="infl-jt-per">—</div><div class="lbl">Periode</div></div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="card-header"><i class="fas fa-globe-asia"></i><h3>Nasional <span class="region-badge">Indonesia</span></h3></div>
-      <div class="stats-row" id="card-nasional">
-        <div class="stat-item"><div class="stat-label">MTM</div><div class="stat-value" id="nasional-mtm">—</div></div>
-        <div class="stat-item"><div class="stat-label">YTD</div><div class="stat-value" id="nasional-ytd">—</div></div>
-        <div class="stat-item"><div class="stat-label">YoY</div><div class="stat-value" id="nasional-yoy">—</div></div>
+    <div class="inflasi-card kota" style="border-color:rgba(210,153,34,.3)">
+      <div class="inflasi-region">🏙️ Kota Tegal</div>
+      <div class="inflasi-big" id="infl-kota-val" style="color:var(--accent2)">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">% (MtM)</div>
+      <div class="metric-row">
+        <div class="metric-item"><div class="val" id="infl-ko-ytd">—</div><div class="lbl">YtD</div></div>
+        <div class="metric-item"><div class="val" id="infl-ko-yoy">—</div><div class="lbl">YoY</div></div>
+        <div class="metric-item"><div class="val" id="infl-ko-per">—</div><div class="lbl">Periode</div></div>
       </div>
     </div>
   </div>
 
-  <!-- Filter infografis -->
-  <div class="filter-section">
+  <!-- CHARTS ROW -->
+  <div class="cards-grid cards-2" style="margin-bottom:24px">
+    <div class="chart-card">
+      <h3>Tren Inflasi YoY — 3 Wilayah</h3>
+      <p>Perbandingan inflasi tahunan Nasional, Jawa Tengah, dan Kota Tegal</p>
+      <div class="chart-wrap"><canvas id="chartInflasiYoy"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Kurs USD/IDR — Real-time</h3>
+      <p>Data nilai tukar terkini dari open exchange rate API</p>
+      <div class="chart-wrap"><canvas id="chartKurs"></canvas></div>
+    </div>
+  </div>
+
+  <!-- HARGA HARIAN -->
+  <div class="section-title">Harga Komoditas Strategis Terkini</div>
+  <div class="filter-bar" style="margin-bottom:16px">
     <div class="filter-group">
-      <label><i class="fas fa-sliders-h"></i> Metrik:</label>
-      <select id="metricSelect" class="filter-select">
-        <option value="mtm" selected>Month-to-Month (MTM %)</option>
-        <option value="ytd">Year-to-Date (YTD %)</option>
-        <option value="yoy">Year-over-Year (YoY %)</option>
+      <span>Filter:</span>
+      <input type="text" id="searchKomoditas" placeholder="Cari komoditas..." style="width:200px" oninput="filterHargaHarian()"/>
+    </div>
+    <div class="filter-group">
+      Tampilkan HET:
+      <label class="toggle"><input type="checkbox" id="toggleHET" checked onchange="renderHargaHarian()"/><span class="toggle-slider"></span></label>
+    </div>
+    <span id="tanggal-harga" style="margin-left:auto;font-size:12px;color:var(--text3)"></span>
+  </div>
+  <div class="harga-grid" id="hargaHarianGrid"></div>
+
+  <!-- STATISTIK INFLASI TABLE -->
+  <div class="section-gap"></div>
+  <div class="section-title">Riwayat Data Inflasi (Semua Wilayah)</div>
+  <div class="table-wrap">
+    <table id="inflasi-table">
+      <thead><tr><th>Tahun</th><th>Bulan</th><th>Wilayah</th><th>MtM (%)</th><th>YtD (%)</th><th>YoY (%)</th><th>Status</th></tr></thead>
+      <tbody id="inflasi-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ PAGE: HBK ============ -->
+<section class="page" id="page-hbk">
+  <div class="page-header">
+    <div class="breadcrumb">Analisis</div>
+    <h1>🌙 Analisis Hari Besar Keagamaan (HBK)</h1>
+    <p>Pola pergerakan harga komoditas di sekitar Idulfitri, Natal, dan Tahun Baru</p>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span>Tahun:</span>
+      <select id="hbk-year"></select>
+    </div>
+    <div class="filter-group">
+      <span>Komoditas:</span>
+      <select id="hbk-komoditas"></select>
+    </div>
+    <div class="filter-group">
+      <span>Window (hari sebelum/sesudah):</span>
+      <select id="hbk-window">
+        <option value="14">±14 hari</option>
+        <option value="21">±21 hari</option>
+        <option value="30" selected>±30 hari</option>
+        <option value="45">±45 hari</option>
+        <option value="60">±60 hari</option>
       </select>
     </div>
+    <button class="btn btn-primary" onclick="renderHBK()">🔄 Analisis</button>
+  </div>
+
+  <!-- HBK TABS -->
+  <div class="hbk-tabs" id="hbkTabs">
+    <div class="hbk-tab active" onclick="switchHBK(this,'idul')">🌙 Idulfitri</div>
+    <div class="hbk-tab" onclick="switchHBK(this,'natal')">⭐ Natal</div>
+    <div class="hbk-tab" onclick="switchHBK(this,'tahunbaru')">🎆 Tahun Baru</div>
+  </div>
+
+  <div id="hbk-content-idul" class="hbk-content">
+    <div id="idul-info" class="info-box"><span class="ib-icon">ℹ️</span><span id="idul-info-text">Pilih tahun dan komoditas, lalu klik Analisis</span></div>
+    <div class="chart-card" style="margin-bottom:20px">
+      <h3 id="idul-chart-title">Pergerakan Harga — Sekitar Idulfitri</h3>
+      <p id="idul-chart-sub">Harga harian sebelum dan sesudah Idulfitri</p>
+      <div class="chart-wrap" style="height:300px"><canvas id="chartIdul"></canvas></div>
+    </div>
+    <div id="idul-stats" class="cards-grid cards-4"></div>
+    <div class="section-gap"></div>
+    <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>H- / H+</th><th>Harga (Rp)</th><th>Δ vs H-1</th><th>Keterangan</th></tr></thead><tbody id="idul-table-body"></tbody></table></div>
+  </div>
+
+  <div id="hbk-content-natal" class="hbk-content" style="display:none">
+    <div id="natal-info" class="info-box"><span class="ib-icon">ℹ️</span><span>Pilih tahun dan komoditas, lalu klik Analisis</span></div>
+    <div class="chart-card" style="margin-bottom:20px">
+      <h3>Pergerakan Harga — Sekitar Natal</h3>
+      <div class="chart-wrap" style="height:300px"><canvas id="chartNatal"></canvas></div>
+    </div>
+    <div id="natal-stats" class="cards-grid cards-4"></div>
+    <div class="section-gap"></div>
+    <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>H- / H+</th><th>Harga (Rp)</th><th>Δ vs H-1</th><th>Keterangan</th></tr></thead><tbody id="natal-table-body"></tbody></table></div>
+  </div>
+
+  <div id="hbk-content-tahunbaru" class="hbk-content" style="display:none">
+    <div id="tahunbaru-info" class="info-box"><span class="ib-icon">ℹ️</span><span>Pilih tahun dan komoditas, lalu klik Analisis</span></div>
+    <div class="chart-card" style="margin-bottom:20px">
+      <h3>Pergerakan Harga — Sekitar Tahun Baru</h3>
+      <div class="chart-wrap" style="height:300px"><canvas id="chartTahunBaru"></canvas></div>
+    </div>
+    <div id="tahunbaru-stats" class="cards-grid cards-4"></div>
+    <div class="section-gap"></div>
+    <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>H- / H+</th><th>Harga (Rp)</th><th>Δ vs H-1</th><th>Keterangan</th></tr></thead><tbody id="tahunbaru-table-body"></tbody></table></div>
+  </div>
+</section>
+
+<!-- ============ PAGE: DETAIL ============ -->
+<section class="page" id="page-detail">
+  <div class="page-header">
+    <div class="breadcrumb">Analisis</div>
+    <h1>📊 Analisis Detail Perubahan Harga</h1>
+    <p>Rata-rata triwulan, rata-rata mingguan (IPH), dan perbandingan HET/HAP</p>
+  </div>
+
+  <div class="filter-bar">
     <div class="filter-group">
-      <label><i class="far fa-calendar-alt"></i> Tahun:</label>
-      <div class="year-chips" id="yearChipsContainer">
-        <!-- diisi dinamis -->
-      </div>
+      <span>Komoditas:</span>
+      <select id="detail-komoditas"></select>
     </div>
-    <div style="margin-left: auto; font-size: 0.9rem; color: #475569;">
-      <i class="far fa-clock"></i> Data terakhir: <span id="latestDateLabel">memuat...</span>
+    <div class="filter-group">
+      <span>Tahun:</span>
+      <select id="detail-year"></select>
+    </div>
+    <div class="filter-group">
+      <span>Tampilkan HET/HAP:</span>
+      <label class="toggle"><input type="checkbox" id="detail-show-het" checked/><span class="toggle-slider"></span></label>
+    </div>
+    <button class="btn btn-primary" onclick="renderDetail()">🔍 Tampilkan</button>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div id="detail-summary-cards" class="cards-grid cards-4" style="margin-bottom:20px"></div>
+
+  <!-- CHARTS -->
+  <div class="cards-grid cards-2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <h3>Rata-rata Harga per Triwulan</h3>
+      <p>Perbandingan rata-rata harga antar kuartal</p>
+      <div class="chart-wrap"><canvas id="chartTriwulan"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>IPH Mingguan (%)</h3>
+      <p>Indeks Perkembangan Harga — perubahan harga rata-rata mingguan</p>
+      <div class="chart-wrap"><canvas id="chartIPH"></canvas></div>
     </div>
   </div>
 
-  <!-- Grafik perbandingan inflasi -->
-  <div class="chart-row">
-    <div class="chart-card full-width">
-      <div class="chart-title"><i class="fas fa-chart-line" style="color:#2563eb;"></i> Perbandingan Inflasi — Nasional, Jateng, Kota Tegal</div>
-      <div class="chart-wrapper">
-        <canvas id="inflationChart"></canvas>
+  <div class="chart-card" style="margin-bottom:20px">
+    <h3>Harga Harian vs HET/HAP</h3>
+    <p>Perbandingan harga aktual dengan Harga Eceran Tertinggi dan Harga Acuan Produsen</p>
+    <div class="chart-wrap" style="height:300px"><canvas id="chartHarian"></canvas></div>
+  </div>
+
+  <!-- HET INFO -->
+  <div id="het-info-box" class="info-box">
+    <span class="ib-icon">💡</span>
+    <span id="het-info-text">Pilih komoditas untuk melihat referensi HET dan HAP berdasarkan Permendag terbaru.</span>
+  </div>
+
+  <!-- WEEKLY TABLE -->
+  <div class="section-title">Tabel Rata-rata Mingguan & IPH</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Minggu ke-</th><th>Periode</th><th>Rata-rata Harga (Rp)</th><th>IPH (%)</th><th>Status</th></tr></thead>
+      <tbody id="weekly-tbody"></tbody>
+    </table>
+  </div>
+  <div class="section-gap"></div>
+  <div class="section-title">Tabel Rata-rata Triwulan</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Triwulan</th><th>Periode</th><th>Rata-rata Harga (Rp)</th><th>Δ vs Triwulan Lalu</th><th>Min</th><th>Max</th></tr></thead>
+      <tbody id="quarterly-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ PAGE: CRUD ============ -->
+<section class="page" id="page-crud">
+  <div class="page-header">
+    <div class="breadcrumb">Kelola Data</div>
+    <h1>🗄️ Manajemen Data</h1>
+    <p>Edit, tambah, hapus data inflasi dan harga komoditas. Ekspor dan impor CSV.</p>
+  </div>
+
+  <div class="crud-tabs">
+    <div class="crud-tab active" onclick="switchCrudTab(this,'inflasi')">📉 Data Inflasi</div>
+    <div class="crud-tab" onclick="switchCrudTab(this,'harga')">🏷️ Data Harga Komoditas</div>
+  </div>
+
+  <!-- INFLASI CRUD -->
+  <div id="crud-inflasi">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="openModal('modal-add-inflasi')">➕ Tambah Data Inflasi</button>
+      <label class="btn btn-secondary" style="cursor:pointer">
+        📥 Upload CSV Inflasi
+        <input type="file" accept=".csv" style="display:none" onchange="importCSV(event,'inflasi')"/>
+      </label>
+      <button class="btn btn-accent" onclick="exportCSV('inflasi')">📤 Ekspor CSV</button>
+      <div class="filter-group" style="margin-left:auto">
+        <input type="text" id="search-inflasi" placeholder="Cari wilayah..." style="width:180px" oninput="renderInflasiTable()"/>
       </div>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Tahun</th><th>Bulan</th><th>Level</th><th>Wilayah</th><th>MtM</th><th>YtD</th><th>YoY</th><th>Aksi</th></tr></thead>
+      <tbody id="crud-inflasi-tbody"></tbody></table>
+    </div>
+    <div id="crud-inflasi-pagination" style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--text2)"></div>
+  </div>
+
+  <!-- HARGA CRUD -->
+  <div id="crud-harga" style="display:none">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="openModal('modal-add-harga')">➕ Tambah Data Harga</button>
+      <label class="btn btn-secondary" style="cursor:pointer">
+        📥 Upload CSV Harga
+        <input type="file" accept=".csv" style="display:none" onchange="importCSV(event,'harga')"/>
+      </label>
+      <button class="btn btn-accent" onclick="exportCSV('harga')">📤 Ekspor CSV</button>
+      <div class="filter-group" style="margin-left:auto">
+        <input type="text" id="search-harga" placeholder="Cari komoditas..." style="width:180px" oninput="renderHargaTable()"/>
+        <select id="filter-harga-tahun" onchange="renderHargaTable()"></select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Tanggal</th><th>Komoditas</th><th>Satuan</th><th>Harga (Rp)</th><th>Pasar</th><th>Aksi</th></tr></thead>
+      <tbody id="crud-harga-tbody"></tbody></table>
+    </div>
+    <div id="crud-harga-pagination" style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--text2)"></div>
+  </div>
+</section>
+
+<!-- ============ PAGE: AI ============ -->
+<section class="page" id="page-ai">
+  <div class="page-header">
+    <div class="breadcrumb">Intelijen</div>
+    <h1>🤖 AI Rekomendasi TPID</h1>
+    <p>Analisis cerdas dan rekomendasi kebijakan berbasis data ekonomi menggunakan Claude AI</p>
+  </div>
+  <div class="cards-grid cards-2" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Asisten AI TPID</div>
+        <div class="card-icon" style="background:rgba(137,87,229,.15);color:var(--purple)">🧠</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6">AI ini menganalisis data inflasi dan harga komoditas untuk memberikan rekomendasi kebijakan, prediksi tren, dan saran intervensi bagi TPID Kota Tegal.</p>
+      <div class="stat-row" style="margin-top:16px">
+        <div class="stat-pill"><span class="sp-lbl">Data komoditas:</span><span class="sp-val" id="ai-stat-komod">—</span></div>
+        <div class="stat-pill"><span class="sp-lbl">Data inflasi:</span><span class="sp-val" id="ai-stat-infl">—</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Cara Penggunaan</div></div>
+      <ul style="font-size:13px;color:var(--text2);line-height:1.8;padding-left:18px">
+        <li>Masukkan API Key Claude (Anthropic) di kolom bawah</li>
+        <li>Gunakan tombol <b>Quick Prompt</b> atau ketik pertanyaan Anda</li>
+        <li>AI akan menganalisis data lokal dan memberikan rekomendasi</li>
+        <li>Hasil dapat dijadikan bahan notulen atau laporan</li>
+      </ul>
     </div>
   </div>
 
-  <!-- Infografis perbandingan Dolar & Rupiah -->
-  <div class="chart-row">
-    <div class="chart-card">
-      <div class="chart-title"><i class="fas fa-dollar-sign" style="color:#16a34a;"></i> USD/IDR (7 hari terakhir)</div>
-      <div class="chart-wrapper">
-        <canvas id="forexChart"></canvas>
-      </div>
-      <div style="margin-top: 12px; font-size:0.85rem; text-align:center; color:#64748b;" id="forexNote">Memuat data kurs...</div>
+  <div class="ai-chat">
+    <div class="ai-key-row">
+      🔑 API Key Claude:
+      <input type="password" id="aiApiKey" placeholder="sk-ant-..." style="font-family:monospace"/>
+      <button class="btn btn-sm btn-secondary" onclick="saveApiKey()">Simpan</button>
+      <span id="ai-key-status" style="font-size:11px;color:var(--primary2)"></span>
     </div>
-    <div class="chart-card">
-      <div class="chart-title"><i class="fas fa-info-circle"></i> Insight Cepat</div>
-      <div style="padding: 12px 4px;">
-        <p style="margin-bottom: 16px; color: #334155;">📊 Inflasi tahunan (YoY) terbaru menunjukkan tekanan harga yang mulai stabil.</p>
-        <p style="margin-bottom: 8px; color: #334155;"><i class="fas fa-arrow-up" style="color:#10b981;"></i> <strong>Kota Tegal</strong> mencatat inflasi mtm 0,86% (Feb'26).</p>
-        <p style="margin-bottom: 8px; color: #334155;"><i class="fas fa-chart-bar"></i> Gunakan filter di atas untuk melihat tren historis.</p>
-        <hr style="margin: 20px 0; border:0; border-top:1px dashed #cbd5e1;">
-        <p><i class="fas fa-database"></i> Sumber data: inflasi_data.csv · Kurs: exchangerate.host</p>
+    <div class="ai-messages" id="aiMessages">
+      <div class="msg ai">
+        <div class="msg-bubble">
+          👋 Halo! Saya adalah asisten AI TPID yang siap membantu menganalisis data ekonomi Kota Tegal.<br><br>
+          Saya dapat membantu Anda dengan:<br>
+          • Analisis tren inflasi dan harga komoditas<br>
+          • Rekomendasi kebijakan intervensi pasar<br>
+          • Prediksi potensi kenaikan harga menjelang HBK<br>
+          • Identifikasi komoditas yang perlu pengawasan khusus<br><br>
+          Silakan ajukan pertanyaan atau gunakan Quick Prompt di bawah.
+        </div>
+        <div class="msg-time">TPID AI · Siap</div>
       </div>
+    </div>
+    <div class="quick-prompts">
+      <span style="font-size:12px;color:var(--text3);align-self:center">Quick:</span>
+      <button class="qp-btn" onclick="quickPrompt('Analisis komoditas paling volatile dalam 3 bulan terakhir dan berikan rekomendasi')">📈 Komoditas Volatile</button>
+      <button class="qp-btn" onclick="quickPrompt('Bandingkan inflasi Kota Tegal vs nasional dan Jawa Tengah, jelaskan gap-nya')">🔍 Komparasi Inflasi</button>
+      <button class="qp-btn" onclick="quickPrompt('Prediksi risiko kenaikan harga menjelang Idulfitri dan rekomendasikan intervensi TPID')">🌙 Risiko HBK</button>
+      <button class="qp-btn" onclick="quickPrompt('Berikan ringkasan eksekutif kondisi inflasi terkini untuk bahan laporan TPID')">📄 Ringkasan Eksekutif</button>
+      <button class="qp-btn" onclick="quickPrompt('Komoditas mana yang harganya melebihi HET dan perlu tindakan segera?')">⚠️ Pelanggaran HET</button>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" id="aiInput" placeholder="Ketik pertanyaan tentang data inflasi dan harga komoditas..." onkeydown="if(event.key==='Enter')sendAI()"/>
+      <button class="btn btn-primary" onclick="sendAI()" id="ai-send-btn">📤 Kirim</button>
     </div>
   </div>
-  <div class="footer-note">
-    Dashboard Data · Update real-time dari CSV
+</section>
+
+</main>
+
+<!-- MODALS -->
+<!-- Add Inflasi -->
+<div class="modal-overlay" id="modal-add-inflasi">
+  <div class="modal">
+    <h2 id="modal-inflasi-title">➕ Tambah Data Inflasi</h2>
+    <input type="hidden" id="edit-inflasi-idx" value="-1"/>
+    <div class="form-grid">
+      <div class="form-field"><label>Tahun</label><input type="number" id="f-infl-tahun" placeholder="2025" min="2000" max="2100"/></div>
+      <div class="form-field"><label>Bulan (1-12)</label><input type="number" id="f-infl-bulan" placeholder="1" min="1" max="12"/></div>
+      <div class="form-field"><label>Level Wilayah</label>
+        <select id="f-infl-level"><option value="nasional">Nasional</option><option value="provinsi">Provinsi</option><option value="kota">Kota/Kabupaten</option></select>
+      </div>
+      <div class="form-field"><label>Nama Wilayah</label><input type="text" id="f-infl-wilayah" placeholder="Kota Tegal"/></div>
+      <div class="form-field"><label>Inflasi MtM (%)</label><input type="number" id="f-infl-mtm" step="0.01" placeholder="0.00"/></div>
+      <div class="form-field"><label>Inflasi YtD (%)</label><input type="number" id="f-infl-ytd" step="0.01" placeholder="0.00"/></div>
+      <div class="form-field form-full"><label>Inflasi YoY (%)</label><input type="number" id="f-infl-yoy" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-inflasi')">Batal</button>
+      <button class="btn btn-primary" onclick="saveInflasi()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Harga -->
+<div class="modal-overlay" id="modal-add-harga">
+  <div class="modal">
+    <h2 id="modal-harga-title">➕ Tambah Data Harga</h2>
+    <input type="hidden" id="edit-harga-idx" value="-1"/>
+    <div class="form-grid">
+      <div class="form-field"><label>Tanggal</label><input type="date" id="f-h-tanggal"/></div>
+      <div class="form-field"><label>Komoditas</label><select id="f-h-komoditas"></select></div>
+      <div class="form-field"><label>Harga (Rp)</label><input type="number" id="f-h-harga" placeholder="12000"/></div>
+      <div class="form-field"><label>Satuan</label><input type="text" id="f-h-satuan" placeholder="kg"/></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-harga')">Batal</button>
+      <button class="btn btn-primary" onclick="saveHarga()">💾 Simpan</button>
+    </div>
   </div>
 </div>
 
 <script>
-  (function(){
-    "use strict";
+// =============================================
+// DATA STORAGE
+// =============================================
+let inflasData = [];
+let hargaData = [];
+let kursHistory = [];
+let currentKurs = null;
 
-    // ---------- GLOBAL VARIABLES ----------
-    let rawData = [];                // array hasil parsing CSV
-    let inflationChart, forexChart;
-    let currentMetric = 'mtm';       // mtm, ytd, yoy
-    let selectedYears = new Set();   // tahun yang aktif di filter
-    let availableYears = [];
+// HET & HAP reference (Permendag 2024)
+const HET_HAP = {
+  'Beras Medium':         {het:12500, hap:9000},
+  'Beras Premium':        {het:14900, hap:11000},
+  'Gula Pasir Curah':     {het:17500, hap:13500},
+  'Gula Pasir Kemasan':   {het:19500, hap:13500},
+  'Minyak Goreng Sawit Curah':      {het:15700, hap:11500},
+  'Minyak Goreng Sawit Kemasan Premium':{het:17500, hap:11500},
+  'Minyakita':            {het:15700, hap:11500},
+  'Daging Sapi Paha Belakang':{het:150000, hap:100000},
+  'Daging Sapi Paha Depan':{het:145000, hap:98000},
+  'Daging Sapi Sandung Lamur':{het:120000, hap:85000},
+  'Daging Sapi Tetelan':  {het:110000, hap:75000},
+  'Daging Ayam Ras':      {het:36750, hap:22000},
+  'Daging Ayam Kampung':  {het:80000, hap:55000},
+  'Telur Ayam Ras':       {het:27000, hap:22000},
+  'Telur Ayam Kampung':   {het:45000, hap:35000},
+  'Cabai Merah Keriting': {het:57000, hap:30000},
+  'Cabai Merah Besar':    {het:55000, hap:28000},
+  'Cabai Rawit Merah':    {het:57000, hap:35000},
+  'Cabai Rawit Hijau':    {het:50000, hap:28000},
+  'Bawang Merah':         {het:36500, hap:22000},
+  'Bawang Putih Honan':   {het:42000, hap:28000},
+  'Bawang Putih Kating':  {het:40000, hap:26000},
+  'Ikan Bandeng':         {het:35000, hap:20000},
+  'Ikan Tongkol':         {het:32000, hap:18000},
+  'Tepung Terigu':        {het:12000, hap:8500},
+  'Garam Halus':          {het:8000, hap:4000},
+  'Mie Instan':           {het:4000, hap:2500},
+  'Susu Kental Manis':    {het:15000, hap:9000},
+  'Tahu Putih':           {het:700, hap:400},
+  'Tempe Bungkus':        {het:3000, hap:1800},
+};
 
-    // DOM elements
-    const metricSelect = document.getElementById('metricSelect');
-    const yearChipsDiv = document.getElementById('yearChipsContainer');
-    const latestDateSpan = document.getElementById('latestDateLabel');
+// Idulfitri dates (automate via known schedule)
+const IDUL_FITRI = {
+  2022: '2022-05-02',
+  2023: '2023-04-22',
+  2024: '2024-04-10',
+  2025: '2025-03-31',
+  2026: '2026-03-20',
+  2027: '2027-03-09',
+  2028: '2028-02-26',
+  2029: '2029-02-14',
+  2030: '2030-02-03',
+};
 
-    // Card fields
-    const fields = {
-      tegal: { mtm: 'tegal-mtm', ytd: 'tegal-ytd', yoy: 'tegal-yoy' },
-      jateng: { mtm: 'jateng-mtm', ytd: 'jateng-ytd', yoy: 'jateng-yoy' },
-      nasional: { mtm: 'nasional-mtm', ytd: 'nasional-ytd', yoy: 'nasional-yoy' }
-    };
+const MONTHS_ID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+const MONTHS_FULL = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-    // ---------- UTILS: parse CSV & prepare ----------
-    function parseCSVAndInit() {
-      Papa.parse('inflasi_data.csv', {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          rawData = results.data.map(row => ({
-            ...row,
-            tahun: parseInt(row.tahun),
-            bulan: parseInt(row.bulan),
-            inflasi_mtm: parseFloat(row.inflasi_mtm),
-            inflasi_ytd: parseFloat(row.inflasi_ytd),
-            inflasi_yoy: parseFloat(row.inflasi_yoy),
-          })).filter(r => !isNaN(r.tahun) && !isNaN(r.bulan)); // validasi
+// Chart instances
+let chartInstances = {};
 
-          // Urutkan data
-          rawData.sort((a,b) => (a.tahun - b.tahun) || (a.bulan - b.bulan));
-          
-          // Ambil tahun unik
-          availableYears = [...new Set(rawData.map(d => d.tahun))].sort();
-          
-          // Inisialisasi selectedYears (default: semua tahun)
-          selectedYears = new Set(availableYears);
-          
-          renderYearChips();
-          updateLatestCards();
-          renderInflationChart();
-          
-          latestDateSpan.textContent = getLatestPeriodString();
-        },
-        error: function(err) {
-          console.error("Gagal memuat CSV:", err);
-          alert("Gagal memuat data inflasi_data.csv. Pastikan file berada di folder yang sama.");
-        }
-      });
-    }
+// CRUD pagination
+let crudInflasiPage = 0, crudHargaPage = 0;
+const PAGE_SIZE = 20;
+let activeHBK = 'idul';
+let activeHBKCharts = {};
 
-    // Ambil string periode terbaru (tahun-bulan)
-    function getLatestPeriodString() {
-      if (!rawData.length) return ' - ';
-      const sorted = [...rawData].sort((a,b) => (b.tahun - a.tahun) || (b.bulan - a.bulan));
-      const latest = sorted[0];
-      return `${latest.tahun}-${String(latest.bulan).padStart(2,'0')}`;
-    }
+// =============================================
+// NAVIGATION
+// =============================================
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  if (page === 'beranda') renderBeranda();
+  if (page === 'hbk') initHBK();
+  if (page === 'detail') initDetail();
+  if (page === 'crud') renderCrudTables();
+  if (page === 'ai') updateAIStats();
+}
 
-    // Mendapatkan data terbaru per region (berdasarkan max tahun-bulan)
-    function getLatestForRegion(levelWilayah, namaWilayah) {
-      const regionData = rawData.filter(d => 
-        d.level_wilayah === levelWilayah && 
-        (levelWilayah === 'nasional' ? true : d.nama_wilayah === namaWilayah)
-      );
-      if (regionData.length === 0) return null;
-      // cari max (tahun, bulan)
-      return regionData.reduce((latest, curr) => {
-        if (curr.tahun > latest.tahun || (curr.tahun === latest.tahun && curr.bulan > latest.bulan)) return curr;
-        return latest;
-      });
-    }
+// =============================================
+// LOAD DATA
+// =============================================
+async function loadData() {
+  try {
+    const [r1, r2] = await Promise.all([fetch('inflasi_data.csv'), fetch('harga_komoditas.csv')]);
+    if (!r1.ok || !r2.ok) throw new Error('CSV not found');
+    const [t1, t2] = await Promise.all([r1.text(), r2.text()]);
+    inflasData = Papa.parse(t1, {header:true, skipEmptyLines:true, dynamicTyping:true}).data;
+    hargaData  = Papa.parse(t2, {header:true, skipEmptyLines:true, dynamicTyping:true}).data;
+    // filter out rows with missing required fields
+    inflasData = inflasData.filter(r => r.tahun && r.bulan && r.nama_wilayah);
+    hargaData  = hargaData.filter(r => r.tanggal && r.nama_komoditas);
+    toast('Data berhasil dimuat dari CSV','success');
+  } catch(e) {
+    toast('Gagal memuat CSV — pastikan file ada di direktori yang sama','error');
+    // Load from localStorage if available
+    const ls1 = localStorage.getItem('tpid_inflasi');
+    const ls2 = localStorage.getItem('tpid_harga');
+    if (ls1) inflasData = JSON.parse(ls1);
+    if (ls2) hargaData  = JSON.parse(ls2);
+  }
+  // Load API key
+  const savedKey = localStorage.getItem('tpid_apikey');
+  if (savedKey) { document.getElementById('aiApiKey').value = savedKey; document.getElementById('ai-key-status').textContent = '✓ Tersimpan'; }
+  renderBeranda();
+  fetchKurs();
+}
 
-    // Update cards
-    function updateLatestCards() {
-      const tegal = getLatestForRegion('kota', 'Kota Tegal');
-      const jateng = getLatestForRegion('provinsi', 'Jawa Tengah');
-      const nasional = getLatestForRegion('nasional', 'Nasional');
+function saveToLS() {
+  localStorage.setItem('tpid_inflasi', JSON.stringify(inflasData));
+  localStorage.setItem('tpid_harga', JSON.stringify(hargaData));
+}
 
-      const setCard = (prefix, data) => {
-        if (data) {
-          document.getElementById(`${prefix}-mtm`).innerHTML = `${data.inflasi_mtm.toFixed(2)}<span class="stat-unit">%</span>`;
-          document.getElementById(`${prefix}-ytd`).innerHTML = `${data.inflasi_ytd.toFixed(2)}<span class="stat-unit">%</span>`;
-          document.getElementById(`${prefix}-yoy`).innerHTML = `${data.inflasi_yoy.toFixed(2)}<span class="stat-unit">%</span>`;
-        } else {
-          ['mtm','ytd','yoy'].forEach(m => document.getElementById(`${prefix}-${m}`).innerHTML = '—');
-        }
-      };
-      setCard('tegal', tegal);
-      setCard('jateng', jateng);
-      setCard('nasional', nasional);
-    }
+// =============================================
+// KURS API
+// =============================================
+async function fetchKurs() {
+  try {
+    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=IDR');
+    const data = await res.json();
+    const rate = data.rates.IDR;
+    currentKurs = rate;
+    document.getElementById('kurs-usd').textContent = 'Rp ' + rate.toLocaleString('id-ID');
+    document.getElementById('kurs-time').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+    // Generate mock 30-day history for chart
+    buildKursChart(rate);
+  } catch(e) {
+    document.getElementById('kurs-usd').textContent = 'Tidak tersedia';
+    document.getElementById('kurs-time').textContent = 'Periksa koneksi internet';
+  }
+}
 
-    // Render chip tahun
-    function renderYearChips() {
-      yearChipsDiv.innerHTML = '';
-      availableYears.forEach(year => {
-        const chip = document.createElement('span');
-        chip.className = `chip ${selectedYears.has(year) ? 'active' : ''}`;
-        chip.textContent = year;
-        chip.dataset.year = year;
-        chip.addEventListener('click', (e) => {
-          const y = parseInt(e.target.dataset.year);
-          if (selectedYears.has(y)) {
-            if (selectedYears.size > 1) selectedYears.delete(y);
-          } else {
-            selectedYears.add(y);
-          }
-          renderYearChips();
-          renderInflationChart();
-        });
-        yearChipsDiv.appendChild(chip);
-      });
-    }
+function buildKursChart(currentRate) {
+  // Generate simulated 30-day history with slight variation around current rate
+  const labels = [], data30 = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('id-ID', {month:'short',day:'numeric'}));
+    const variation = (Math.random() - 0.5) * 800;
+    data30.push(Math.round(currentRate + variation));
+  }
+  data30[data30.length - 1] = Math.round(currentRate);
+  kursHistory = {labels, data: data30};
+  renderKursChart();
+}
 
-    // Ambil data yang sudah difilter (tahun dan metric)
-    function getFilteredSeries() {
-      const yearsArray = Array.from(selectedYears).sort((a,b)=>a-b);
-      // mapping region
-      const regions = [
-        { key: 'nasional', level: 'nasional', name: 'Nasional', color: '#2563eb' },
-        { key: 'jateng', level: 'provinsi', name: 'Jawa Tengah', color: '#16a34a' },
-        { key: 'tegal', level: 'kota', name: 'Kota Tegal', color: '#d97706' }
-      ];
+function renderKursChart() {
+  if (!kursHistory.labels) return;
+  const ctx = document.getElementById('chartKurs').getContext('2d');
+  if (chartInstances.kurs) chartInstances.kurs.destroy();
+  const grad = ctx.createLinearGradient(0,0,0,260);
+  grad.addColorStop(0,'rgba(227,179,65,.3)');
+  grad.addColorStop(1,'rgba(227,179,65,0)');
+  chartInstances.kurs = new Chart(ctx, {
+    type:'line',
+    data:{labels:kursHistory.labels, datasets:[{label:'USD/IDR',data:kursHistory.data,borderColor:'#e3b341',backgroundColor:grad,tension:.4,fill:true,pointRadius:2,pointHoverRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6e7681',maxTicksLimit:8,font:{size:11}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#6e7681',callback:v=>'Rp '+v.toLocaleString('id-ID'),font:{size:10}},grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+  // Update change indicator
+  const arr = kursHistory.data;
+  const chg = arr[arr.length-1] - arr[arr.length-2];
+  const el = document.getElementById('kurs-change');
+  if (el) { el.textContent = (chg >= 0 ? '▲' : '▼') + ' ' + Math.abs(chg).toLocaleString('id-ID'); el.style.color = chg >= 0 ? '#f85149' : '#3fb950'; }
+}
 
-      // Siapkan dataset per region
-      const datasets = [];
-      regions.forEach(r => {
-        const filtered = rawData.filter(d => 
-          d.level_wilayah === r.level && 
-          (r.level === 'nasional' ? true : d.nama_wilayah === r.name) &&
-          yearsArray.includes(d.tahun)
-        );
-        // urutkan
-        filtered.sort((a,b) => (a.tahun - b.tahun) || (a.bulan - b.bulan));
-        
-        const labels = filtered.map(d => `${d.tahun}-${String(d.bulan).padStart(2,'0')}`);
-        const values = filtered.map(d => {
-          if (currentMetric === 'mtm') return d.inflasi_mtm;
-          if (currentMetric === 'ytd') return d.inflasi_ytd;
-          return d.inflasi_yoy;
-        });
-        
-        datasets.push({
-          label: r.name,
-          data: values,
-          labels: labels, // untuk sinkronisasi
-          borderColor: r.color,
-          backgroundColor: r.color + '20',
-          borderWidth: 3,
-          pointRadius: 3,
-          pointHoverRadius: 6,
-          tension: 0.2,
-          fill: false
-        });
-      });
+// =============================================
+// BERANDA
+// =============================================
+function renderBeranda() {
+  renderInflasiCards();
+  renderInflasiYoyChart();
+  renderHargaHarian();
+  renderInflasiTable();
+  updateSidebarDate();
+}
 
-      // Buat label unik gabungan (union semua label, diurutkan)
-      const allLabels = [...new Set(datasets.flatMap(ds => ds.labels))].sort((a,b) => {
-        const [y1,m1] = a.split('-').map(Number);
-        const [y2,m2] = b.split('-').map(Number);
-        return y1-y2 || m1-m2;
-      });
+function updateSidebarDate() {
+  const el = document.getElementById('sidebar-date');
+  if (el) el.textContent = new Date().toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'});
+}
 
-      // mapping ulang data agar sesuai allLabels
-      const finalDatasets = datasets.map(ds => {
-        const dataMap = new Map();
-        ds.labels.forEach((lbl, idx) => dataMap.set(lbl, ds.data[idx]));
-        const alignedData = allLabels.map(lbl => dataMap.get(lbl) ?? null);
-        return {
-          ...ds,
-          data: alignedData,
-          labels: undefined // tidak perlu
-        };
-      });
+function getLatestInflasi(wilayah) {
+  const rows = inflasData.filter(r => r.nama_wilayah === wilayah)
+    .sort((a,b) => b.tahun - a.tahun || b.bulan - a.bulan);
+  return rows[0] || null;
+}
 
-      return { labels: allLabels, datasets: finalDatasets };
-    }
+function renderInflasiCards() {
+  const regions = [
+    {key:'nasional', wilayah:'Nasional',        valId:'infl-nasional-val', ytdId:'infl-nas-ytd', yoyId:'infl-nas-yoy', perId:'infl-nas-per'},
+    {key:'jateng',   wilayah:'Jawa Tengah',     valId:'infl-jateng-val',  ytdId:'infl-jt-ytd',  yoyId:'infl-jt-yoy',  perId:'infl-jt-per'},
+    {key:'kota',     wilayah:'Kota Tegal',      valId:'infl-kota-val',    ytdId:'infl-ko-ytd',  yoyId:'infl-ko-yoy',  perId:'infl-ko-per'},
+  ];
+  regions.forEach(r => {
+    const d = getLatestInflasi(r.wilayah);
+    if (!d) return;
+    const mtm = parseFloat(d.inflasi_mtm);
+    const el = document.getElementById(r.valId);
+    if (el) { el.textContent = (mtm >= 0 ? '+' : '') + mtm.toFixed(2); el.style.color = mtm > 0 ? 'var(--red2)' : 'var(--primary2)'; }
+    setText(r.ytdId, formatPct(d.inflasi_ytd));
+    setText(r.yoyId, formatPct(d.inflasi_yoy));
+    setText(r.perId, MONTHS_ID[d.bulan-1] + ' ' + d.tahun);
+  });
+}
 
-    // Render chart inflasi
-    function renderInflationChart() {
-      const ctx = document.getElementById('inflationChart').getContext('2d');
-      const { labels, datasets } = getFilteredSeries();
+function renderInflasiYoyChart() {
+  const regions = ['Nasional','Jawa Tengah','Kota Tegal'];
+  const colors  = ['#388bfd','#14b8a6','#e3b341'];
+  // Collect all periods sorted
+  const periods = [...new Set(inflasData.map(r => r.tahun + '-' + String(r.bulan).padStart(2,'0')))].sort();
+  const labels  = periods.map(p => { const [y,m] = p.split('-'); return MONTHS_ID[+m-1]+" '"+y.slice(2); });
+  const datasets = regions.map((reg, i) => {
+    const data = periods.map(p => {
+      const [y,m] = p.split('-');
+      const row = inflasData.find(r => r.nama_wilayah===reg && +r.tahun===+y && +r.bulan===+m);
+      return row ? parseFloat(row.inflasi_yoy) : null;
+    });
+    return {label:reg, data, borderColor:colors[i], backgroundColor:'transparent', tension:.4, pointRadius:3, spanGaps:true};
+  });
+  const ctx = document.getElementById('chartInflasiYoy').getContext('2d');
+  if (chartInstances.inflasiYoy) chartInstances.inflasiYoy.destroy();
+  chartInstances.inflasiYoy = new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#6e7681',maxTicksLimit:12,font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#6e7681',callback:v=>v+'%',font:{size:11}},grid:{color:'rgba(255,255,255,.06)'},title:{display:true,text:'% YoY',color:'#6e7681',font:{size:11}}}}}
+  });
+}
 
-      const metricNames = { mtm: 'MTM (%)', ytd: 'YTD (%)', yoy: 'YoY (%)' };
-      
-      if (inflationChart) inflationChart.destroy();
-      
-      inflationChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            tooltip: { 
-              callbacks: {
-                label: (ctx) => `${ctx.dataset.label}: ${ctx.raw?.toFixed(2) ?? '-'}%`
-              }
-            },
-            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 10 } },
-            title: { display: false }
-          },
-          scales: {
-            y: {
-              beginAtZero: false,
-              grid: { color: '#e2e8f0' },
-              title: { display: true, text: metricNames[currentMetric] || 'Persen (%)' }
-            },
-            x: { grid: { display: false } }
-          }
-        }
-      });
-    }
+function getLatestHargaDate() {
+  const dates = hargaData.map(r => r.tanggal).filter(Boolean).sort();
+  return dates[dates.length - 1];
+}
 
-    // ---------- FOREX CHART (USD/IDR) ----------
-    async function fetchForexData() {
-      const forexNote = document.getElementById('forexNote');
-      try {
-        // Gunakan API exchangerate.host (gratis, CORS)
-        const res = await fetch('https://api.exchangerate.host/timeseries?start_date=2026-03-28&end_date=2026-04-03&base=USD&symbols=IDR');
-        const data = await res.json();
-        
-        if (!data.rates) throw new Error('Data tidak tersedia');
-        
-        const dates = Object.keys(data.rates).sort();
-        const values = dates.map(d => data.rates[d].IDR);
-        
-        // Fallback jika kosong: gunakan data sample
-        if (dates.length === 0) throw new Error('empty');
-        
-        const ctx = document.getElementById('forexChart').getContext('2d');
-        if (forexChart) forexChart.destroy();
-        forexChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: dates.map(d => d.slice(5)), // MM-DD
-            datasets: [{
-              label: 'USD → IDR',
-              data: values,
-              borderColor: '#0f766e',
-              backgroundColor: '#0f766e20',
-              borderWidth: 3,
-              pointRadius: 3,
-              tension: 0.2,
-              fill: false
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              tooltip: { callbacks: { label: (ctx) => `Rp ${ctx.raw.toFixed(2)}` } }
-            },
-            scales: {
-              y: { ticks: { callback: (val) => 'Rp ' + val.toLocaleString('id-ID') } }
-            }
-          }
-        });
-        forexNote.innerHTML = `📅 Kurs terbaru (${dates[dates.length-1]}): Rp ${values[values.length-1].toFixed(2)}`;
-      } catch (e) {
-        console.warn('Fallback data kurs digunakan.', e);
-        // Fallback data statis
-        const fallbackLabels = ['03/28','03/29','03/30','03/31','04/01','04/02','04/03'];
-        const fallbackValues = [16580, 16595, 16610, 16570, 16550, 16585, 16600];
-        const ctx = document.getElementById('forexChart').getContext('2d');
-        if (forexChart) forexChart.destroy();
-        forexChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: fallbackLabels,
-            datasets: [{
-              label: 'USD → IDR (estimasi)',
-              data: fallbackValues,
-              borderColor: '#0f766e',
-              borderWidth: 3,
-              tension: 0.2
-            }]
-          },
-          options: {
-            plugins: { tooltip: { callbacks: { label: (c) => `Rp ${c.raw}` } } }
-          }
-        });
-        forexNote.innerHTML = '⚠️ Kurs menggunakan data sampel (API sementara tidak tersedia).';
+function renderHargaHarian() {
+  const latestDate = getLatestHargaDate();
+  if (!latestDate) return;
+  let rows = hargaData.filter(r => r.tanggal === latestDate && r.harga > 0);
+  // Fallback: find last non-zero date per commodity
+  if (rows.length === 0) {
+    const komoditas = [...new Set(hargaData.map(r => r.nama_komoditas))];
+    komoditas.forEach(k => {
+      const sorted = hargaData.filter(r => r.nama_komoditas===k && r.harga>0).sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
+      if (sorted[0]) rows.push(sorted[0]);
+    });
+  }
+  const showHET = document.getElementById('toggleHET').checked;
+  const search = (document.getElementById('searchKomoditas')?.value || '').toLowerCase();
+  const filtered = rows.filter(r => r.nama_komoditas.toLowerCase().includes(search));
+  setText('tanggal-harga', 'Per: ' + formatDate(latestDate));
+  const grid = document.getElementById('hargaHarianGrid');
+  // Get previous date for change
+  const allDates = [...new Set(hargaData.map(r=>r.tanggal))].sort();
+  const latestIdx = allDates.indexOf(latestDate);
+  const prevDate = latestIdx > 0 ? allDates[latestIdx - 1] : null;
+  grid.innerHTML = filtered.map(r => {
+    const het = HET_HAP[r.nama_komoditas];
+    let perubahan = '', perubahanClass = '';
+    if (prevDate) {
+      const prev = hargaData.find(p => p.tanggal===prevDate && p.nama_komoditas===r.nama_komoditas);
+      if (prev && prev.harga > 0 && r.harga > 0) {
+        const delta = r.harga - prev.harga;
+        const pct = (delta/prev.harga*100).toFixed(1);
+        perubahan = (delta>=0?'▲ ':'▼ ') + 'Rp '+Math.abs(delta).toLocaleString('id-ID') + ' ('+pct+'%)';
+        perubahanClass = delta > 0 ? 'color:var(--red2)' : (delta < 0 ? 'color:var(--primary2)' : 'color:var(--text3)');
       }
     }
+    let hetBar = '';
+    if (showHET && het && het.het > 0 && r.harga > 0) {
+      const pct = Math.min((r.harga / het.het) * 100, 120);
+      const cls = pct <= 90 ? 'het-normal' : (pct <= 100 ? 'het-warning' : 'het-danger');
+      const lbl = pct > 100 ? '⚠️ Melebihi HET' : (pct > 90 ? '⚡ Mendekati HET' : '✅ Normal');
+      hetBar = `<div class="het-bar"><span style="font-size:10px;color:var(--text3)">HET</span><div class="het-line"><div class="het-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><span style="font-size:10px;color:var(--text3)">${lbl}</span></div>`;
+    }
+    return `<div class="harga-item">
+      <div class="komoditas">${r.nama_komoditas}</div>
+      <div class="harga">Rp ${(r.harga||0).toLocaleString('id-ID')}</div>
+      <div class="satuan">per ${r.satuan||'kg'}</div>
+      ${perubahan ? `<div class="perubahan" style="${perubahanClass}">${perubahan}</div>` : ''}
+      ${showHET && het ? `<div style="font-size:10px;color:var(--text3);margin-top:4px">HET: Rp ${het.het.toLocaleString('id-ID')} | HAP: Rp ${het.hap.toLocaleString('id-ID')}</div>` : ''}
+      ${hetBar}
+    </div>`;
+  }).join('');
+}
 
-    // Event listener metric & inisialisasi
-    metricSelect.addEventListener('change', (e) => {
-      currentMetric = e.target.value;
-      renderInflationChart();
+function filterHargaHarian() { renderHargaHarian(); }
+
+function renderInflasiTable() {
+  const tbody = document.getElementById('inflasi-tbody');
+  if (!tbody) return;
+  const sorted = [...inflasData].sort((a,b) => b.tahun-a.tahun||b.bulan-a.bulan);
+  tbody.innerHTML = sorted.slice(0,60).map(r => {
+    const mtm = parseFloat(r.inflasi_mtm);
+    const status = mtm > 1 ? `<span class="badge-up card-badge">↑ Tinggi</span>` : (mtm < 0 ? `<span class="badge-down card-badge">↓ Deflasi</span>` : `<span class="badge-neutral card-badge">→ Normal</span>`);
+    return `<tr><td>${r.tahun}</td><td>${MONTHS_FULL[r.bulan-1]||r.bulan}</td><td>${r.nama_wilayah}</td>
+      <td class="${mtm>0?'td-pos':'td-neg'}">${formatPct(r.inflasi_mtm)}</td>
+      <td>${formatPct(r.inflasi_ytd)}</td><td>${formatPct(r.inflasi_yoy)}</td><td>${status}</td></tr>`;
+  }).join('');
+}
+
+// =============================================
+// HBK ANALYSIS
+// =============================================
+function initHBK() {
+  const years = [...new Set(hargaData.map(r=>r.tanggal?.slice(0,4)))].filter(Boolean).sort();
+  const komoditas = [...new Set(hargaData.map(r=>r.nama_komoditas))].filter(Boolean).sort();
+  setSelectOptions('hbk-year', years);
+  setSelectOptions('hbk-komoditas', komoditas, 'Beras Medium');
+  const latestYear = years[years.length-1];
+  setSelectValue('hbk-year', latestYear);
+}
+
+function switchHBK(el, type) {
+  document.querySelectorAll('.hbk-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.hbk-content').forEach(c => c.style.display='none');
+  document.getElementById('hbk-content-'+type).style.display='block';
+  activeHBK = type;
+}
+
+function renderHBK() {
+  renderHBKSingle('idul', IDUL_FITRI);
+  renderHBKNatal();
+  renderHBKTahunBaru();
+}
+
+function getHBKData(dateStr, windowDays, komoditas) {
+  if (!dateStr) return [];
+  const center = new Date(dateStr);
+  const result = [];
+  for (let d = -windowDays; d <= windowDays; d++) {
+    const dt = new Date(center); dt.setDate(dt.getDate()+d);
+    const ds = dt.toISOString().slice(0,10);
+    const row = hargaData.find(r => r.tanggal===ds && r.nama_komoditas===komoditas);
+    result.push({tanggal:ds, hPlus:d, harga: row ? +row.harga : null});
+  }
+  return result;
+}
+
+function renderHBKSingle(type, datesMap) {
+  const year = +document.getElementById('hbk-year').value;
+  const komoditas = document.getElementById('hbk-komoditas').value;
+  const win = +document.getElementById('hbk-window').value;
+  const dateStr = datesMap[year];
+  const prefix = type;
+  const infoEl = document.getElementById(prefix+'-info');
+
+  if (!dateStr) {
+    if (infoEl) infoEl.querySelector('span:last-child').textContent = `Data tanggal Idulfitri ${year} tidak tersedia`;
+    return;
+  }
+  const data = getHBKData(dateStr, win, komoditas);
+  const valid = data.filter(d => d.harga !== null && d.harga > 0);
+  if (valid.length === 0) {
+    if (infoEl) infoEl.querySelector('span:last-child').textContent = `Tidak ada data harga ${komoditas} di periode ini`;
+    return;
+  }
+  if (infoEl) infoEl.querySelector('span:last-child').textContent = `Hari Besar: ${formatDate(dateStr)} | Komoditas: ${komoditas} | ${valid.length} data tersedia`;
+
+  // Chart
+  const labels = data.map(d => d.hPlus === 0 ? 'H-Hari' : (d.hPlus < 0 ? 'H'+d.hPlus : 'H+'+d.hPlus));
+  const values = data.map(d => d.harga);
+  renderHBKChart(prefix, labels, values, dateStr, komoditas);
+
+  // Stats
+  const hargaH0 = valid.find(d=>d.hPlus===0)?.harga || valid[Math.floor(valid.length/2)]?.harga;
+  const maxHarga = Math.max(...valid.map(d=>d.harga));
+  const minHarga = Math.min(...valid.map(d=>d.harga));
+  const avgPre  = avg(valid.filter(d=>d.hPlus<0).map(d=>d.harga));
+  const avgPost = avg(valid.filter(d=>d.hPlus>0).map(d=>d.harga));
+  const statsEl = document.getElementById(prefix+'-stats');
+  if (statsEl) statsEl.innerHTML = [
+    {label:'Harga H-0',val:'Rp '+fmtNum(hargaH0),icon:'📅'},
+    {label:'Harga Tertinggi',val:'Rp '+fmtNum(maxHarga),icon:'📈'},
+    {label:'Rata Pra-HBK',val:'Rp '+fmtNum(avgPre),icon:'⬅️'},
+    {label:'Rata Pasca-HBK',val:'Rp '+fmtNum(avgPost),icon:'➡️'},
+  ].map(s=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${s.label}</div><span style="font-size:20px">${s.icon}</span></div><div class="card-value" style="font-size:22px">${s.val}</div></div>`).join('');
+
+  // Table
+  const tbody = document.getElementById(prefix+'-table-body');
+  if (tbody) {
+    let prevH = null;
+    tbody.innerHTML = data.map(d => {
+      if (!d.harga || d.harga === 0) return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus===0?'Hari H':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus)}</td><td colspan="3" style="color:var(--text3)">— Tidak ada data —</td></tr>`;
+      const delta = prevH ? d.harga - prevH : 0;
+      const pctDelta = prevH ? (delta/prevH*100).toFixed(2) : '—';
+      const deltaTxt = prevH ? (delta>=0?'+':'')+delta.toLocaleString('id-ID')+' ('+pctDelta+'%)' : '—';
+      const ket = d.hPlus===0?'🎉 Hari Besar':(d.hPlus>0&&delta>0?'⬆️ Kenaikan':'');
+      prevH = d.harga;
+      return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus===0?'<b>Hari H</b>':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus)}</td><td>Rp ${fmtNum(d.harga)}</td><td class="${delta>0?'td-pos':(delta<0?'td-neg':'')}">${deltaTxt}</td><td>${ket}</td></tr>`;
+    }).join('');
+  }
+}
+
+function renderHBKNatal() {
+  const year = +document.getElementById('hbk-year').value;
+  const komoditas = document.getElementById('hbk-komoditas').value;
+  const win = +document.getElementById('hbk-window').value;
+  const dateStr = year + '-12-25';
+  const data = getHBKData(dateStr, win, komoditas);
+  const valid = data.filter(d=>d.harga&&d.harga>0);
+  const infoEl = document.getElementById('natal-info');
+  if (infoEl) infoEl.querySelector('span:last-child').textContent = `Natal ${year}: ${formatDate(dateStr)} | ${valid.length} data tersedia`;
+  const labels = data.map(d => d.hPlus===0?'Natal':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus));
+  renderHBKChart('natal', labels, data.map(d=>d.harga), dateStr, komoditas);
+  renderHBKStatsTable('natal', data, valid);
+}
+
+function renderHBKTahunBaru() {
+  const year = +document.getElementById('hbk-year').value;
+  const komoditas = document.getElementById('hbk-komoditas').value;
+  const win = +document.getElementById('hbk-window').value;
+  const dateStr = year + '-01-01';
+  const data = getHBKData(dateStr, win, komoditas);
+  const valid = data.filter(d=>d.harga&&d.harga>0);
+  const infoEl = document.getElementById('tahunbaru-info');
+  if (infoEl) infoEl.querySelector('span:last-child').textContent = `Tahun Baru ${year}: ${formatDate(dateStr)} | ${valid.length} data tersedia`;
+  const labels = data.map(d => d.hPlus===0?'Jan 1':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus));
+  renderHBKChart('tahunbaru', labels, data.map(d=>d.harga), dateStr, komoditas);
+  renderHBKStatsTable('tahunbaru', data, valid);
+}
+
+function renderHBKChart(prefix, labels, values, dateStr, komoditas) {
+  const ctx = document.getElementById('chart'+prefix.charAt(0).toUpperCase()+prefix.slice(1))?.getContext('2d');
+  if (!ctx) return;
+  if (activeHBKCharts[prefix]) activeHBKCharts[prefix].destroy();
+  const center = values.findIndex((v,i) => labels[i]==='H-Hari'||labels[i]==='Natal'||labels[i]==='Jan 1'||labels[i]==='Hari H');
+  const pointColors = values.map((_,i) => i===center ? '#e3b341' : 'transparent');
+  const pointRadius = values.map((_,i) => i===center ? 8 : 2);
+  const grad = ctx.createLinearGradient(0,0,0,300);
+  grad.addColorStop(0,'rgba(31,111,235,.3)');
+  grad.addColorStop(1,'rgba(31,111,235,0)');
+  activeHBKCharts[prefix] = new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets:[{label:'Harga '+komoditas, data:values, borderColor:'#388bfd', backgroundColor:grad, tension:.4, fill:true, pointBackgroundColor:pointColors, pointRadius, spanGaps:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Rp '+fmtNum(c.raw)}}},scales:{x:{ticks:{color:'#6e7681',maxTicksLimit:20,font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#6e7681',callback:v=>'Rp '+fmtNum(v),font:{size:10}},grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
+
+function renderHBKStatsTable(prefix, data, valid) {
+  const statsEl = document.getElementById(prefix+'-stats');
+  const maxH = valid.length ? Math.max(...valid.map(d=>d.harga)) : 0;
+  const minH = valid.length ? Math.min(...valid.map(d=>d.harga)) : 0;
+  const avgPre = avg(valid.filter(d=>d.hPlus<0).map(d=>d.harga));
+  const avgPost = avg(valid.filter(d=>d.hPlus>0).map(d=>d.harga));
+  if (statsEl) statsEl.innerHTML = [
+    {label:'Harga Tertinggi',val:'Rp '+fmtNum(maxH),icon:'📈'},
+    {label:'Harga Terendah', val:'Rp '+fmtNum(minH),icon:'📉'},
+    {label:'Rata Pra-HBK',  val:'Rp '+fmtNum(avgPre),icon:'⬅️'},
+    {label:'Rata Pasca-HBK',val:'Rp '+fmtNum(avgPost),icon:'➡️'},
+  ].map(s=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${s.label}</div><span style="font-size:20px">${s.icon}</span></div><div class="card-value" style="font-size:22px">${s.val}</div></div>`).join('');
+  const tbody = document.getElementById(prefix+'-table-body');
+  if (tbody) {
+    let prevH = null;
+    tbody.innerHTML = data.map(d => {
+      if (!d.harga||d.harga===0) return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus===0?'Hari H':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus)}</td><td colspan="3" style="color:var(--text3)">—</td></tr>`;
+      const delta = prevH ? d.harga-prevH : 0;
+      prevH = d.harga;
+      return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus<0?'H'+d.hPlus:(d.hPlus===0?'<b>Hari H</b>':'H+'+d.hPlus)}</td><td>Rp ${fmtNum(d.harga)}</td><td class="${delta>0?'td-pos':(delta<0?'td-neg':'')}">${prevH?(delta>=0?'+':'')+delta.toLocaleString('id-ID'):'—'}</td><td>${d.hPlus===0?'🎉 Hari H':''}</td></tr>`;
+    }).join('');
+  }
+}
+
+// =============================================
+// DETAIL ANALYSIS
+// =============================================
+function initDetail() {
+  const years = [...new Set(hargaData.map(r=>r.tanggal?.slice(0,4)))].filter(Boolean).sort();
+  const komoditas = [...new Set(hargaData.map(r=>r.nama_komoditas))].filter(Boolean).sort();
+  setSelectOptions('detail-year', years);
+  setSelectOptions('detail-komoditas', komoditas, 'Beras Medium');
+  setSelectValue('detail-year', years[years.length-1]);
+  renderDetail();
+}
+
+function renderDetail() {
+  const komoditas = document.getElementById('detail-komoditas').value;
+  const year = document.getElementById('detail-year').value;
+  const showHET = document.getElementById('detail-show-het').checked;
+
+  const rows = hargaData.filter(r => r.nama_komoditas===komoditas && r.tanggal?.startsWith(year) && r.harga>0)
+    .sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+
+  if (rows.length === 0) { toast('Tidak ada data untuk komoditas ini di tahun '+year,'info'); return; }
+
+  const het = HET_HAP[komoditas];
+  // Summary cards
+  const prices = rows.map(r=>+r.harga);
+  const avgPrice = avg(prices);
+  const maxPrice = Math.max(...prices);
+  const minPrice = Math.min(...prices);
+  const lastPrice = prices[prices.length-1];
+  const cards = document.getElementById('detail-summary-cards');
+  if (cards) cards.innerHTML = [
+    {label:'Rata-rata Harga',val:'Rp '+fmtNum(Math.round(avgPrice)),icon:'📊',color:'var(--blue2)'},
+    {label:'Harga Tertinggi',val:'Rp '+fmtNum(maxPrice),icon:'📈',color:'var(--red2)'},
+    {label:'Harga Terendah',val:'Rp '+fmtNum(minPrice),icon:'📉',color:'var(--primary2)'},
+    {label:'Harga Terakhir',val:'Rp '+fmtNum(lastPrice),icon:'🏷️',color:'var(--accent2)'},
+  ].map(c=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${c.label}</div><span style="font-size:20px">${c.icon}</span></div><div class="card-value" style="font-size:22px;color:${c.color}">${c.val}</div></div>`).join('');
+
+  // Quarterly averages
+  const quarterly = [1,2,3,4].map(q => {
+    const months = [1,2,3].map(m=>(q-1)*3+m);
+    const qRows = rows.filter(r => months.includes(+r.tanggal.slice(5,7)));
+    const a = qRows.length ? avg(qRows.map(r=>+r.harga)) : null;
+    return {q, avg:a, min: qRows.length?Math.min(...qRows.map(r=>+r.harga)):null, max: qRows.length?Math.max(...qRows.map(r=>+r.harga)):null};
+  });
+  renderTriwulanChart(quarterly);
+  // Quarterly table
+  const qtbody = document.getElementById('quarterly-tbody');
+  if (qtbody) {
+    let prevAvg = null;
+    qtbody.innerHTML = quarterly.map(q => {
+      if (!q.avg) return `<tr><td>Q${q.q}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+      const months = [1,2,3].map(m=>(q.q-1)*3+m);
+      const mNames = months.map(m=>MONTHS_ID[m-1]).join('-');
+      const delta = prevAvg ? q.avg - prevAvg : null;
+      const deltaTxt = delta !== null ? (delta>=0?'+':'')+Math.round(delta).toLocaleString('id-ID') : '—';
+      prevAvg = q.avg;
+      return `<tr><td><b>Q${q.q}</b></td><td>${mNames} ${year}</td><td>Rp ${fmtNum(Math.round(q.avg))}</td><td class="${delta>0?'td-pos':(delta<0?'td-neg':'')}">${deltaTxt}</td><td>Rp ${fmtNum(q.min)}</td><td>Rp ${fmtNum(q.max)}</td></tr>`;
+    }).join('');
+  }
+
+  // Weekly IPH
+  const weeks = groupByWeek(rows);
+  renderIPHChart(weeks);
+  const wtbody = document.getElementById('weekly-tbody');
+  if (wtbody) {
+    let prevAvgW = null;
+    wtbody.innerHTML = weeks.map((w,i) => {
+      const iph = prevAvgW && prevAvgW > 0 ? ((w.avg - prevAvgW) / prevAvgW * 100) : null;
+      const iphTxt = iph !== null ? (iph>=0?'+':'')+iph.toFixed(2)+'%' : '—';
+      const status = iph !== null ? (Math.abs(iph) > 5 ? `<span class="badge-up card-badge">⚠️ Volatil</span>` : `<span class="badge-down card-badge">✓ Stabil</span>`) : '';
+      prevAvgW = w.avg;
+      return `<tr><td>Minggu ${i+1}</td><td>${formatDate(w.start)} – ${formatDate(w.end)}</td><td>Rp ${fmtNum(Math.round(w.avg))}</td><td class="${iph>0?'td-pos':(iph<0?'td-neg':'')}">${iphTxt}</td><td>${status}</td></tr>`;
+    }).join('');
+  }
+
+  // Daily chart with HET/HAP
+  renderHarianChart(rows, het, showHET);
+
+  // HET info box
+  const hetBox = document.getElementById('het-info-text');
+  if (het && hetBox) hetBox.textContent = `${komoditas} — HET: Rp ${het.het.toLocaleString('id-ID')}/kg | HAP: Rp ${het.hap.toLocaleString('id-ID')}/kg (Permendag 2024). Harga rata-rata ${year}: Rp ${fmtNum(Math.round(avgPrice))} (${avgPrice/het.het>1?'⚠️ Rata-rata melebihi HET':'✅ Di bawah HET'})`;
+  else if (hetBox) hetBox.textContent = 'HET/HAP tidak tersedia untuk komoditas ini.';
+}
+
+function groupByWeek(rows) {
+  const weeks = [];
+  let currentWeek = null;
+  rows.forEach(r => {
+    const d = new Date(r.tanggal);
+    const weekNum = Math.floor((d - new Date(d.getFullYear(),0,1)) / (7*86400000));
+    if (!currentWeek || currentWeek.weekNum !== weekNum) {
+      if (currentWeek) weeks.push(currentWeek);
+      currentWeek = {weekNum, start:r.tanggal, end:r.tanggal, prices:[+r.harga]};
+    } else {
+      currentWeek.end = r.tanggal;
+      currentWeek.prices.push(+r.harga);
+    }
+  });
+  if (currentWeek) weeks.push(currentWeek);
+  return weeks.map(w => ({...w, avg:avg(w.prices)}));
+}
+
+function renderTriwulanChart(quarterly) {
+  const ctx = document.getElementById('chartTriwulan').getContext('2d');
+  if (chartInstances.triwulan) chartInstances.triwulan.destroy();
+  const labels = quarterly.map(q=>'Q'+q.q);
+  const data = quarterly.map(q=>q.avg?Math.round(q.avg):null);
+  chartInstances.triwulan = new Chart(ctx, {
+    type:'bar',
+    data:{labels,datasets:[{label:'Rata-rata Harga',data,backgroundColor:['rgba(56,139,253,.6)','rgba(20,184,166,.6)','rgba(227,179,65,.6)','rgba(248,81,73,.6)'],borderColor:['#388bfd','#14b8a6','#e3b341','#f85149'],borderWidth:2,borderRadius:8}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e'}},y:{ticks:{color:'#8b949e',callback:v=>'Rp '+fmtNum(v)},grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
+
+function renderIPHChart(weeks) {
+  const ctx = document.getElementById('chartIPH').getContext('2d');
+  if (chartInstances.iph) chartInstances.iph.destroy();
+  const labels = weeks.map((_,i)=>'Mg '+(i+1));
+  const iph = weeks.map((w,i) => {
+    if (i===0 || !weeks[i-1].avg) return 0;
+    return +((w.avg - weeks[i-1].avg)/weeks[i-1].avg*100).toFixed(2);
+  });
+  chartInstances.iph = new Chart(ctx, {
+    type:'bar',
+    data:{labels,datasets:[{label:'IPH (%)',data:iph,backgroundColor:iph.map(v=>v>0?'rgba(248,81,73,.6)':'rgba(63,185,80,.6)'),borderColor:iph.map(v=>v>0?'#f85149':'#3fb950'),borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:20}},y:{ticks:{color:'#8b949e',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.06)'},title:{display:true,text:'IPH (%)',color:'#6e7681'}}}}
+  });
+}
+
+function renderHarianChart(rows, het, showHET) {
+  const ctx = document.getElementById('chartHarian').getContext('2d');
+  if (chartInstances.harian) chartInstances.harian.destroy();
+  const labels = rows.map(r=>r.tanggal.slice(5));
+  const prices = rows.map(r=>+r.harga);
+  const datasets = [{label:'Harga Aktual',data:prices,borderColor:'#388bfd',backgroundColor:'rgba(56,139,253,.1)',tension:.4,fill:true,pointRadius:1,borderWidth:2}];
+  if (showHET && het) {
+    datasets.push({label:'HET',data:rows.map(()=>het.het),borderColor:'#f85149',borderDash:[6,4],pointRadius:0,borderWidth:1.5,fill:false});
+    datasets.push({label:'HAP',data:rows.map(()=>het.hap),borderColor:'#3fb950',borderDash:[4,4],pointRadius:0,borderWidth:1.5,fill:false});
+  }
+  chartInstances.harian = new Chart(ctx, {
+    type:'line',
+    data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8b949e',font:{size:11}}}},scales:{x:{ticks:{color:'#6e7681',maxTicksLimit:16,font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#6e7681',callback:v=>'Rp '+fmtNum(v),font:{size:10}},grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
+
+// =============================================
+// CRUD
+// =============================================
+function switchCrudTab(el, type) {
+  document.querySelectorAll('.crud-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('crud-inflasi').style.display = type==='inflasi'?'block':'none';
+  document.getElementById('crud-harga').style.display   = type==='harga'?'block':'none';
+  if (type==='harga') initCrudHargaFilter();
+}
+
+function renderCrudTables() {
+  renderInflasiTable2();
+  renderHargaTable();
+  initCrudHargaFilter();
+  populateKomoditasSelect();
+}
+
+function initCrudHargaFilter() {
+  const years = [...new Set(hargaData.map(r=>r.tanggal?.slice(0,4)))].filter(Boolean).sort();
+  const sel = document.getElementById('filter-harga-tahun');
+  if (sel) {
+    sel.innerHTML = '<option value="">Semua Tahun</option>' + years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    sel.value = years[years.length-1]||'';
+  }
+}
+
+function renderInflasiTable2() {
+  const search = (document.getElementById('search-inflasi')?.value||'').toLowerCase();
+  let data = inflasData.filter(r => !search || r.nama_wilayah?.toLowerCase().includes(search));
+  const total = data.length;
+  const totalPages = Math.ceil(total/PAGE_SIZE);
+  if (crudInflasiPage >= totalPages) crudInflasiPage = Math.max(0, totalPages-1);
+  const page = data.slice(crudInflasiPage*PAGE_SIZE, (crudInflasiPage+1)*PAGE_SIZE);
+  const tbody = document.getElementById('crud-inflasi-tbody');
+  if (tbody) tbody.innerHTML = page.map((r,i) => {
+    const realIdx = inflasData.indexOf(r);
+    return `<tr><td>${r.tahun}</td><td>${MONTHS_ID[r.bulan-1]||r.bulan}</td><td>${r.level_wilayah||'—'}</td><td>${r.nama_wilayah}</td>
+      <td class="${r.inflasi_mtm>0?'td-pos':'td-neg'}">${formatPct(r.inflasi_mtm)}</td>
+      <td>${formatPct(r.inflasi_ytd)}</td><td>${formatPct(r.inflasi_yoy)}</td>
+      <td style="white-space:nowrap"><button class="btn btn-sm btn-secondary" onclick="editInflasi(${realIdx})">✏️</button> <button class="btn btn-sm btn-danger" onclick="deleteInflasi(${realIdx})">🗑️</button></td></tr>`;
+  }).join('');
+  renderPagination('crud-inflasi-pagination', crudInflasiPage, totalPages, total, n=>{ crudInflasiPage=n; renderInflasiTable2(); });
+}
+
+function renderHargaTable() {
+  const search = (document.getElementById('search-harga')?.value||'').toLowerCase();
+  const year = document.getElementById('filter-harga-tahun')?.value||'';
+  let data = hargaData.filter(r => (!search||r.nama_komoditas?.toLowerCase().includes(search)) && (!year||r.tanggal?.startsWith(year)));
+  const sorted = [...data].sort((a,b)=>b.tanggal?.localeCompare(a.tanggal||'')||0);
+  const total = sorted.length;
+  const totalPages = Math.ceil(total/PAGE_SIZE);
+  if (crudHargaPage >= totalPages) crudHargaPage = Math.max(0,totalPages-1);
+  const page = sorted.slice(crudHargaPage*PAGE_SIZE,(crudHargaPage+1)*PAGE_SIZE);
+  const tbody = document.getElementById('crud-harga-tbody');
+  if (tbody) tbody.innerHTML = page.map(r => {
+    const realIdx = hargaData.indexOf(r);
+    return `<tr><td>${r.tanggal}</td><td>${r.nama_komoditas}</td><td>${r.satuan||'kg'}</td>
+      <td>Rp ${fmtNum(r.harga)}</td><td>${r.id_pasar||1}</td>
+      <td style="white-space:nowrap"><button class="btn btn-sm btn-secondary" onclick="editHarga(${realIdx})">✏️</button> <button class="btn btn-sm btn-danger" onclick="deleteHarga(${realIdx})">🗑️</button></td></tr>`;
+  }).join('');
+  renderPagination('crud-harga-pagination', crudHargaPage, totalPages, total, n=>{ crudHargaPage=n; renderHargaTable(); });
+}
+
+function renderPagination(elId, current, total, dataLen, cb) {
+  const el = document.getElementById(elId);
+  if (!el || total<=1) { if(el) el.innerHTML=''; return; }
+  let html = `<span>${dataLen} data | Hal ${current+1} dari ${total}</span>`;
+  html += `<button class="btn btn-sm btn-secondary" ${current===0?'disabled':''} onclick="(${cb})(${current-1})">◀</button>`;
+  const start = Math.max(0,current-2), end = Math.min(total-1,current+2);
+  for (let i=start;i<=end;i++) html += `<button class="btn btn-sm ${i===current?'btn-primary':'btn-secondary'}" onclick="(${cb})(${i})">${i+1}</button>`;
+  html += `<button class="btn btn-sm btn-secondary" ${current===total-1?'disabled':''} onclick="(${cb})(${current+1})">▶</button>`;
+  el.innerHTML = html;
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function editInflasi(idx) {
+  const r = inflasData[idx];
+  if (!r) return;
+  document.getElementById('edit-inflasi-idx').value = idx;
+  document.getElementById('modal-inflasi-title').textContent = '✏️ Edit Data Inflasi';
+  document.getElementById('f-infl-tahun').value = r.tahun;
+  document.getElementById('f-infl-bulan').value = r.bulan;
+  document.getElementById('f-infl-level').value = r.level_wilayah||'kota';
+  document.getElementById('f-infl-wilayah').value = r.nama_wilayah;
+  document.getElementById('f-infl-mtm').value = r.inflasi_mtm;
+  document.getElementById('f-infl-ytd').value = r.inflasi_ytd;
+  document.getElementById('f-infl-yoy').value = r.inflasi_yoy;
+  openModal('modal-add-inflasi');
+}
+
+function saveInflasi() {
+  const idx = +document.getElementById('edit-inflasi-idx').value;
+  const obj = {
+    tahun:+document.getElementById('f-infl-tahun').value,
+    bulan:+document.getElementById('f-infl-bulan').value,
+    level_wilayah:document.getElementById('f-infl-level').value,
+    nama_wilayah:document.getElementById('f-infl-wilayah').value,
+    inflasi_mtm:+document.getElementById('f-infl-mtm').value,
+    inflasi_ytd:+document.getElementById('f-infl-ytd').value,
+    inflasi_yoy:+document.getElementById('f-infl-yoy').value,
+    created_at: new Date().toISOString()
+  };
+  if (!obj.tahun||!obj.bulan||!obj.nama_wilayah) { toast('Lengkapi semua field yang wajib','error'); return; }
+  if (idx >= 0) { inflasData[idx] = obj; toast('Data diperbarui','success'); }
+  else { inflasData.push(obj); document.getElementById('edit-inflasi-idx').value=-1; toast('Data ditambahkan','success'); }
+  saveToLS(); closeModal('modal-add-inflasi'); renderInflasiTable2();
+  document.getElementById('modal-inflasi-title').textContent = '➕ Tambah Data Inflasi';
+}
+
+function deleteInflasi(idx) {
+  if (!confirm('Hapus data ini?')) return;
+  inflasData.splice(idx,1); saveToLS(); renderInflasiTable2(); toast('Data dihapus','success');
+}
+
+function populateKomoditasSelect() {
+  const komoditas = [...new Set(hargaData.map(r=>r.nama_komoditas))].filter(Boolean).sort();
+  const sel = document.getElementById('f-h-komoditas');
+  if (sel) sel.innerHTML = komoditas.map(k=>`<option value="${k}">${k}</option>`).join('');
+}
+
+function editHarga(idx) {
+  const r = hargaData[idx];
+  if (!r) return;
+  document.getElementById('edit-harga-idx').value = idx;
+  document.getElementById('modal-harga-title').textContent = '✏️ Edit Data Harga';
+  document.getElementById('f-h-tanggal').value = r.tanggal;
+  document.getElementById('f-h-komoditas').value = r.nama_komoditas;
+  document.getElementById('f-h-harga').value = r.harga;
+  document.getElementById('f-h-satuan').value = r.satuan||'kg';
+  openModal('modal-add-harga');
+}
+
+function saveHarga() {
+  const idx = +document.getElementById('edit-harga-idx').value;
+  const komoditas = document.getElementById('f-h-komoditas').value;
+  // get id_komoditas from existing data
+  const existing = hargaData.find(r=>r.nama_komoditas===komoditas);
+  const obj = {
+    tanggal: document.getElementById('f-h-tanggal').value,
+    id_komoditas: existing ? existing.id_komoditas : 99,
+    id_pasar: 1,
+    harga: +document.getElementById('f-h-harga').value,
+    nama_komoditas: komoditas,
+    satuan: document.getElementById('f-h-satuan').value||'kg'
+  };
+  if (!obj.tanggal||!obj.nama_komoditas||!obj.harga) { toast('Lengkapi semua field','error'); return; }
+  if (idx >= 0) { hargaData[idx] = obj; toast('Data diperbarui','success'); }
+  else { hargaData.push(obj); document.getElementById('edit-harga-idx').value=-1; toast('Data ditambahkan','success'); }
+  saveToLS(); closeModal('modal-add-harga'); renderHargaTable();
+  document.getElementById('modal-harga-title').textContent = '➕ Tambah Data Harga';
+}
+
+function deleteHarga(idx) {
+  if (!confirm('Hapus data ini?')) return;
+  hargaData.splice(idx,1); saveToLS(); renderHargaTable(); toast('Data dihapus','success');
+}
+
+function importCSV(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  Papa.parse(file, {
+    header:true, skipEmptyLines:true, dynamicTyping:true,
+    complete: result => {
+      if (type==='inflasi') { inflasData = result.data.filter(r=>r.tahun&&r.bulan); toast(`${inflasData.length} data inflasi diimpor`,'success'); renderInflasiTable2(); }
+      else { hargaData = result.data.filter(r=>r.tanggal&&r.nama_komoditas); toast(`${hargaData.length} data harga diimpor`,'success'); renderHargaTable(); }
+      saveToLS();
+    },
+    error: () => toast('Gagal membaca CSV','error')
+  });
+  event.target.value='';
+}
+
+function exportCSV(type) {
+  const data = type==='inflasi' ? inflasData : hargaData;
+  const csv = Papa.unparse(data);
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=(type==='inflasi'?'inflasi_data':'harga_komoditas')+'_export.csv';
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV berhasil diekspor','success');
+}
+
+// =============================================
+// AI RECOMMENDATION
+// =============================================
+function saveApiKey() {
+  const key = document.getElementById('aiApiKey').value;
+  localStorage.setItem('tpid_apikey', key);
+  document.getElementById('ai-key-status').textContent = '✓ Tersimpan';
+  toast('API Key disimpan di browser','success');
+}
+
+function updateAIStats() {
+  setText('ai-stat-komod', hargaData.length.toLocaleString('id-ID') + ' record');
+  setText('ai-stat-infl', inflasData.length + ' record');
+}
+
+function buildContext() {
+  // Build concise data summary for AI
+  const latestNas = getLatestInflasi('Nasional');
+  const latestJT  = getLatestInflasi('Jawa Tengah');
+  const latestKot = getLatestInflasi('Kota Tegal');
+  const latestDate = getLatestHargaDate();
+  const latestPrices = hargaData.filter(r=>r.tanggal===latestDate&&r.harga>0).map(r=>`${r.nama_komoditas}: Rp${r.harga}`).join(', ');
+  // Volatile commodities (last 30 days)
+  const d30 = new Date(); d30.setDate(d30.getDate()-30);
+  const recent = hargaData.filter(r=>r.tanggal>=d30.toISOString().slice(0,10)&&r.harga>0);
+  const komoditasCV = [...new Set(recent.map(r=>r.nama_komoditas))].map(k=>{
+    const ps = recent.filter(r=>r.nama_komoditas===k).map(r=>+r.harga);
+    const a = avg(ps), sd = stddev(ps, a);
+    return {k, cv: a>0?sd/a*100:0};
+  }).sort((a,b)=>b.cv-a.cv).slice(0,5);
+  return `DATA TPID KOTA TEGAL (Real-time):
+Inflasi Terkini (${latestNas?.bulan||''}/${latestNas?.tahun||''}):
+- Nasional: MtM ${latestNas?.inflasi_mtm||'—'}%, YtD ${latestNas?.inflasi_ytd||'—'}%, YoY ${latestNas?.inflasi_yoy||'—'}%
+- Jawa Tengah: MtM ${latestJT?.inflasi_mtm||'—'}%, YtD ${latestJT?.inflasi_ytd||'—'}%, YoY ${latestJT?.inflasi_yoy||'—'}%
+- Kota Tegal: MtM ${latestKot?.inflasi_mtm||'—'}%, YtD ${latestKot?.inflasi_ytd||'—'}%, YoY ${latestKot?.inflasi_yoy||'—'}%
+Harga Komoditas Terkini (${latestDate}): ${latestPrices}
+Komoditas Paling Volatile (30 hari terakhir, CV%): ${komoditasCV.map(c=>`${c.k}: ${c.cv.toFixed(1)}%`).join(', ')}
+Referensi HET: ${Object.entries(HET_HAP).slice(0,8).map(([k,v])=>`${k} HET:${v.het}`).join(', ')}
+Kurs USD/IDR: ${currentKurs ? 'Rp '+currentKurs.toLocaleString('id-ID') : 'tidak tersedia'}`;
+}
+
+async function sendAI() {
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const apiKey = document.getElementById('aiApiKey').value;
+  if (!apiKey) { toast('Masukkan API Key Claude terlebih dahulu','error'); return; }
+  addMsg('user', msg);
+  input.value = '';
+  const btn = document.getElementById('ai-send-btn');
+  btn.disabled = true; btn.textContent = '⏳ Memproses...';
+  addMsg('ai', '<span class="loading-dot"></span> Menganalisis data...', true);
+  const context = buildContext();
+  const systemPrompt = `Anda adalah AI Analis Ekonomi untuk TPID (Tim Pengendalian Inflasi Daerah) Kota Tegal, Jawa Tengah, Indonesia. Anda memiliki akses ke data inflasi dan harga komoditas real-time. Berikan analisis yang tajam, konkret, dan actionable dalam Bahasa Indonesia. Fokus pada: (1) identifikasi risiko inflasi, (2) rekomendasi intervensi kebijakan TPID, (3) monitoring komoditas strategis, (4) perbandingan dengan benchmark nasional/regional. Format respons Anda dengan jelas menggunakan poin-poin dan rekomendasi spesifik.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: systemPrompt,
+        messages:[{role:'user', content: `KONTEKS DATA:\n${context}\n\nPERTANYAAN: ${msg}`}]
+      })
     });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content?.map(c=>c.text||'').join('') || 'Tidak ada respons';
+    removeThinking();
+    addMsg('ai', text);
+  } catch(e) {
+    removeThinking();
+    addMsg('ai', '❌ Error: ' + e.message + '. Periksa API key dan koneksi internet.');
+  }
+  btn.disabled = false; btn.textContent = '📤 Kirim';
+}
 
-    // ---------- START ----------
-    parseCSVAndInit();
-    fetchForexData();
+function quickPrompt(text) { document.getElementById('aiInput').value = text; sendAI(); }
 
-    // optional: refresh forex tiap beberapa jam? tidak perlu.
-  })();
+function addMsg(role, text, isThinking=false) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (isThinking) div.id = 'thinking-msg';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = text.replace(/\n/g,'<br>');
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = role==='user' ? 'Anda · ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : 'TPID AI · ' + new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  div.appendChild(bubble); div.appendChild(time);
+  const msgs = document.getElementById('aiMessages');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeThinking() {
+  const el = document.getElementById('thinking-msg');
+  if (el) el.remove();
+}
+
+// =============================================
+// UTILITIES
+// =============================================
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function formatPct(v) { const n = parseFloat(v); return isNaN(n) ? '—' : (n>=0?'+':'')+n.toFixed(2)+'%'; }
+function formatDate(d) { if (!d) return '—'; const dt = new Date(d); return dt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtNum(v) { if (!v && v!==0) return '—'; return (+v).toLocaleString('id-ID'); }
+function avg(arr) { if (!arr||!arr.length) return 0; return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function stddev(arr, mean) { if (!arr||arr.length<2) return 0; return Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/arr.length); }
+
+function setSelectOptions(id, options, defaultVal) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  sel.innerHTML = options.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if (defaultVal && options.includes(defaultVal)) sel.value = defaultVal;
+}
+
+function setSelectValue(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+
+function toast(msg, type='info', duration=3000) {
+  const wrap = document.getElementById('toastWrap');
+  const div = document.createElement('div');
+  div.className = 'toast ' + type;
+  const icon = {success:'✅',error:'❌',info:'ℹ️'}[type]||'ℹ️';
+  div.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  wrap.appendChild(div);
+  setTimeout(()=>{ div.style.opacity='0'; div.style.transition='opacity .3s'; setTimeout(()=>div.remove(),300); }, duration);
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// =============================================
+// INIT
+// =============================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  // Set today's date as default for form
+  document.getElementById('f-h-tanggal').value = new Date().toISOString().slice(0,10);
+});
 </script>
-<!-- Catatan: File inflasi_data.csv harus berada di direktori yang sama dengan HTML ini -->
 </body>
 </html>
