@@ -3,124 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dashboard Ekonomi - Harga Komoditas & Inflasi</title>
-    <!-- Tailwind CSS + Font Awesome + Chart.js + PapaParse -->
+    <title>Dashboard Ekonomi Terintegrasi - Harga & Inflasi</title>
+    <!-- Tailwind + Font Awesome + Chart.js + PapaParse -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        /* custom scroll & transitions */
         .transition-smooth { transition: all 0.2s ease; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .modal-transition { transition: opacity 0.2s ease, visibility 0.2s; }
-        /* responsif tabel */
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
         @media (max-width: 768px) {
             .responsive-table thead { display: none; }
-            .responsive-table tbody tr { display: block; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.75rem; }
-            .responsive-table tbody td { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed #e2e8f0; }
+            .responsive-table tbody tr { display: block; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.75rem; background: white; }
+            .responsive-table tbody td { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px dashed #e2e8f0; }
             .responsive-table tbody td:last-child { border-bottom: none; }
             .responsive-table tbody td::before { content: attr(data-label); font-weight: 600; width: 40%; color: #1e293b; }
         }
+        .modal { transition: opacity 0.2s ease, visibility 0.2s; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans antialiased">
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 font-sans">
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <!-- HEADER -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-chart-line text-emerald-600"></i> Dashboard Ekonomi</h1>
-                <p class="text-slate-500 text-sm mt-1">Analisis harga komoditas & inflasi Kota Tegal / Jawa Tengah</p>
+                <h1 class="text-3xl font-extrabold text-slate-800 flex items-center gap-2"><i class="fas fa-chart-line text-emerald-600"></i> Dashboard Ekonomi Daerah</h1>
+                <p class="text-slate-500 text-sm">Data harga komoditas & inflasi (Kota Tegal / Jawa Tengah) dengan analisis dinamis</p>
             </div>
-            <div class="flex gap-2 flex-wrap">
-                <button id="resetDataBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl text-sm font-medium transition-smooth"><i class="fas fa-undo-alt mr-1"></i> Reset Data</button>
+            <div class="flex flex-wrap gap-2">
+                <button id="resetDataBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl text-sm font-medium shadow-sm"><i class="fas fa-undo-alt mr-1"></i> Reset Data</button>
                 <button id="downloadCsvBtn" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-4 py-2 rounded-xl text-sm font-medium"><i class="fas fa-download mr-1"></i> Export CSV</button>
                 <button id="uploadCsvBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-800 px-4 py-2 rounded-xl text-sm font-medium"><i class="fas fa-upload mr-1"></i> Upload CSV</button>
                 <input type="file" id="uploadCsvInput" accept=".csv" class="hidden" />
-                <button id="addDataBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm"><i class="fas fa-plus mr-1"></i> Tambah Data</button>
+                <button id="addDataBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md"><i class="fas fa-plus mr-1"></i> Tambah Data</button>
             </div>
         </div>
 
-        <!-- STATISTIK RINGKASAN -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-100 card-hover">
-                <div class="flex items-center justify-between"><span class="text-slate-500 text-sm">Rata-rata Harga (semua komoditas)</span><i class="fas fa-tag text-slate-400"></i></div>
+        <!-- KARTU STATISTIK UTAMA -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-emerald-500 card-hover">
+                <div class="flex justify-between"><span class="text-slate-500 text-sm">Rata-rata Harga</span><i class="fas fa-tag text-emerald-500"></i></div>
                 <p class="text-2xl font-bold text-slate-800 mt-2" id="avgPriceAll">-</p>
-                <span class="text-xs text-slate-400">per kg / satuan terbaru</span>
+                <span class="text-xs text-slate-400">semua komoditas (terbaru)</span>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-100 card-hover">
-                <div class="flex items-center justify-between"><span class="text-slate-500 text-sm">Inflasi YoY (terbaru)</span><i class="fas fa-percent text-slate-400"></i></div>
+            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-rose-500 card-hover">
+                <div class="flex justify-between"><span class="text-slate-500 text-sm">Inflasi YoY (terbaru)</span><i class="fas fa-chart-line text-rose-500"></i></div>
                 <p class="text-2xl font-bold text-slate-800 mt-2" id="latestInflation">-</p>
                 <span class="text-xs text-slate-400" id="inflationRegion">Kota Tegal</span>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-100 card-hover">
-                <div class="flex items-center justify-between"><span class="text-slate-500 text-sm">Komoditas termahal</span><i class="fas fa-fire text-slate-400"></i></div>
+            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-amber-500 card-hover">
+                <div class="flex justify-between"><span class="text-slate-500 text-sm">Komoditas Termahal</span><i class="fas fa-fire text-amber-500"></i></div>
                 <p class="text-xl font-bold text-slate-800 mt-2" id="topExpensive">-</p>
                 <span class="text-xs text-slate-400" id="topExpensivePrice"></span>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-100 card-hover">
-                <div class="flex items-center justify-between"><span class="text-slate-500 text-sm">Jumlah data harga</span><i class="fas fa-database text-slate-400"></i></div>
+            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-sky-500 card-hover">
+                <div class="flex justify-between"><span class="text-slate-500 text-sm">Jumlah Data Harga</span><i class="fas fa-database text-sky-500"></i></div>
                 <p class="text-2xl font-bold text-slate-800 mt-2" id="totalRows">-</p>
-                <span class="text-xs text-slate-400">baris harga komoditas</span>
+                <span class="text-xs text-slate-400">baris aktif</span>
             </div>
         </div>
 
-        <!-- TABEL DATA HARGA + CRUD -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-10">
-            <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3">
+        <!-- TABEL DATA HARGA DENGAN CRUD & PAGINATION -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden mb-10">
+            <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-slate-50">
                 <h2 class="font-semibold text-slate-700"><i class="fas fa-table mr-2 text-indigo-500"></i> Manajemen Data Harga Komoditas</h2>
                 <div class="flex gap-2"><input type="text" id="searchTable" placeholder="Cari komoditas / tanggal..." class="border rounded-xl px-3 py-1.5 text-sm w-64"><span class="text-xs text-slate-400 self-center">*edit/hapus baris</span></div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm responsive-table" id="priceTable">
-                    <thead class="bg-slate-50 text-slate-600">
-                        <tr><th class="px-4 py-3 text-left">Tanggal</th><th class="px-4 py-3 text-left">Komoditas</th><th class="px-4 py-3 text-left">Harga</th><th class="px-4 py-3 text-left">Satuan</th><th class="px-4 py-3 text-center">Aksi</th></tr>
+                    <thead class="bg-slate-100 text-slate-600">
+                        <tr><th class="px-4 py-3 text-left">Tanggal</th><th class="px-4 py-3 text-left">Komoditas</th><th class="px-4 py-3 text-left">Harga (Rp)</th><th class="px-4 py-3 text-left">Satuan</th><th class="px-4 py-3 text-center">Aksi</th></tr>
                     </thead>
                     <tbody id="priceTableBody"></tbody>
                 </table>
             </div>
-            <div class="px-6 py-3 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center"><span id="paginationInfo"></span><div class="flex gap-2"><button id="prevPage" class="px-3 py-1 bg-slate-100 rounded-lg disabled:opacity-50">← Prev</button><button id="nextPage" class="px-3 py-1 bg-slate-100 rounded-lg disabled:opacity-50">Next →</button></div></div>
+            <div class="px-6 py-3 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center bg-white">
+                <span id="paginationInfo"></span>
+                <div class="flex gap-2"><button id="prevPage" class="px-3 py-1 bg-slate-100 rounded-lg disabled:opacity-50">← Prev</button><button id="nextPage" class="px-3 py-1 bg-slate-100 rounded-lg disabled:opacity-50">Next →</button></div>
+            </div>
         </div>
 
-        <!-- ANALISIS STATISTIK EKONOMI (CHART) -->
+        <!-- ANALISIS STATISTIK LANJUTAN + CHART -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200">
-                <h3 class="font-semibold text-slate-700 mb-3"><i class="fas fa-chart-simple text-emerald-500 mr-2"></i> Tren Inflasi YoY (Kota Tegal)</h3>
+            <div class="bg-white rounded-2xl shadow-md p-5">
+                <h3 class="font-semibold text-slate-700 mb-3"><i class="fas fa-chart-line text-emerald-500 mr-2"></i> Tren Inflasi YoY (Kota Tegal)</h3>
                 <canvas id="inflationChart" height="200"></canvas>
+                <div class="mt-3 text-xs text-slate-400 text-center">Sumber: Inflasi bulanan year-on-year</div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-slate-200">
-                <h3 class="font-semibold text-slate-700 mb-3"><i class="fas fa-chart-line text-blue-500 mr-2"></i> Top 10 Komoditas Rata-rata Harga Tertinggi</h3>
+            <div class="bg-white rounded-2xl shadow-md p-5">
+                <h3 class="font-semibold text-slate-700 mb-3"><i class="fas fa-chart-simple text-blue-500 mr-2"></i> Top 10 Rata-rata Harga Tertinggi</h3>
                 <canvas id="topCommodityChart" height="200"></canvas>
+                <div class="mt-2 text-xs text-slate-400 text-center">Berdasarkan seluruh periode</div>
             </div>
+        </div>
+
+        <!-- ANALISIS VOLATILITAS & KORELASI -->
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-10 border border-slate-200">
+            <h3 class="font-semibold text-slate-700 mb-3"><i class="fas fa-chart-line text-purple-500 mr-2"></i> Analisis Volatilitas & Korelasi Ekonomi</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="bg-slate-50 p-3 rounded-xl"><span class="font-medium">Standar Deviasi Harga (semua komoditas):</span> <span id="stdDevPrice" class="ml-2 font-bold text-indigo-700">-</span></div>
+                <div class="bg-slate-50 p-3 rounded-xl"><span class="font-medium">Komoditas dengan fluktuasi tertinggi (CV):</span> <span id="highestVolatility" class="ml-2 font-bold text-rose-600">-</span></div>
+                <div class="bg-slate-50 p-3 rounded-xl"><span class="font-medium">Korelasi harga beras vs inflasi (YoY):</span> <span id="correlationRiceInflation" class="ml-2 font-bold text-emerald-600">-</span></div>
+            </div>
+            <p class="text-xs text-slate-400 mt-3">*Koefisien variasi (CV) = std/mean; korelasi Pearson antara harga beras medium dengan inflasi Kota Tegal.</p>
         </div>
 
         <!-- INFOGRAFIS MOMEN HARI BESAR (Idul Fitri & Natal/Tahun Baru) -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-8">
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 mb-8">
             <h2 class="font-semibold text-slate-700 text-lg mb-4"><i class="fas fa-calendar-alt text-rose-500 mr-2"></i> Fluktuasi Harga saat Hari Besar Keagamaan</h2>
-            <div class="flex flex-wrap gap-4 mb-5">
-                <div><label class="block text-xs font-medium text-slate-500">Tahun</label><select id="filterYear" class="border rounded-lg px-3 py-1.5 text-sm mt-1"><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option></select></div>
+            <div class="flex flex-wrap gap-4 mb-5 items-end">
+                <div><label class="block text-xs font-medium text-slate-500">Tahun</label><select id="filterYear" class="border rounded-lg px-3 py-1.5 text-sm mt-1"><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select></div>
                 <div><label class="block text-xs font-medium text-slate-500">Komoditas</label><select id="filterKomoditas" class="border rounded-lg px-3 py-1.5 text-sm mt-1 min-w-[160px]"></select></div>
                 <div><label class="block text-xs font-medium text-slate-500">Momen</label><select id="filterMomen" class="border rounded-lg px-3 py-1.5 text-sm mt-1"><option value="idul_fitri">Idul Fitri (H-7 s/d H+7)</option><option value="natal_tahunbaru">Natal & Tahun Baru (20 Des - 5 Jan)</option></select></div>
-                <button id="updateMomenChart" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-1.5 rounded-xl text-sm self-end mb-1"><i class="fas fa-chart-line mr-1"></i> Tampilkan</button>
+                <button id="updateMomenChart" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-5 py-1.5 rounded-xl text-sm"><i class="fas fa-chart-line mr-1"></i> Tampilkan Grafik</button>
             </div>
             <canvas id="momenChart" height="100"></canvas>
-            <div class="text-xs text-center text-slate-400 mt-3">*Grafik menunjukkan pergerakan harga di sekitar periode HBKN</div>
+            <div class="text-xs text-center text-slate-400 mt-3">*Periode H-7 hingga H+7 (Idul Fitri) atau 20 Desember - 5 Januari (Natal-Tahun Baru)</div>
         </div>
 
-        <!-- MODAL CRUD (Tambah/Edit) -->
-        <div id="crudModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden modal-transition">
-            <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl mx-4">
+        <!-- MODAL CRUD -->
+        <div id="crudModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden modal transition-all">
+            <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl mx-4 transform transition-all">
                 <h3 class="text-xl font-semibold mb-4" id="modalTitle">Tambah Data Harga</h3>
                 <input type="hidden" id="editRowIndex">
                 <div class="space-y-3">
-                    <input type="date" id="modalTanggal" class="w-full border rounded-xl p-2 text-sm">
+                    <input type="date" id="modalTanggal" class="w-full border rounded-xl p-2 text-sm" required>
                     <select id="modalKomoditas" class="w-full border rounded-xl p-2 text-sm"><option value="">Pilih komoditas</option></select>
-                    <input type="number" id="modalHarga" placeholder="Harga (Rp)" class="w-full border rounded-xl p-2 text-sm">
-                    <input type="text" id="modalSatuan" placeholder="Satuan (kg, bungkus, liter)" class="w-full border rounded-xl p-2 text-sm">
+                    <input type="number" id="modalHarga" placeholder="Harga (Rp)" class="w-full border rounded-xl p-2 text-sm" required>
+                    <input type="text" id="modalSatuan" placeholder="Satuan (kg, bungkus, liter)" class="w-full border rounded-xl p-2 text-sm" required>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
                     <button id="closeModalBtn" class="px-4 py-2 bg-slate-200 rounded-xl">Batal</button>
@@ -131,105 +145,165 @@
     </div>
 
     <script>
-        // -------------------------- GLOBAL VARIABLES --------------------------
+        // ======================== DATA GLOBAL ========================
         let originalHargaData = [];      // data asli dari CSV
-        let currentHargaData = [];       // data yang sedang digunakan (CRUD)
+        let currentHargaData = [];       // data yang sedang diedit
         let inflasiData = [];
-        let allKomoditasSet = new Set();
         
-        // UI states
+        // UI state
         let currentPage = 1;
-        const rowsPerPage = 12;
+        let rowsPerPage = 12;
         let searchQuery = "";
         
         // Chart instances
         let inflationChart, topCommChart, momenChart;
         
-        // Helper: parse CSV harga (kolom: tanggal,id_komoditas,id_pasar,harga,nama_komoditas,satuan)
+        // Helper: parse CSV harga (format: tanggal,id_komoditas,id_pasar,harga,nama_komoditas,satuan)
         function parseHargaCSV(csvText) {
-            const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-            if (results.errors.length) console.warn(results.errors);
-            return results.data.map(row => ({
-                tanggal: row.tanggal,
-                id_komoditas: row.id_komoditas,
-                nama_komoditas: row.nama_komoditas,
-                harga: parseFloat(row.harga),
-                satuan: row.satuan || "kg"
-            })).filter(item => !isNaN(item.harga) && item.tanggal && item.nama_komoditas);
+            const results = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: true });
+            if (results.errors.length) console.warn("CSV Harga parsing warning:", results.errors);
+            return results.data
+                .filter(row => row.tanggal && row.nama_komoditas && !isNaN(parseFloat(row.harga)))
+                .map(row => ({
+                    tanggal: row.tanggal,
+                    id_komoditas: row.id_komoditas || String(Date.now() + Math.random()),
+                    nama_komoditas: row.nama_komoditas.trim(),
+                    harga: parseFloat(row.harga),
+                    satuan: row.satuan || "kg"
+                }));
         }
         
         function parseInflasiCSV(csvText) {
-            const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-            return results.data.map(row => ({
-                tahun: parseInt(row.tahun),
-                bulan: parseInt(row.bulan),
-                level_wilayah: row.level_wilayah,
-                nama_wilayah: row.nama_wilayah,
-                inflasi_mtm: parseFloat(row.inflasi_mtm),
-                inflasi_yoy: parseFloat(row.inflasi_yoy)
-            })).filter(d => !isNaN(d.inflasi_yoy));
+            const results = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: true });
+            return results.data
+                .filter(row => row.tahun && row.bulan && !isNaN(row.inflasi_yoy))
+                .map(row => ({
+                    tahun: parseInt(row.tahun),
+                    bulan: parseInt(row.bulan),
+                    level_wilayah: row.level_wilayah,
+                    nama_wilayah: row.nama_wilayah,
+                    inflasi_mtm: parseFloat(row.inflasi_mtm),
+                    inflasi_yoy: parseFloat(row.inflasi_yoy)
+                }));
         }
         
-        // Load CSV dari path relatif (satu folder)
+        // Load CSV dari folder yang sama (fallback ke data contoh jika gagal)
         async function loadData() {
             try {
                 const [hargaResp, inflasiResp] = await Promise.all([
                     fetch('./harga_komoditas.csv'),
                     fetch('./inflasi_data.csv')
                 ]);
+                if (!hargaResp.ok || !inflasiResp.ok) throw new Error("CSV tidak ditemukan");
                 const hargaText = await hargaResp.text();
                 const inflasiText = await inflasiResp.text();
                 originalHargaData = parseHargaCSV(hargaText);
                 currentHargaData = [...originalHargaData];
                 inflasiData = parseInflasiCSV(inflasiText);
-                updateKomoditasSelect();
-                refreshAllStatsAndTables();
-                renderCharts();
+                if (currentHargaData.length === 0) throw new Error("Data harga kosong");
             } catch(err) {
-                console.error("Gagal load CSV, pastikan file berada di folder yang sama:", err);
-                alert("Error memuat file CSV. Pastikan harga_komoditas.csv dan inflasi_data.csv tersedia.");
+                console.warn("Gagal fetch CSV, menggunakan data contoh dummy untuk demo", err);
+                // Data dummy minimal untuk keperluan demo
+                originalHargaData = [
+                    { tanggal: "2024-01-01", id_komoditas: "1", nama_komoditas: "Beras Medium", harga: 13000, satuan: "kg" },
+                    { tanggal: "2024-01-15", id_komoditas: "1", nama_komoditas: "Beras Medium", harga: 13500, satuan: "kg" },
+                    { tanggal: "2024-02-01", id_komoditas: "3", nama_komoditas: "Cabai Merah", harga: 45000, satuan: "kg" },
+                    { tanggal: "2024-03-01", id_komoditas: "7", nama_komoditas: "Bawang Merah", harga: 32000, satuan: "kg" }
+                ];
+                currentHargaData = [...originalHargaData];
+                inflasiData = [
+                    { tahun:2024, bulan:1, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_yoy:2.41 },
+                    { tahun:2024, bulan:12, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_yoy:2.19 },
+                    { tahun:2025, bulan:1, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_yoy:2.41 }
+                ];
             }
+            updateKomoditasSelect();
+            refreshAllStatsAndTables();
+            renderAllCharts();
         }
         
-        // Update select komoditas (untuk filter momen & modal)
+        // Update dropdown komoditas (untuk filter momen & modal)
         function updateKomoditasSelect() {
             const komoditasList = [...new Set(currentHargaData.map(d => d.nama_komoditas))].sort();
             const filterSelect = document.getElementById('filterKomoditas');
             const modalSelect = document.getElementById('modalKomoditas');
             filterSelect.innerHTML = '<option value="">-- Semua Komoditas --</option>' + komoditasList.map(k => `<option value="${k}">${k}</option>`).join('');
-            modalSelect.innerHTML = komoditasList.map(k => `<option value="${k}">${k}</option>`).join('');
+            modalSelect.innerHTML = '<option value="">Pilih komoditas</option>' + komoditasList.map(k => `<option value="${k}">${k}</option>`).join('');
         }
         
-        // Statistik & tabel
+        // Statistik dan tabel
         function refreshAllStatsAndTables() {
-            // Rata-rata harga keseluruhan
-            const validPrices = currentHargaData.filter(d => d.harga > 0).map(d => d.harga);
-            const avgPrice = validPrices.length ? (validPrices.reduce((a,b)=>a+b,0)/validPrices.length).toFixed(0) : 0;
+            // Rata-rata harga (berdasarkan data terbaru per komoditas untuk menghindari bias)
+            const latestPerKomoditas = new Map();
+            currentHargaData.forEach(item => {
+                let curr = latestPerKomoditas.get(item.nama_komoditas);
+                if (!curr || new Date(item.tanggal) > new Date(curr.tanggal)) latestPerKomoditas.set(item.nama_komoditas, item);
+            });
+            const latestPrices = Array.from(latestPerKomoditas.values()).map(d => d.harga);
+            const avgPrice = latestPrices.length ? (latestPrices.reduce((a,b)=>a+b,0)/latestPrices.length).toFixed(0) : 0;
             document.getElementById('avgPriceAll').innerText = `Rp ${parseInt(avgPrice).toLocaleString()}`;
             document.getElementById('totalRows').innerText = currentHargaData.length.toLocaleString();
             
-            // Komoditas termahal (berdasarkan harga terbaru per komoditas, ambil max)
-            const latestPerKomoditas = new Map();
-            currentHargaData.forEach(item => {
-                if (!latestPerKomoditas.has(item.nama_komoditas) || new Date(item.tanggal) > new Date(latestPerKomoditas.get(item.nama_komoditas).tanggal)) {
-                    latestPerKomoditas.set(item.nama_komoditas, item);
-                }
-            });
+            // Komoditas termahal dari data terbaru
             let maxItem = null;
             for(let item of latestPerKomoditas.values()) { if(!maxItem || item.harga > maxItem.harga) maxItem = item; }
             if(maxItem) { document.getElementById('topExpensive').innerText = maxItem.nama_komoditas; document.getElementById('topExpensivePrice').innerHTML = `Rp ${maxItem.harga.toLocaleString()} / ${maxItem.satuan}`; }
             
-            // inflasi terbaru (Kota Tegal, yoy)
+            // Inflasi terbaru (Kota Tegal)
             const tegalInflasi = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (b.tahun*100+b.bulan) - (a.tahun*100+a.bulan));
             if(tegalInflasi.length) {
                 document.getElementById('latestInflation').innerText = tegalInflasi[0].inflasi_yoy.toFixed(2) + '%';
                 document.getElementById('inflationRegion').innerText = `Kota Tegal (${tegalInflasi[0].tahun}/${tegalInflasi[0].bulan})`;
             } else { document.getElementById('latestInflation').innerText = '-'; }
             
+            // Analisis volatilitas
+            const allPrices = currentHargaData.map(d => d.harga);
+            const mean = allPrices.reduce((a,b)=>a+b,0)/allPrices.length;
+            const variance = allPrices.reduce((sum,val)=> sum + Math.pow(val-mean,2),0)/allPrices.length;
+            const stdDev = Math.sqrt(variance);
+            document.getElementById('stdDevPrice').innerText = `Rp ${stdDev.toFixed(0)}`;
+            
+            // Komoditas dengan CV tertinggi
+            const commodityPrices = new Map();
+            currentHargaData.forEach(d => { if(!commodityPrices.has(d.nama_komoditas)) commodityPrices.set(d.nama_komoditas, []); commodityPrices.get(d.nama_komoditas).push(d.harga); });
+            let maxCV = { name: '-', cv: 0 };
+            for(let [name, prices] of commodityPrices.entries()) {
+                let m = prices.reduce((a,b)=>a+b,0)/prices.length;
+                let std = Math.sqrt(prices.reduce((s,p)=> s+Math.pow(p-m,2),0)/prices.length);
+                let cv = m ? (std/m)*100 : 0;
+                if(cv > maxCV.cv) maxCV = { name, cv };
+            }
+            document.getElementById('highestVolatility').innerHTML = `${maxCV.name} (CV ${maxCV.cv.toFixed(1)}%)`;
+            
+            // Korelasi harga beras medium vs inflasi YoY (bulanan)
+            const berasData = currentHargaData.filter(d => d.nama_komoditas.toLowerCase().includes('beras')).sort((a,b)=> a.tanggal.localeCompare(b.tanggal));
+            const inflasiBulanan = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
+            let correlation = 0;
+            if(berasData.length && inflasiBulanan.length) {
+                // sederhana: cari data bulan yang sama
+                let pairs = [];
+                for(let b of berasData) {
+                    let [year, month] = b.tanggal.split('-');
+                    let inf = inflasiBulanan.find(i => i.tahun == year && i.bulan == month);
+                    if(inf) pairs.push({ price: b.harga, inflasi: inf.inflasi_yoy });
+                }
+                if(pairs.length > 1) {
+                    let n = pairs.length;
+                    let sumX = pairs.reduce((s,p)=>s+p.price,0), sumY = pairs.reduce((s,p)=>s+p.inflasi,0);
+                    let sumXY = pairs.reduce((s,p)=>s+p.price*p.inflasi,0);
+                    let sumX2 = pairs.reduce((s,p)=>s+p.price*p.price,0);
+                    let sumY2 = pairs.reduce((s,p)=>s+p.inflasi*p.inflasi,0);
+                    let numerator = n*sumXY - sumX*sumY;
+                    let denom = Math.sqrt((n*sumX2 - sumX*sumX)*(n*sumY2 - sumY*sumY));
+                    correlation = denom ? numerator/denom : 0;
+                }
+            }
+            document.getElementById('correlationRiceInflation').innerHTML = correlation ? correlation.toFixed(3) : 'tidak cukup data';
+            
             renderTable();
         }
         
-        // Tabel CRUD + pagination
+        // Tabel CRUD + pagination + search
         function renderTable() {
             let filtered = currentHargaData.filter(row => 
                 row.nama_komoditas.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -256,12 +330,11 @@
             document.getElementById('paginationInfo').innerText = `Halaman ${currentPage} dari ${totalPages || 1} (${filtered.length} data)`;
             document.getElementById('prevPage').disabled = currentPage===1;
             document.getElementById('nextPage').disabled = currentPage===totalPages || totalPages===0;
-            // attach event
             document.querySelectorAll('.editRowBtn').forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(btn.dataset.index); openEditModal(idx); }));
             document.querySelectorAll('.deleteRowBtn').forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(btn.dataset.index); deleteRow(idx); }));
         }
         
-        function deleteRow(idx) { if(confirm('Hapus data ini?')) { currentHargaData.splice(idx,1); refreshAllStatsAndTables(); updateKomoditasSelect(); renderCharts(); } }
+        function deleteRow(idx) { if(confirm('Hapus data ini?')) { currentHargaData.splice(idx,1); refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); } }
         function openEditModal(idx) { const row = currentHargaData[idx]; document.getElementById('editRowIndex').value = idx; document.getElementById('modalTanggal').value = row.tanggal; document.getElementById('modalKomoditas').value = row.nama_komoditas; document.getElementById('modalHarga').value = row.harga; document.getElementById('modalSatuan').value = row.satuan; document.getElementById('modalTitle').innerText = 'Edit Data Harga'; document.getElementById('crudModal').classList.remove('hidden'); }
         function openAddModal() { document.getElementById('editRowIndex').value = ''; document.getElementById('modalTanggal').value = ''; document.getElementById('modalKomoditas').value = ''; document.getElementById('modalHarga').value = ''; document.getElementById('modalSatuan').value = ''; document.getElementById('modalTitle').innerText = 'Tambah Data Harga'; document.getElementById('crudModal').classList.remove('hidden'); }
         
@@ -272,41 +345,41 @@
             const satuan = document.getElementById('modalSatuan').value;
             if(!tanggal || !komoditas || isNaN(harga) || !satuan) { alert('Lengkapi semua field!'); return; }
             const editIdx = document.getElementById('editRowIndex').value;
-            if(editIdx !== "") { // edit
+            if(editIdx !== "") {
                 currentHargaData[parseInt(editIdx)] = { ...currentHargaData[parseInt(editIdx)], tanggal, nama_komoditas: komoditas, harga, satuan };
-            } else { // tambah
-                const newId = Math.max(...currentHargaData.map(d=>parseInt(d.id_komoditas)||0),0)+1;
-                currentHargaData.push({ tanggal, id_komoditas: newId.toString(), nama_komoditas: komoditas, harga, satuan });
+            } else {
+                const newId = Date.now().toString();
+                currentHargaData.push({ tanggal, id_komoditas: newId, nama_komoditas: komoditas, harga, satuan });
             }
             document.getElementById('crudModal').classList.add('hidden');
             refreshAllStatsAndTables();
             updateKomoditasSelect();
-            renderCharts();
+            renderAllCharts();
         }
         
-        function resetToOriginal() { if(confirm('Reset ke data asli CSV? Perubahan akan hilang.')) { currentHargaData = [...originalHargaData]; refreshAllStatsAndTables(); updateKomoditasSelect(); renderCharts(); } }
+        function resetToOriginal() { if(confirm('Reset ke data asli CSV? Semua perubahan akan hilang.')) { currentHargaData = [...originalHargaData]; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); } }
         function downloadCSV() { 
             const headers = ['tanggal','id_komoditas','nama_komoditas','harga','satuan'];
-            const csvRows = currentHargaData.map(row => `${row.tanggal},${row.id_komoditas || ''},${row.nama_komoditas},${row.harga},${row.satuan}`);
+            const csvRows = currentHargaData.map(row => `"${row.tanggal}","${row.id_komoditas}","${row.nama_komoditas}",${row.harga},"${row.satuan}"`);
             const blob = new Blob([headers.join(',') + '\n' + csvRows.join('\n')], {type: 'text/csv'});
-            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'harga_komoditas_edit.csv'; link.click(); URL.revokeObjectURL(link.href);
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'harga_komoditas_export.csv'; link.click(); URL.revokeObjectURL(link.href);
         }
         
         function uploadCSVFile(file) {
             Papa.parse(file, { header: true, complete: function(results) {
-                const newData = results.data.map(row => ({ tanggal: row.tanggal, id_komoditas: row.id_komoditas, nama_komoditas: row.nama_komoditas, harga: parseFloat(row.harga), satuan: row.satuan })).filter(d => d.tanggal && d.nama_komoditas && !isNaN(d.harga));
-                if(newData.length) { currentHargaData = newData; refreshAllStatsAndTables(); updateKomoditasSelect(); renderCharts(); alert(`Berhasil upload ${newData.length} data.`); } else alert('File tidak valid atau kosong');
+                const newData = results.data.map(row => ({ tanggal: row.tanggal, id_komoditas: row.id_komoditas || Date.now()+Math.random(), nama_komoditas: row.nama_komoditas, harga: parseFloat(row.harga), satuan: row.satuan })).filter(d => d.tanggal && d.nama_komoditas && !isNaN(d.harga));
+                if(newData.length) { currentHargaData = newData; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); alert(`Berhasil upload ${newData.length} data.`); } else alert('File tidak valid atau kosong');
             }});
         }
         
-        // CHART: Inflasi YoY (Kota Tegal)
+        // CHART: Inflasi
         function renderInflationChart() {
             const tegal = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
             const labels = tegal.map(d => `${d.tahun}/${d.bulan}`);
             const yoyData = tegal.map(d => d.inflasi_yoy);
             if(inflationChart) inflationChart.destroy();
             const ctx = document.getElementById('inflationChart').getContext('2d');
-            inflationChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Inflasi YoY (%)', data: yoyData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } } });
+            inflationChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Inflasi YoY (%)', data: yoyData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: true } });
         }
         
         function renderTopCommodityChart() {
@@ -317,10 +390,10 @@
             const top10 = avgList.slice(0,10);
             if(topCommChart) topCommChart.destroy();
             const ctx = document.getElementById('topCommodityChart').getContext('2d');
-            topCommChart = new Chart(ctx, { type: 'bar', data: { labels: top10.map(t=>t.name), datasets: [{ label: 'Rata-rata Harga (Rp)', data: top10.map(t=>t.avg), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } } });
+            topCommChart = new Chart(ctx, { type: 'bar', data: { labels: top10.map(t=>t.name), datasets: [{ label: 'Rata-rata Harga (Rp)', data: top10.map(t=>t.avg), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true } });
         }
         
-        // MOMEN HBKN (Idul Fitri & Natal/Tahun Baru)
+        // MOMEN HBKN
         async function renderMomenChart() {
             const year = parseInt(document.getElementById('filterYear').value);
             const komoditas = document.getElementById('filterKomoditas').value;
@@ -329,14 +402,12 @@
             if(filteredData.length === 0) { alert('Tidak ada data untuk tahun & komoditas ini'); return; }
             let dateRange = [];
             if(momen === 'idul_fitri') {
-                // estimasi Idul Fitri (1 Syawal) tahun tersebut: 2022: 2 Mei, 2023: 22 April, 2024: 10 April, 2025: 31 Maret
                 const lebaranDates = {2022:'2022-05-02',2023:'2023-04-22',2024:'2024-04-10',2025:'2025-03-31',2026:'2026-03-20'};
                 let lebaran = lebaranDates[year] || '2024-04-10';
                 let start = new Date(lebaran); start.setDate(start.getDate()-7);
                 let end = new Date(lebaran); end.setDate(end.getDate()+7);
                 dateRange = getDateRange(start, end);
             } else {
-                // Natal & Tahun Baru: 20 Des - 5 Jan tahun berikutnya
                 let start = new Date(`${year}-12-20`);
                 let end = new Date(`${year+1}-01-05`);
                 dateRange = getDateRange(start, end);
@@ -347,13 +418,13 @@
             const chartPrices = chartLabels.map(dt => priceMap.get(dt) || null);
             if(momenChart) momenChart.destroy();
             const ctx = document.getElementById('momenChart').getContext('2d');
-            momenChart = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: `${komoditas || 'Semua Komoditas'} - Harga (Rp)`, data: chartPrices, borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.05)', tension: 0.2, fill: true, pointRadius: 3 }] }, options: { responsive: true, plugins: { tooltip: { callbacks: { label: (ctx) => `Rp ${ctx.raw?.toLocaleString()}` } } } } });
+            momenChart = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: `${komoditas || 'Semua Komoditas'} - Harga (Rp)`, data: chartPrices, borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.05)', tension: 0.2, fill: true, pointRadius: 3 }] }, options: { responsive: true, plugins: { tooltip: { callbacks: { label: (ctx) => ctx.raw ? `Rp ${ctx.raw.toLocaleString()}` : 'Tidak ada data' } } } } });
         }
         function getDateRange(start, end) { let dates=[]; let cur=new Date(start); while(cur<=end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); } return dates; }
         
-        function renderCharts() { renderInflationChart(); renderTopCommodityChart(); }
+        function renderAllCharts() { renderInflationChart(); renderTopCommodityChart(); }
         
-        // Event Listener & init
+        // Event binding
         document.getElementById('resetDataBtn').addEventListener('click', resetToOriginal);
         document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
         document.getElementById('uploadCsvBtn').addEventListener('click', ()=>document.getElementById('uploadCsvInput').click());
@@ -366,7 +437,7 @@
         document.getElementById('searchTable').addEventListener('input', (e)=>{ searchQuery=e.target.value; currentPage=1; renderTable(); });
         document.getElementById('updateMomenChart').addEventListener('click', renderMomenChart);
         
-        // load awal
+        // Mulai
         loadData();
     </script>
 </body>
