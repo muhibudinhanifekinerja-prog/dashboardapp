@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Dashboard Ekonomi - Inflasi & Harga Komoditas</title>
-    <!-- Tailwind CSS + Font Awesome + Chart.js + PapaParse -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -23,6 +22,7 @@
             .responsive-table tbody td::before { content: attr(data-label); font-weight: 600; width: 40%; color: #1e293b; }
         }
         .modal { transition: opacity 0.2s ease, visibility 0.2s; }
+        .loading { display: flex; justify-content: center; align-items: center; height: 200px; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 font-sans">
@@ -43,6 +43,17 @@
             </div>
         </div>
 
+        <!-- INDIKATOR LOADING / ERROR -->
+        <div id="loadingIndicator" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded" role="alert">
+            <p class="font-bold">Memuat data...</p>
+            <p>Mohon tunggu, sedang mengambil file CSV.</p>
+        </div>
+        <div id="errorMessage" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded" role="alert">
+            <p class="font-bold">Gagal memuat file CSV!</p>
+            <p id="errorDetail">Pastikan file <strong>harga_komoditas.csv</strong> dan <strong>inflasi_data.csv</strong> berada di folder yang sama dengan file index.html. Atau Anda dapat mengunggahnya secara manual menggunakan tombol "Upload CSV".</p>
+            <button id="manualUploadTrigger" class="mt-2 bg-red-600 text-white px-3 py-1 rounded text-sm">Upload File CSV Sekarang</button>
+        </div>
+
         <!-- KARTU INFLASI TERBARU (MTM, YTD, YOY) UNTUK 3 WILAYAH -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
             <!-- Nasional -->
@@ -54,7 +65,7 @@
                     <div><p class="text-xs text-slate-400">YoY</p><p class="text-lg font-bold text-blue-700" id="nasionalYoy">-</p></div>
                 </div>
             </div>
-            <!-- Jawa Tengah (Provinsi) -->
+            <!-- Jawa Tengah -->
             <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-emerald-500 card-hover">
                 <div class="flex justify-between items-center"><span class="text-slate-500 text-sm font-semibold"><i class="fas fa-map-marker-alt mr-1"></i> Jawa Tengah</span><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full" id="jatengDate">-</span></div>
                 <div class="mt-3 grid grid-cols-3 gap-2 text-center">
@@ -94,7 +105,9 @@
                     <thead class="bg-slate-100 text-slate-600">
                         <tr><th class="px-4 py-3 text-left">Tanggal</th><th class="px-4 py-3 text-left">Komoditas</th><th class="px-4 py-3 text-left">Harga (Rp)</th><th class="px-4 py-3 text-left">Satuan</th><th class="px-4 py-3 text-center">Aksi</th></tr>
                     </thead>
-                    <tbody id="priceTableBody"></tbody>
+                    <tbody id="priceTableBody">
+                        <tr><td colspan="5" class="text-center py-8 text-slate-400">Memuat data...</td></tr>
+                    </tbody>
                 </table>
             </div>
             <div class="px-6 py-3 border-t border-slate-100 text-xs text-slate-400 flex justify-between items-center bg-white">
@@ -128,7 +141,7 @@
             <p class="text-xs text-slate-400 mt-3">*Koefisien variasi (CV) = std/mean; korelasi Pearson antara harga beras medium dengan inflasi Kota Tegal.</p>
         </div>
 
-        <!-- INFOGRAFIS MOMEN HARI BESAR (Idul Fitri & Natal/Tahun Baru) -->
+        <!-- INFOGRAFIS MOMEN HARI BESAR -->
         <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 mb-8">
             <h2 class="font-semibold text-slate-700 text-lg mb-4"><i class="fas fa-calendar-alt text-rose-500 mr-2"></i> Fluktuasi Harga saat Hari Besar Keagamaan</h2>
             <div class="flex flex-wrap gap-4 mb-5 items-end">
@@ -219,7 +232,7 @@
                 document.getElementById('nasionalYtd').innerText = nasional.inflasi_ytd.toFixed(2) + '%';
                 document.getElementById('nasionalYoy').innerText = nasional.inflasi_yoy.toFixed(2) + '%';
             }
-            // Jawa Tengah (provinsi)
+            // Jawa Tengah
             const jateng = getLatestInflation('provinsi', 'Jawa Tengah');
             if(jateng) {
                 document.getElementById('jatengDate').innerText = `${jateng.tahun}/${jateng.bulan}`;
@@ -236,7 +249,7 @@
                 document.getElementById('tegalYoy').innerText = tegal.inflasi_yoy.toFixed(2) + '%';
             }
             
-            // Update donut chart dengan data YoY terbaru
+            // Update donut chart
             const yoyNasional = nasional ? nasional.inflasi_yoy : 0;
             const yoyJateng = jateng ? jateng.inflasi_yoy : 0;
             const yoyTegal = tegal ? tegal.inflasi_yoy : 0;
@@ -264,43 +277,117 @@
             });
         }
         
-        // Load CSV
+        // Load CSV dari file (dengan prioritas fetch, fallback upload manual)
+        async function loadDataFromFiles(hargaFile, inflasiFile) {
+            return new Promise((resolve, reject) => {
+                let hargaLoaded = false, inflasiLoaded = false;
+                let hargaData = null, inflasiDataRaw = null;
+                
+                function checkComplete() {
+                    if (hargaLoaded && inflasiLoaded) {
+                        if (hargaData && inflasiDataRaw) resolve({ hargaData, inflasiDataRaw });
+                        else reject(new Error("Data tidak lengkap"));
+                    }
+                }
+                
+                Papa.parse(hargaFile, { header: true, skipEmptyLines: true, dynamicTyping: true, complete: (results) => {
+                    if (results.errors.length) console.warn("CSV Harga warning:", results.errors);
+                    hargaData = results.data.filter(row => row.tanggal && row.nama_komoditas && !isNaN(parseFloat(row.harga)))
+                        .map(row => ({ tanggal: row.tanggal, id_komoditas: row.id_komoditas || String(Date.now()+Math.random()), nama_komoditas: row.nama_komoditas.trim(), harga: parseFloat(row.harga), satuan: row.satuan || "kg" }));
+                    hargaLoaded = true;
+                    checkComplete();
+                }});
+                
+                Papa.parse(inflasiFile, { header: true, skipEmptyLines: true, dynamicTyping: true, complete: (results) => {
+                    inflasiDataRaw = results.data.filter(row => row.tahun && row.bulan && !isNaN(row.inflasi_mtm))
+                        .map(row => ({ tahun: parseInt(row.tahun), bulan: parseInt(row.bulan), level_wilayah: row.level_wilayah, nama_wilayah: row.nama_wilayah, inflasi_mtm: parseFloat(row.inflasi_mtm), inflasi_ytd: parseFloat(row.inflasi_ytd), inflasi_yoy: parseFloat(row.inflasi_yoy) }));
+                    inflasiLoaded = true;
+                    checkComplete();
+                }});
+            });
+        }
+        
         async function loadData() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
             try {
-                const [hargaResp, inflasiResp] = await Promise.all([
-                    fetch('./harga_komoditas.csv'),
-                    fetch('./inflasi_data.csv')
-                ]);
-                if (!hargaResp.ok || !inflasiResp.ok) throw new Error("CSV tidak ditemukan");
+                // Coba fetch dari server (jika file di folder yang sama)
+                const hargaResp = await fetch('./harga_komoditas.csv');
+                const inflasiResp = await fetch('./inflasi_data.csv');
+                if (!hargaResp.ok || !inflasiResp.ok) throw new Error("File tidak ditemukan di server");
                 const hargaText = await hargaResp.text();
                 const inflasiText = await inflasiResp.text();
-                originalHargaData = parseHargaCSV(hargaText);
+                const hargaBlob = new Blob([hargaText], {type: 'text/csv'});
+                const inflasiBlob = new Blob([inflasiText], {type: 'text/csv'});
+                const { hargaData, inflasiDataRaw } = await loadDataFromFiles(hargaBlob, inflasiBlob);
+                originalHargaData = hargaData;
                 currentHargaData = [...originalHargaData];
-                inflasiData = parseInflasiCSV(inflasiText);
+                inflasiData = inflasiDataRaw;
                 if (currentHargaData.length === 0) throw new Error("Data harga kosong");
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                afterDataLoaded();
             } catch(err) {
-                console.warn("Gagal fetch CSV, menggunakan data contoh dummy", err);
-                originalHargaData = [
-                    { tanggal: "2024-01-01", id_komoditas: "1", nama_komoditas: "Beras Medium", harga: 13000, satuan: "kg" },
-                    { tanggal: "2024-01-15", id_komoditas: "1", nama_komoditas: "Beras Medium", harga: 13500, satuan: "kg" },
-                    { tanggal: "2024-02-01", id_komoditas: "3", nama_komoditas: "Cabai Merah", harga: 45000, satuan: "kg" },
-                    { tanggal: "2024-03-01", id_komoditas: "7", nama_komoditas: "Bawang Merah", harga: 32000, satuan: "kg" }
-                ];
-                currentHargaData = [...originalHargaData];
-                inflasiData = [
-                    { tahun:2025, bulan:1, level_wilayah:"nasional", nama_wilayah:"Nasional", inflasi_mtm:-0.15, inflasi_ytd:-0.15, inflasi_yoy:3.55 },
-                    { tahun:2025, bulan:1, level_wilayah:"provinsi", nama_wilayah:"Jawa Tengah", inflasi_mtm:-0.35, inflasi_ytd:-0.35, inflasi_yoy:2.83 },
-                    { tahun:2025, bulan:1, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_mtm:-0.24, inflasi_ytd:-0.24, inflasi_yoy:3.08 },
-                    { tahun:2025, bulan:2, level_wilayah:"nasional", nama_wilayah:"Nasional", inflasi_mtm:0.68, inflasi_ytd:0.53, inflasi_yoy:4.76 },
-                    { tahun:2025, bulan:2, level_wilayah:"provinsi", nama_wilayah:"Jawa Tengah", inflasi_mtm:0.76, inflasi_ytd:0.41, inflasi_yoy:4.43 },
-                    { tahun:2025, bulan:2, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_mtm:0.86, inflasi_ytd:0.61, inflasi_yoy:4.97 }
-                ];
+                console.warn("Gagal fetch dari server:", err);
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                document.getElementById('errorMessage').classList.remove('hidden');
+                // Siapkan fallback: user bisa upload manual
+                window.manualUploadFallback = true;
             }
+        }
+        
+        function afterDataLoaded() {
             updateKomoditasSelect();
             refreshAllStatsAndTables();
             renderAllCharts();
             updateInflationCards();
+            // Sembunyikan error jika sebelumnya muncul
+            document.getElementById('errorMessage').classList.add('hidden');
         }
+        
+        // Manual upload file (dipanggil saat tombol upload atau dari error message)
+        function handleManualUpload(hargaFile, inflasiFile) {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            loadDataFromFiles(hargaFile, inflasiFile).then(({ hargaData, inflasiDataRaw }) => {
+                originalHargaData = hargaData;
+                currentHargaData = [...originalHargaData];
+                inflasiData = inflasiDataRaw;
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                afterDataLoaded();
+                alert("Data berhasil dimuat dari file yang diunggah!");
+            }).catch(err => {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                alert("Gagal memuat file: " + err.message);
+            });
+        }
+        
+        // Event untuk upload file secara manual (dua file sekaligus)
+        document.getElementById('uploadCsvBtn').addEventListener('click', () => {
+            // Upload dua file: harga dan inflasi
+            const inputHarga = document.createElement('input');
+            inputHarga.type = 'file';
+            inputHarga.accept = '.csv';
+            inputHarga.onchange = (e1) => {
+                const hargaFile = e1.target.files[0];
+                if (!hargaFile) return;
+                const inputInflasi = document.createElement('input');
+                inputInflasi.type = 'file';
+                inputInflasi.accept = '.csv';
+                inputInflasi.onchange = (e2) => {
+                    const inflasiFile = e2.target.files[0];
+                    if (inflasiFile) handleManualUpload(hargaFile, inflasiFile);
+                    else alert("Pilih file inflasi_data.csv");
+                };
+                inputInflasi.click();
+            };
+            inputHarga.click();
+        });
+        
+        document.getElementById('manualUploadTrigger')?.addEventListener('click', () => {
+            document.getElementById('uploadCsvBtn').click();
+        });
+        
+        // Fungsi lain (updateKomoditasSelect, refreshAllStatsAndTables, renderTable, dll) sama seperti sebelumnya
+        // (Saya akan menyalin kembali fungsi-fungsi yang sudah benar dari kode sebelumnya, pastikan tidak ada yang terlewat)
         
         function updateKomoditasSelect() {
             const komoditasList = [...new Set(currentHargaData.map(d => d.nama_komoditas))].sort();
@@ -311,7 +398,6 @@
         }
         
         function refreshAllStatsAndTables() {
-            // Statistik harga
             const latestPerKomoditas = new Map();
             currentHargaData.forEach(item => {
                 let curr = latestPerKomoditas.get(item.nama_komoditas);
@@ -326,7 +412,6 @@
             for(let item of latestPerKomoditas.values()) { if(!maxItem || item.harga > maxItem.harga) maxItem = item; }
             if(maxItem) { document.getElementById('topExpensive').innerText = maxItem.nama_komoditas; document.getElementById('topExpensivePrice').innerHTML = `Rp ${maxItem.harga.toLocaleString()} / ${maxItem.satuan}`; }
             
-            // Volatilitas
             const allPrices = currentHargaData.map(d => d.harga);
             const mean = allPrices.reduce((a,b)=>a+b,0)/allPrices.length;
             const variance = allPrices.reduce((sum,val)=> sum + Math.pow(val-mean,2),0)/allPrices.length;
@@ -344,7 +429,6 @@
             }
             document.getElementById('highestVolatility').innerHTML = `${maxCV.name} (CV ${maxCV.cv.toFixed(1)}%)`;
             
-            // Korelasi beras vs inflasi
             const berasData = currentHargaData.filter(d => d.nama_komoditas.toLowerCase().includes('beras')).sort((a,b)=> a.tanggal.localeCompare(b.tanggal));
             const inflasiTegal = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
             let correlation = 0;
@@ -431,13 +515,6 @@
             const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'harga_komoditas_export.csv'; link.click(); URL.revokeObjectURL(link.href);
         }
         
-        function uploadCSVFile(file) {
-            Papa.parse(file, { header: true, complete: function(results) {
-                const newData = results.data.map(row => ({ tanggal: row.tanggal, id_komoditas: row.id_komoditas || Date.now()+Math.random(), nama_komoditas: row.nama_komoditas, harga: parseFloat(row.harga), satuan: row.satuan })).filter(d => d.tanggal && d.nama_komoditas && !isNaN(d.harga));
-                if(newData.length) { currentHargaData = newData; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); updateInflationCards(); alert(`Upload ${newData.length} data.`); } else alert('File tidak valid');
-            }});
-        }
-        
         function renderInflationChart() {
             const tegal = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
             const labels = tegal.map(d => `${d.tahun}/${d.bulan}`);
@@ -491,8 +568,6 @@
         // Event binding
         document.getElementById('resetDataBtn').addEventListener('click', resetToOriginal);
         document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
-        document.getElementById('uploadCsvBtn').addEventListener('click', ()=>document.getElementById('uploadCsvInput').click());
-        document.getElementById('uploadCsvInput').addEventListener('change', (e)=> { if(e.target.files.length) uploadCSVFile(e.target.files[0]); e.target.value=''; });
         document.getElementById('addDataBtn').addEventListener('click', openAddModal);
         document.getElementById('closeModalBtn').addEventListener('click', ()=>document.getElementById('crudModal').classList.add('hidden'));
         document.getElementById('saveModalBtn').addEventListener('click', saveModalData);
@@ -501,6 +576,7 @@
         document.getElementById('searchTable').addEventListener('input', (e)=>{ searchQuery=e.target.value; currentPage=1; renderTable(); });
         document.getElementById('updateMomenChart').addEventListener('click', renderMomenChart);
         
+        // Start
         loadData();
     </script>
 </body>
