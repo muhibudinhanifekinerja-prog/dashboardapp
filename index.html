@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dashboard Ekonomi Terintegrasi - Harga & Inflasi</title>
-    <!-- Tailwind + Font Awesome + Chart.js + PapaParse -->
+    <title>Dashboard Ekonomi - Inflasi & Harga Komoditas</title>
+    <!-- Tailwind CSS + Font Awesome + Chart.js + PapaParse -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -32,7 +32,7 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-800 flex items-center gap-2"><i class="fas fa-chart-line text-emerald-600"></i> Dashboard Ekonomi Daerah</h1>
-                <p class="text-slate-500 text-sm">Data harga komoditas & inflasi (Kota Tegal / Jawa Tengah) dengan analisis dinamis</p>
+                <p class="text-slate-500 text-sm">Data harga komoditas & inflasi (Nasional, Jateng, Kota Tegal) dengan analisis dinamis</p>
             </div>
             <div class="flex flex-wrap gap-2">
                 <button id="resetDataBtn" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl text-sm font-medium shadow-sm"><i class="fas fa-undo-alt mr-1"></i> Reset Data</button>
@@ -43,27 +43,43 @@
             </div>
         </div>
 
-        <!-- KARTU STATISTIK UTAMA -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-emerald-500 card-hover">
-                <div class="flex justify-between"><span class="text-slate-500 text-sm">Rata-rata Harga</span><i class="fas fa-tag text-emerald-500"></i></div>
-                <p class="text-2xl font-bold text-slate-800 mt-2" id="avgPriceAll">-</p>
-                <span class="text-xs text-slate-400">semua komoditas (terbaru)</span>
+        <!-- KARTU INFLASI TERBARU (MTM, YTD, YOY) UNTUK 3 WILAYAH -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+            <!-- Nasional -->
+            <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-blue-500 card-hover">
+                <div class="flex justify-between items-center"><span class="text-slate-500 text-sm font-semibold"><i class="fas fa-globe-asia mr-1"></i> Nasional</span><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full" id="nasionalDate">-</span></div>
+                <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div><p class="text-xs text-slate-400">MTM</p><p class="text-lg font-bold text-blue-700" id="nasionalMtm">-</p></div>
+                    <div><p class="text-xs text-slate-400">YTD</p><p class="text-lg font-bold text-blue-700" id="nasionalYtd">-</p></div>
+                    <div><p class="text-xs text-slate-400">YoY</p><p class="text-lg font-bold text-blue-700" id="nasionalYoy">-</p></div>
+                </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-rose-500 card-hover">
-                <div class="flex justify-between"><span class="text-slate-500 text-sm">Inflasi YoY (terbaru)</span><i class="fas fa-chart-line text-rose-500"></i></div>
-                <p class="text-2xl font-bold text-slate-800 mt-2" id="latestInflation">-</p>
-                <span class="text-xs text-slate-400" id="inflationRegion">Kota Tegal</span>
+            <!-- Jawa Tengah (Provinsi) -->
+            <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-emerald-500 card-hover">
+                <div class="flex justify-between items-center"><span class="text-slate-500 text-sm font-semibold"><i class="fas fa-map-marker-alt mr-1"></i> Jawa Tengah</span><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full" id="jatengDate">-</span></div>
+                <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div><p class="text-xs text-slate-400">MTM</p><p class="text-lg font-bold text-emerald-700" id="jatengMtm">-</p></div>
+                    <div><p class="text-xs text-slate-400">YTD</p><p class="text-lg font-bold text-emerald-700" id="jatengYtd">-</p></div>
+                    <div><p class="text-xs text-slate-400">YoY</p><p class="text-lg font-bold text-emerald-700" id="jatengYoy">-</p></div>
+                </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-amber-500 card-hover">
-                <div class="flex justify-between"><span class="text-slate-500 text-sm">Komoditas Termahal</span><i class="fas fa-fire text-amber-500"></i></div>
-                <p class="text-xl font-bold text-slate-800 mt-2" id="topExpensive">-</p>
-                <span class="text-xs text-slate-400" id="topExpensivePrice"></span>
+            <!-- Kota Tegal -->
+            <div class="bg-white rounded-2xl shadow-md p-5 border-t-4 border-rose-500 card-hover">
+                <div class="flex justify-between items-center"><span class="text-slate-500 text-sm font-semibold"><i class="fas fa-city mr-1"></i> Kota Tegal</span><span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full" id="tegalDate">-</span></div>
+                <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div><p class="text-xs text-slate-400">MTM</p><p class="text-lg font-bold text-rose-700" id="tegalMtm">-</p></div>
+                    <div><p class="text-xs text-slate-400">YTD</p><p class="text-lg font-bold text-rose-700" id="tegalYtd">-</p></div>
+                    <div><p class="text-xs text-slate-400">YoY</p><p class="text-lg font-bold text-rose-700" id="tegalYoy">-</p></div>
+                </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-md p-5 border-l-4 border-sky-500 card-hover">
-                <div class="flex justify-between"><span class="text-slate-500 text-sm">Jumlah Data Harga</span><i class="fas fa-database text-sky-500"></i></div>
-                <p class="text-2xl font-bold text-slate-800 mt-2" id="totalRows">-</p>
-                <span class="text-xs text-slate-400">baris aktif</span>
+        </div>
+
+        <!-- GRAFIK DONUT PERBANDINGAN INFLASI YOY TERBARU -->
+        <div class="bg-white rounded-2xl shadow-md p-5 mb-8 border border-slate-200">
+            <h3 class="font-semibold text-slate-700 mb-3"><i class="fas fa-chart-pie text-purple-500 mr-2"></i> Perbandingan Inflasi YoY Terbaru Antar Wilayah</h3>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-8">
+                <canvas id="donutChart" width="250" height="250" style="max-width: 260px; max-height: 260px;"></canvas>
+                <div class="text-sm text-slate-500"><i class="fas fa-info-circle text-purple-400"></i> Nilai inflasi Year-on-Year (%) per wilayah berdasarkan data terbaru.</div>
             </div>
         </div>
 
@@ -127,7 +143,7 @@
 
         <!-- MODAL CRUD -->
         <div id="crudModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 hidden modal transition-all">
-            <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl mx-4 transform transition-all">
+            <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl mx-4">
                 <h3 class="text-xl font-semibold mb-4" id="modalTitle">Tambah Data Harga</h3>
                 <input type="hidden" id="editRowIndex">
                 <div class="space-y-3">
@@ -146,22 +162,20 @@
 
     <script>
         // ======================== DATA GLOBAL ========================
-        let originalHargaData = [];      // data asli dari CSV
-        let currentHargaData = [];       // data yang sedang diedit
+        let originalHargaData = [];
+        let currentHargaData = [];
         let inflasiData = [];
         
-        // UI state
         let currentPage = 1;
         let rowsPerPage = 12;
         let searchQuery = "";
         
-        // Chart instances
-        let inflationChart, topCommChart, momenChart;
+        let inflationChart, topCommChart, momenChart, donutChart;
         
-        // Helper: parse CSV harga (format: tanggal,id_komoditas,id_pasar,harga,nama_komoditas,satuan)
+        // Helper: parse CSV harga
         function parseHargaCSV(csvText) {
             const results = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: true });
-            if (results.errors.length) console.warn("CSV Harga parsing warning:", results.errors);
+            if (results.errors.length) console.warn("CSV Harga warning:", results.errors);
             return results.data
                 .filter(row => row.tanggal && row.nama_komoditas && !isNaN(parseFloat(row.harga)))
                 .map(row => ({
@@ -176,18 +190,81 @@
         function parseInflasiCSV(csvText) {
             const results = Papa.parse(csvText, { header: true, skipEmptyLines: true, dynamicTyping: true });
             return results.data
-                .filter(row => row.tahun && row.bulan && !isNaN(row.inflasi_yoy))
+                .filter(row => row.tahun && row.bulan && !isNaN(row.inflasi_mtm) && !isNaN(row.inflasi_ytd) && !isNaN(row.inflasi_yoy))
                 .map(row => ({
                     tahun: parseInt(row.tahun),
                     bulan: parseInt(row.bulan),
                     level_wilayah: row.level_wilayah,
                     nama_wilayah: row.nama_wilayah,
                     inflasi_mtm: parseFloat(row.inflasi_mtm),
+                    inflasi_ytd: parseFloat(row.inflasi_ytd),
                     inflasi_yoy: parseFloat(row.inflasi_yoy)
                 }));
         }
         
-        // Load CSV dari folder yang sama (fallback ke data contoh jika gagal)
+        // Ambil data inflasi terbaru untuk setiap wilayah
+        function getLatestInflation(level, wilayahName) {
+            let filtered = inflasiData.filter(d => d.level_wilayah === level && d.nama_wilayah === wilayahName);
+            if (filtered.length === 0 && level === 'nasional') filtered = inflasiData.filter(d => d.level_wilayah === 'nasional');
+            filtered.sort((a,b)=> (b.tahun*100+b.bulan) - (a.tahun*100+a.bulan));
+            return filtered[0] || null;
+        }
+        
+        function updateInflationCards() {
+            // Nasional
+            const nasional = getLatestInflation('nasional', 'Nasional');
+            if(nasional) {
+                document.getElementById('nasionalDate').innerText = `${nasional.tahun}/${nasional.bulan}`;
+                document.getElementById('nasionalMtm').innerText = nasional.inflasi_mtm.toFixed(2) + '%';
+                document.getElementById('nasionalYtd').innerText = nasional.inflasi_ytd.toFixed(2) + '%';
+                document.getElementById('nasionalYoy').innerText = nasional.inflasi_yoy.toFixed(2) + '%';
+            }
+            // Jawa Tengah (provinsi)
+            const jateng = getLatestInflation('provinsi', 'Jawa Tengah');
+            if(jateng) {
+                document.getElementById('jatengDate').innerText = `${jateng.tahun}/${jateng.bulan}`;
+                document.getElementById('jatengMtm').innerText = jateng.inflasi_mtm.toFixed(2) + '%';
+                document.getElementById('jatengYtd').innerText = jateng.inflasi_ytd.toFixed(2) + '%';
+                document.getElementById('jatengYoy').innerText = jateng.inflasi_yoy.toFixed(2) + '%';
+            }
+            // Kota Tegal
+            const tegal = getLatestInflation('kota', 'Kota Tegal');
+            if(tegal) {
+                document.getElementById('tegalDate').innerText = `${tegal.tahun}/${tegal.bulan}`;
+                document.getElementById('tegalMtm').innerText = tegal.inflasi_mtm.toFixed(2) + '%';
+                document.getElementById('tegalYtd').innerText = tegal.inflasi_ytd.toFixed(2) + '%';
+                document.getElementById('tegalYoy').innerText = tegal.inflasi_yoy.toFixed(2) + '%';
+            }
+            
+            // Update donut chart dengan data YoY terbaru
+            const yoyNasional = nasional ? nasional.inflasi_yoy : 0;
+            const yoyJateng = jateng ? jateng.inflasi_yoy : 0;
+            const yoyTegal = tegal ? tegal.inflasi_yoy : 0;
+            if(donutChart) donutChart.destroy();
+            const ctx = document.getElementById('donutChart').getContext('2d');
+            donutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Nasional', 'Jawa Tengah', 'Kota Tegal'],
+                    datasets: [{
+                        data: [yoyNasional, yoyJateng, yoyTegal],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f43f5e'],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(2)}%` } },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+        
+        // Load CSV
         async function loadData() {
             try {
                 const [hargaResp, inflasiResp] = await Promise.all([
@@ -202,8 +279,7 @@
                 inflasiData = parseInflasiCSV(inflasiText);
                 if (currentHargaData.length === 0) throw new Error("Data harga kosong");
             } catch(err) {
-                console.warn("Gagal fetch CSV, menggunakan data contoh dummy untuk demo", err);
-                // Data dummy minimal untuk keperluan demo
+                console.warn("Gagal fetch CSV, menggunakan data contoh dummy", err);
                 originalHargaData = [
                     { tanggal: "2024-01-01", id_komoditas: "1", nama_komoditas: "Beras Medium", harga: 13000, satuan: "kg" },
                     { tanggal: "2024-01-15", id_komoditas: "1", nama_komoditas: "Beras Medium", harga: 13500, satuan: "kg" },
@@ -212,17 +288,20 @@
                 ];
                 currentHargaData = [...originalHargaData];
                 inflasiData = [
-                    { tahun:2024, bulan:1, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_yoy:2.41 },
-                    { tahun:2024, bulan:12, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_yoy:2.19 },
-                    { tahun:2025, bulan:1, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_yoy:2.41 }
+                    { tahun:2025, bulan:1, level_wilayah:"nasional", nama_wilayah:"Nasional", inflasi_mtm:-0.15, inflasi_ytd:-0.15, inflasi_yoy:3.55 },
+                    { tahun:2025, bulan:1, level_wilayah:"provinsi", nama_wilayah:"Jawa Tengah", inflasi_mtm:-0.35, inflasi_ytd:-0.35, inflasi_yoy:2.83 },
+                    { tahun:2025, bulan:1, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_mtm:-0.24, inflasi_ytd:-0.24, inflasi_yoy:3.08 },
+                    { tahun:2025, bulan:2, level_wilayah:"nasional", nama_wilayah:"Nasional", inflasi_mtm:0.68, inflasi_ytd:0.53, inflasi_yoy:4.76 },
+                    { tahun:2025, bulan:2, level_wilayah:"provinsi", nama_wilayah:"Jawa Tengah", inflasi_mtm:0.76, inflasi_ytd:0.41, inflasi_yoy:4.43 },
+                    { tahun:2025, bulan:2, level_wilayah:"kota", nama_wilayah:"Kota Tegal", inflasi_mtm:0.86, inflasi_ytd:0.61, inflasi_yoy:4.97 }
                 ];
             }
             updateKomoditasSelect();
             refreshAllStatsAndTables();
             renderAllCharts();
+            updateInflationCards();
         }
         
-        // Update dropdown komoditas (untuk filter momen & modal)
         function updateKomoditasSelect() {
             const komoditasList = [...new Set(currentHargaData.map(d => d.nama_komoditas))].sort();
             const filterSelect = document.getElementById('filterKomoditas');
@@ -231,9 +310,8 @@
             modalSelect.innerHTML = '<option value="">Pilih komoditas</option>' + komoditasList.map(k => `<option value="${k}">${k}</option>`).join('');
         }
         
-        // Statistik dan tabel
         function refreshAllStatsAndTables() {
-            // Rata-rata harga (berdasarkan data terbaru per komoditas untuk menghindari bias)
+            // Statistik harga
             const latestPerKomoditas = new Map();
             currentHargaData.forEach(item => {
                 let curr = latestPerKomoditas.get(item.nama_komoditas);
@@ -244,26 +322,17 @@
             document.getElementById('avgPriceAll').innerText = `Rp ${parseInt(avgPrice).toLocaleString()}`;
             document.getElementById('totalRows').innerText = currentHargaData.length.toLocaleString();
             
-            // Komoditas termahal dari data terbaru
             let maxItem = null;
             for(let item of latestPerKomoditas.values()) { if(!maxItem || item.harga > maxItem.harga) maxItem = item; }
             if(maxItem) { document.getElementById('topExpensive').innerText = maxItem.nama_komoditas; document.getElementById('topExpensivePrice').innerHTML = `Rp ${maxItem.harga.toLocaleString()} / ${maxItem.satuan}`; }
             
-            // Inflasi terbaru (Kota Tegal)
-            const tegalInflasi = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (b.tahun*100+b.bulan) - (a.tahun*100+a.bulan));
-            if(tegalInflasi.length) {
-                document.getElementById('latestInflation').innerText = tegalInflasi[0].inflasi_yoy.toFixed(2) + '%';
-                document.getElementById('inflationRegion').innerText = `Kota Tegal (${tegalInflasi[0].tahun}/${tegalInflasi[0].bulan})`;
-            } else { document.getElementById('latestInflation').innerText = '-'; }
-            
-            // Analisis volatilitas
+            // Volatilitas
             const allPrices = currentHargaData.map(d => d.harga);
             const mean = allPrices.reduce((a,b)=>a+b,0)/allPrices.length;
             const variance = allPrices.reduce((sum,val)=> sum + Math.pow(val-mean,2),0)/allPrices.length;
             const stdDev = Math.sqrt(variance);
             document.getElementById('stdDevPrice').innerText = `Rp ${stdDev.toFixed(0)}`;
             
-            // Komoditas dengan CV tertinggi
             const commodityPrices = new Map();
             currentHargaData.forEach(d => { if(!commodityPrices.has(d.nama_komoditas)) commodityPrices.set(d.nama_komoditas, []); commodityPrices.get(d.nama_komoditas).push(d.harga); });
             let maxCV = { name: '-', cv: 0 };
@@ -275,16 +344,15 @@
             }
             document.getElementById('highestVolatility').innerHTML = `${maxCV.name} (CV ${maxCV.cv.toFixed(1)}%)`;
             
-            // Korelasi harga beras medium vs inflasi YoY (bulanan)
+            // Korelasi beras vs inflasi
             const berasData = currentHargaData.filter(d => d.nama_komoditas.toLowerCase().includes('beras')).sort((a,b)=> a.tanggal.localeCompare(b.tanggal));
-            const inflasiBulanan = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
+            const inflasiTegal = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
             let correlation = 0;
-            if(berasData.length && inflasiBulanan.length) {
-                // sederhana: cari data bulan yang sama
+            if(berasData.length && inflasiTegal.length) {
                 let pairs = [];
                 for(let b of berasData) {
                     let [year, month] = b.tanggal.split('-');
-                    let inf = inflasiBulanan.find(i => i.tahun == year && i.bulan == month);
+                    let inf = inflasiTegal.find(i => i.tahun == year && i.bulan == month);
                     if(inf) pairs.push({ price: b.harga, inflasi: inf.inflasi_yoy });
                 }
                 if(pairs.length > 1) {
@@ -299,11 +367,9 @@
                 }
             }
             document.getElementById('correlationRiceInflation').innerHTML = correlation ? correlation.toFixed(3) : 'tidak cukup data';
-            
             renderTable();
         }
         
-        // Tabel CRUD + pagination + search
         function renderTable() {
             let filtered = currentHargaData.filter(row => 
                 row.nama_komoditas.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -334,7 +400,7 @@
             document.querySelectorAll('.deleteRowBtn').forEach(btn => btn.addEventListener('click', (e) => { const idx = parseInt(btn.dataset.index); deleteRow(idx); }));
         }
         
-        function deleteRow(idx) { if(confirm('Hapus data ini?')) { currentHargaData.splice(idx,1); refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); } }
+        function deleteRow(idx) { if(confirm('Hapus data ini?')) { currentHargaData.splice(idx,1); refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); updateInflationCards(); } }
         function openEditModal(idx) { const row = currentHargaData[idx]; document.getElementById('editRowIndex').value = idx; document.getElementById('modalTanggal').value = row.tanggal; document.getElementById('modalKomoditas').value = row.nama_komoditas; document.getElementById('modalHarga').value = row.harga; document.getElementById('modalSatuan').value = row.satuan; document.getElementById('modalTitle').innerText = 'Edit Data Harga'; document.getElementById('crudModal').classList.remove('hidden'); }
         function openAddModal() { document.getElementById('editRowIndex').value = ''; document.getElementById('modalTanggal').value = ''; document.getElementById('modalKomoditas').value = ''; document.getElementById('modalHarga').value = ''; document.getElementById('modalSatuan').value = ''; document.getElementById('modalTitle').innerText = 'Tambah Data Harga'; document.getElementById('crudModal').classList.remove('hidden'); }
         
@@ -348,16 +414,16 @@
             if(editIdx !== "") {
                 currentHargaData[parseInt(editIdx)] = { ...currentHargaData[parseInt(editIdx)], tanggal, nama_komoditas: komoditas, harga, satuan };
             } else {
-                const newId = Date.now().toString();
-                currentHargaData.push({ tanggal, id_komoditas: newId, nama_komoditas: komoditas, harga, satuan });
+                currentHargaData.push({ tanggal, id_komoditas: Date.now().toString(), nama_komoditas: komoditas, harga, satuan });
             }
             document.getElementById('crudModal').classList.add('hidden');
             refreshAllStatsAndTables();
             updateKomoditasSelect();
             renderAllCharts();
+            updateInflationCards();
         }
         
-        function resetToOriginal() { if(confirm('Reset ke data asli CSV? Semua perubahan akan hilang.')) { currentHargaData = [...originalHargaData]; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); } }
+        function resetToOriginal() { if(confirm('Reset ke data asli CSV?')) { currentHargaData = [...originalHargaData]; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); updateInflationCards(); } }
         function downloadCSV() { 
             const headers = ['tanggal','id_komoditas','nama_komoditas','harga','satuan'];
             const csvRows = currentHargaData.map(row => `"${row.tanggal}","${row.id_komoditas}","${row.nama_komoditas}",${row.harga},"${row.satuan}"`);
@@ -368,18 +434,17 @@
         function uploadCSVFile(file) {
             Papa.parse(file, { header: true, complete: function(results) {
                 const newData = results.data.map(row => ({ tanggal: row.tanggal, id_komoditas: row.id_komoditas || Date.now()+Math.random(), nama_komoditas: row.nama_komoditas, harga: parseFloat(row.harga), satuan: row.satuan })).filter(d => d.tanggal && d.nama_komoditas && !isNaN(d.harga));
-                if(newData.length) { currentHargaData = newData; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); alert(`Berhasil upload ${newData.length} data.`); } else alert('File tidak valid atau kosong');
+                if(newData.length) { currentHargaData = newData; refreshAllStatsAndTables(); updateKomoditasSelect(); renderAllCharts(); updateInflationCards(); alert(`Upload ${newData.length} data.`); } else alert('File tidak valid');
             }});
         }
         
-        // CHART: Inflasi
         function renderInflationChart() {
             const tegal = inflasiData.filter(d => d.level_wilayah === 'kota' && d.nama_wilayah === 'Kota Tegal').sort((a,b)=> (a.tahun*100+a.bulan) - (b.tahun*100+b.bulan));
             const labels = tegal.map(d => `${d.tahun}/${d.bulan}`);
             const yoyData = tegal.map(d => d.inflasi_yoy);
             if(inflationChart) inflationChart.destroy();
             const ctx = document.getElementById('inflationChart').getContext('2d');
-            inflationChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Inflasi YoY (%)', data: yoyData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: true } });
+            inflationChart = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Inflasi YoY (%)', data: yoyData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: true }] }, options: { responsive: true } });
         }
         
         function renderTopCommodityChart() {
@@ -390,10 +455,9 @@
             const top10 = avgList.slice(0,10);
             if(topCommChart) topCommChart.destroy();
             const ctx = document.getElementById('topCommodityChart').getContext('2d');
-            topCommChart = new Chart(ctx, { type: 'bar', data: { labels: top10.map(t=>t.name), datasets: [{ label: 'Rata-rata Harga (Rp)', data: top10.map(t=>t.avg), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: true } });
+            topCommChart = new Chart(ctx, { type: 'bar', data: { labels: top10.map(t=>t.name), datasets: [{ label: 'Rata-rata Harga (Rp)', data: top10.map(t=>t.avg), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { responsive: true } });
         }
         
-        // MOMEN HBKN
         async function renderMomenChart() {
             const year = parseInt(document.getElementById('filterYear').value);
             const komoditas = document.getElementById('filterKomoditas').value;
@@ -414,11 +478,11 @@
             }
             const priceMap = new Map();
             filteredData.forEach(d => { priceMap.set(d.tanggal, d.harga); });
-            const chartLabels = dateRange.map(dt => dt);
+            const chartLabels = dateRange;
             const chartPrices = chartLabels.map(dt => priceMap.get(dt) || null);
             if(momenChart) momenChart.destroy();
             const ctx = document.getElementById('momenChart').getContext('2d');
-            momenChart = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: `${komoditas || 'Semua Komoditas'} - Harga (Rp)`, data: chartPrices, borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,0.05)', tension: 0.2, fill: true, pointRadius: 3 }] }, options: { responsive: true, plugins: { tooltip: { callbacks: { label: (ctx) => ctx.raw ? `Rp ${ctx.raw.toLocaleString()}` : 'Tidak ada data' } } } } });
+            momenChart = new Chart(ctx, { type: 'line', data: { labels: chartLabels, datasets: [{ label: `${komoditas || 'Semua Komoditas'} - Harga (Rp)`, data: chartPrices, borderColor: '#e11d48', tension: 0.2, fill: true, pointRadius: 3 }] }, options: { responsive: true, plugins: { tooltip: { callbacks: { label: (ctx) => ctx.raw ? `Rp ${ctx.raw.toLocaleString()}` : 'Tidak ada data' } } } } });
         }
         function getDateRange(start, end) { let dates=[]; let cur=new Date(start); while(cur<=end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); } return dates; }
         
@@ -437,7 +501,6 @@
         document.getElementById('searchTable').addEventListener('input', (e)=>{ searchQuery=e.target.value; currentPage=1; renderTable(); });
         document.getElementById('updateMomenChart').addEventListener('click', renderMomenChart);
         
-        // Mulai
         loadData();
     </script>
 </body>
