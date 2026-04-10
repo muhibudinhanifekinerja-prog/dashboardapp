@@ -309,7 +309,7 @@ select:focus,input:focus{border-color:var(--blue2)}
     </a>
   </nav>
   <div class="sidebar-footer">
-    v2.0 · TPID Kab. Pekalongan<br>
+    v2.0 · TPID Kab Pekalongan<br>
     <span id="sidebar-date" style="font-size:10px;color:var(--text3)"></span>
   </div>
 </aside>
@@ -337,38 +337,63 @@ select:focus,input:focus{border-color:var(--blue2)}
   </div>
 
   <!-- INFLASI CARDS -->
-  <div class="section-title">Inflasi Bulanan Terkini (MtM)</div>
+  <div class="section-title">Inflasi Terkini — YoY (Year-on-Year)</div>
   <div class="cards-grid cards-3" style="margin-bottom:24px" id="inflasi-cards">
+
+    <!-- NASIONAL -->
     <div class="inflasi-card nasional" style="border-color:rgba(31,111,235,.3)">
       <div class="inflasi-region">🇮🇩 Nasional</div>
-      <div class="inflasi-big" id="infl-nasional-val" style="color:var(--blue2)">—</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">% (MtM)</div>
-      <div class="metric-row">
-        <div class="metric-item"><div class="val" id="infl-nas-ytd">—</div><div class="lbl">YtD</div></div>
-        <div class="metric-item"><div class="val" id="infl-nas-yoy">—</div><div class="lbl">YoY</div></div>
-        <div class="metric-item"><div class="val" id="infl-nas-per">—</div><div class="lbl">Periode</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Year-on-Year</div>
+      <div class="inflasi-big" id="infl-nasional-yoy" style="color:var(--blue2)">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px">% YoY · <span id="infl-nas-per" style="font-weight:600"></span></div>
+      <div style="display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="flex:1;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:18px;font-weight:800" id="infl-nasional-val">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">MtM</div>
+        </div>
+        <div style="flex:1;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:18px;font-weight:800" id="infl-nas-ytd">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">YtD</div>
+        </div>
       </div>
     </div>
+
+    <!-- JAWA TENGAH -->
     <div class="inflasi-card jateng" style="border-color:rgba(14,148,136,.3)">
       <div class="inflasi-region">🏛️ Jawa Tengah</div>
-      <div class="inflasi-big" id="infl-jateng-val" style="color:var(--teal2)">—</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">% (MtM)</div>
-      <div class="metric-row">
-        <div class="metric-item"><div class="val" id="infl-jt-ytd">—</div><div class="lbl">YtD</div></div>
-        <div class="metric-item"><div class="val" id="infl-jt-yoy">—</div><div class="lbl">YoY</div></div>
-        <div class="metric-item"><div class="val" id="infl-jt-per">—</div><div class="lbl">Periode</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Year-on-Year</div>
+      <div class="inflasi-big" id="infl-jateng-yoy" style="color:var(--teal2)">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px">% YoY · <span id="infl-jt-per" style="font-weight:600"></span></div>
+      <div style="display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="flex:1;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:18px;font-weight:800" id="infl-jateng-val">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">MtM</div>
+        </div>
+        <div style="flex:1;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:18px;font-weight:800" id="infl-jt-ytd">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">YtD</div>
+        </div>
       </div>
     </div>
+
+    <!-- KOTA TEGAL -->
     <div class="inflasi-card kota" style="border-color:rgba(210,153,34,.3)">
       <div class="inflasi-region">🏙️ Kota Tegal</div>
-      <div class="inflasi-big" id="infl-kota-val" style="color:var(--accent2)">—</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">% (MtM)</div>
-      <div class="metric-row">
-        <div class="metric-item"><div class="val" id="infl-ko-ytd">—</div><div class="lbl">YtD</div></div>
-        <div class="metric-item"><div class="val" id="infl-ko-yoy">—</div><div class="lbl">YoY</div></div>
-        <div class="metric-item"><div class="val" id="infl-ko-per">—</div><div class="lbl">Periode</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Year-on-Year</div>
+      <div class="inflasi-big" id="infl-kota-yoy" style="color:var(--accent2)">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px">% YoY · <span id="infl-ko-per" style="font-weight:600"></span></div>
+      <div style="display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="flex:1;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:18px;font-weight:800" id="infl-kota-val">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">MtM</div>
+        </div>
+        <div style="flex:1;background:var(--bg3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:18px;font-weight:800" id="infl-ko-ytd">—</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">YtD</div>
+        </div>
       </div>
     </div>
+
   </div>
 
   <!-- CHARTS ROW -->
@@ -1107,19 +1132,35 @@ function getLatestInflasi(wilayah) {
 
 function renderInflasiCards() {
   const regions = [
-    {key:'nasional', wilayah:'Nasional',        valId:'infl-nasional-val', ytdId:'infl-nas-ytd', yoyId:'infl-nas-yoy', perId:'infl-nas-per'},
-    {key:'jateng',   wilayah:'Jawa Tengah',     valId:'infl-jateng-val',  ytdId:'infl-jt-ytd',  yoyId:'infl-jt-yoy',  perId:'infl-jt-per'},
-    {key:'kota',     wilayah:'Kota Tegal',      valId:'infl-kota-val',    ytdId:'infl-ko-ytd',  yoyId:'infl-ko-yoy',  perId:'infl-ko-per'},
+    { wilayah:'Nasional',    yoyId:'infl-nasional-yoy', mtmId:'infl-nasional-val', ytdId:'infl-nas-ytd', perId:'infl-nas-per', bigColor:'var(--blue2)' },
+    { wilayah:'Jawa Tengah', yoyId:'infl-jateng-yoy',   mtmId:'infl-jateng-val',  ytdId:'infl-jt-ytd',  perId:'infl-jt-per',  bigColor:'var(--teal2)' },
+    { wilayah:'Kota Tegal',  yoyId:'infl-kota-yoy',     mtmId:'infl-kota-val',    ytdId:'infl-ko-ytd',  perId:'infl-ko-per',  bigColor:'var(--accent2)' },
   ];
   regions.forEach(r => {
     const d = getLatestInflasi(r.wilayah);
     if (!d) return;
+
+    const yoy = parseFloat(d.inflasi_yoy);
     const mtm = parseFloat(d.inflasi_mtm);
-    const el = document.getElementById(r.valId);
-    if (el) { el.textContent = (mtm >= 0 ? '+' : '') + mtm.toFixed(2); el.style.color = mtm > 0 ? 'var(--red2)' : 'var(--primary2)'; }
-    setText(r.ytdId, formatPct(d.inflasi_ytd));
-    setText(r.yoyId, formatPct(d.inflasi_yoy));
-    setText(r.perId, MONTHS_ID[d.bulan-1] + ' ' + d.tahun);
+    const ytd = parseFloat(d.inflasi_ytd);
+    const colorYoy = yoy > 0 ? 'var(--red2)' : 'var(--primary2)';
+    const colorMtm = mtm > 0 ? 'var(--red2)' : (mtm < 0 ? 'var(--primary2)' : 'var(--text2)');
+    const colorYtd = ytd > 0 ? 'var(--red2)' : (ytd < 0 ? 'var(--primary2)' : 'var(--text2)');
+
+    // YoY — angka besar utama
+    const elYoy = document.getElementById(r.yoyId);
+    if (elYoy) { elYoy.textContent = (yoy >= 0 ? '+' : '') + yoy.toFixed(2); elYoy.style.color = colorYoy; }
+
+    // MtM — kecil bawah kiri
+    const elMtm = document.getElementById(r.mtmId);
+    if (elMtm) { elMtm.textContent = (mtm >= 0 ? '+' : '') + mtm.toFixed(2) + '%'; elMtm.style.color = colorMtm; }
+
+    // YtD — kecil bawah kanan
+    const elYtd = document.getElementById(r.ytdId);
+    if (elYtd) { elYtd.textContent = (ytd >= 0 ? '+' : '') + ytd.toFixed(2) + '%'; elYtd.style.color = colorYtd; }
+
+    // Periode
+    setText(r.perId, MONTHS_ID[d.bulan - 1] + ' ' + d.tahun);
   });
 }
 
@@ -1147,70 +1188,86 @@ function renderInflasiYoyChart() {
 }
 
 function getLatestHargaDate() {
+  // Tanggal terbaru secara global (masih dipakai HBK dll)
   const dates = hargaData.map(r => r.tanggal).filter(Boolean).sort();
   return dates[dates.length - 1];
 }
 
 function renderHargaHarian() {
-  const latestDate = getLatestHargaDate();
-  if (!latestDate) return;
-  const showHET = document.getElementById('toggleHET').checked;
-  const search = (document.getElementById('searchKomoditas')?.value || '').toLowerCase();
-
-  // Get last known price per commodity (not necessarily same date)
+  const showHET    = document.getElementById('toggleHET').checked;
+  const search     = (document.getElementById('searchKomoditas')?.value || '').toLowerCase();
+  const allDates   = [...new Set(hargaData.map(r => r.tanggal))].filter(Boolean).sort();
   const allKomoditas = [...new Set(hargaData.map(r => r.nama_komoditas))].filter(Boolean).sort();
-  const allDates = [...new Set(hargaData.map(r=>r.tanggal))].filter(Boolean).sort();
-  const latestIdx = allDates.indexOf(latestDate);
-  const prevDate = latestIdx > 0 ? allDates[latestIdx - 1] : null;
 
-  // For each commodity: get today's price (may be 0 = libur)
+  // Untuk tiap komoditas: ambil tanggal inputan terakhir yang tersedia (bisa = 0/libur)
   let rows = allKomoditas
     .filter(k => k.toLowerCase().includes(search))
     .map(k => {
-      const todayRow = hargaData.find(r => r.tanggal === latestDate && r.nama_komoditas === k);
-      const isLibur = todayRow && (+todayRow.harga === 0 || !todayRow.harga);
-      // For price display: use last non-zero price
-      const lastValid = hargaData.filter(r => r.nama_komoditas === k && r.harga > 0)
-        .sort((a,b) => b.tanggal.localeCompare(a.tanggal))[0];
+      // Semua record untuk komoditas ini, descending
+      const kRows = hargaData
+        .filter(r => r.nama_komoditas === k && r.tanggal)
+        .sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+
+      if (!kRows.length) return null;
+
+      // Baris terbaru (tanggal terakhir diinput) — bisa harga 0 = libur
+      const latestRow  = kRows[0];
+      const latestDate = latestRow.tanggal;
+      const isLibur    = +latestRow.harga === 0 || !latestRow.harga;
+
+      // Harga valid terakhir (untuk referensi saat libur)
+      const lastValid  = kRows.find(r => +r.harga > 0) || null;
+
+      // Tanggal sebelumnya untuk delta harga
+      const latestIdx  = allDates.indexOf(latestDate);
+      const prevDate   = latestIdx > 0 ? allDates[latestIdx - 1] : null;
+      const prevRow    = prevDate
+        ? hargaData.find(r => r.tanggal === prevDate && r.nama_komoditas === k && +r.harga > 0)
+        : null;
+
       return {
         nama_komoditas: k,
-        harga: todayRow ? +todayRow.harga : null,
-        hargaDisplay: isLibur ? (lastValid?.harga || 0) : (todayRow?.harga || lastValid?.harga || 0),
-        satuan: todayRow?.satuan || lastValid?.satuan || 'kg',
+        latestDate,
+        hargaDisplay: isLibur ? +(lastValid?.harga || 0) : +latestRow.harga,
+        satuan:       latestRow.satuan || lastValid?.satuan || 'kg',
         isLibur,
-        hasTodayData: !!todayRow,
+        prevHarga:    prevRow ? +prevRow.harga : null,
       };
     })
-    .filter(r => r.hargaDisplay > 0 || r.isLibur);
+    .filter(r => r && (r.hargaDisplay > 0 || r.isLibur));
 
-  setText('tanggal-harga', 'Per: ' + formatDate(latestDate));
+  // Label tanggal header: tanggal yang paling banyak muncul
+  if (rows.length) {
+    const freq = {};
+    rows.forEach(r => { freq[r.latestDate] = (freq[r.latestDate] || 0) + 1; });
+    const dominant = Object.entries(freq).sort((a,b) => b[1]-a[1])[0][0];
+    setText('tanggal-harga', 'Inputan terakhir: ' + formatDate(dominant));
+  }
+
   const grid = document.getElementById('hargaHarianGrid');
-
   grid.innerHTML = rows.map(r => {
     const het = HET_HAP[r.nama_komoditas];
 
-    // Libur card
+    // Card libur
     if (r.isLibur) {
       return `<div class="harga-item" style="opacity:.6;border-style:dashed">
         <div class="komoditas">${r.nama_komoditas}</div>
-        <div style="font-size:13px;color:var(--text3);font-weight:600;margin:8px 0">🏖️ Libur / Data Kosong</div>
-        <div class="satuan">Harga terakhir valid: Rp ${fmtNum(r.hargaDisplay)} / ${r.satuan}</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">${formatDate(r.latestDate)}</div>
+        <div style="font-size:13px;color:var(--text3);font-weight:600;margin:6px 0">🏖️ Libur / Data Kosong</div>
+        ${r.hargaDisplay ? `<div class="satuan">Terakhir valid: Rp ${fmtNum(r.hargaDisplay)} / ${r.satuan}</div>` : ''}
       </div>`;
     }
 
-    // Perubahan vs kemarin
+    // Delta harga vs hari sebelumnya
     let perubahan = '', perubahanClass = '';
-    if (prevDate) {
-      const prev = hargaData.find(p => p.tanggal===prevDate && p.nama_komoditas===r.nama_komoditas && p.harga > 0);
-      if (prev && r.hargaDisplay > 0) {
-        const delta = r.hargaDisplay - +prev.harga;
-        const pct = (delta / +prev.harga * 100).toFixed(1);
-        perubahan = (delta>=0?'▲ ':'▼ ') + 'Rp ' + Math.abs(delta).toLocaleString('id-ID') + ' (' + pct + '%)';
-        perubahanClass = delta > 0 ? 'color:var(--red2)' : (delta < 0 ? 'color:var(--primary2)' : 'color:var(--text3)');
-      }
+    if (r.prevHarga && r.hargaDisplay > 0) {
+      const delta = r.hargaDisplay - r.prevHarga;
+      const pct   = (delta / r.prevHarga * 100).toFixed(1);
+      perubahan      = (delta >= 0 ? '▲ ' : '▼ ') + 'Rp ' + Math.abs(delta).toLocaleString('id-ID') + ' (' + pct + '%)';
+      perubahanClass = delta > 0 ? 'color:var(--red2)' : (delta < 0 ? 'color:var(--primary2)' : 'color:var(--text3)');
     }
 
-    // HET/HAP bar — hanya jika ada regulasi resmi
+    // HET/HAP bar — hanya komoditas berregulasi
     let hetBar = '', hetLabel = '';
     if (showHET && het) {
       const refPrice = het.het || het.hap;
@@ -1219,11 +1276,14 @@ function renderHargaHarian() {
       if (refPrice && r.hargaDisplay > 0) {
         const pct = Math.min((r.hargaDisplay / refPrice) * 100, 130);
         const cls = pct <= 90 ? 'het-normal' : (pct <= 100 ? 'het-warning' : 'het-danger');
-        const lbl = pct > 100 ? '⚠️ Melebihi ' + refType : (pct > 90 ? '⚡ Mendekati ' + refType : '✅ Normal');
-        hetBar = `<div class="het-bar"><span style="font-size:10px;color:var(--text3)">${refType}</span><div class="het-line"><div class="het-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><span style="font-size:10px;color:var(--text3)">${lbl}</span></div>`;
+        const lbl = pct > 100 ? '⚠️ Melebihi '+refType : (pct > 90 ? '⚡ Mendekati '+refType : '✅ Normal');
+        hetBar  = `<div class="het-bar">
+          <span style="font-size:10px;color:var(--text3)">${refType}</span>
+          <div class="het-line"><div class="het-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div>
+          <span style="font-size:10px;color:var(--text3)">${lbl}</span>
+        </div>`;
         hetLabel = `<div style="font-size:10px;color:var(--text3);margin-top:4px">
-          ${het.het ? 'HET: Rp '+het.het.toLocaleString('id-ID') : ''}
-          ${het.hap ? ' | HAP: Rp '+het.hap.toLocaleString('id-ID') : ''}
+          ${het.het ? 'HET: Rp '+het.het.toLocaleString('id-ID') : ''}${het.hap ? ' | HAP: Rp '+het.hap.toLocaleString('id-ID') : ''}
           <br><span style="font-size:9px;opacity:.7">${refDasar||''}</span>
         </div>`;
       }
@@ -1231,6 +1291,7 @@ function renderHargaHarian() {
 
     return `<div class="harga-item">
       <div class="komoditas">${r.nama_komoditas}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:2px">${formatDate(r.latestDate)}</div>
       <div class="harga">Rp ${fmtNum(r.hargaDisplay)}</div>
       <div class="satuan">per ${r.satuan}</div>
       ${perubahan ? `<div class="perubahan" style="${perubahanClass}">${perubahan}</div>` : ''}
