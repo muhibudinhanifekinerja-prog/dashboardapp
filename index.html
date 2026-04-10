@@ -403,11 +403,57 @@ select:focus,input:focus{border-color:var(--blue2)}
   <!-- STATISTIK INFLASI TABLE -->
   <div class="section-gap"></div>
   <div class="section-title">Riwayat Data Inflasi (Semua Wilayah)</div>
-  <div class="table-wrap">
+  <div class="table-wrap" style="margin-bottom:0">
     <table id="inflasi-table">
       <thead><tr><th>Tahun</th><th>Bulan</th><th>Wilayah</th><th>MtM (%)</th><th>YtD (%)</th><th>YoY (%)</th><th>Status</th></tr></thead>
       <tbody id="inflasi-tbody"></tbody>
     </table>
+  </div>
+
+  <!-- HET/HAP SUMBER PANEL -->
+  <div class="section-gap"></div>
+  <div class="section-title">📋 Referensi HET & HAP — Sumber Resmi</div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="background:rgba(56,139,253,.1);border:1px solid rgba(56,139,253,.3);border-radius:8px;padding:12px 16px;font-size:13px;flex:1;min-width:220px">
+        <div style="font-weight:700;color:var(--blue2);margin-bottom:6px">📜 Perbadan No.5/2024</div>
+        <div style="color:var(--text2);font-size:12px">HET Beras (perubahan atas No.7/2023)</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px">Beras Medium: Rp 12.500/kg | Beras Premium: Rp 14.900/kg</div>
+      </div>
+      <div style="background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.3);border-radius:8px;padding:12px 16px;font-size:13px;flex:1;min-width:220px">
+        <div style="font-weight:700;color:var(--teal2);margin-bottom:6px">📜 Perbadan No.6/2024</div>
+        <div style="color:var(--text2);font-size:12px">HAP Jagung, Telur Ayam Ras, Daging Ayam Ras</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px">Telur: Rp 27.000/kg | Daging Ayam Ras: Rp 40.000/kg</div>
+      </div>
+      <div style="background:rgba(227,179,65,.1);border:1px solid rgba(227,179,65,.3);border-radius:8px;padding:12px 16px;font-size:13px;flex:1;min-width:220px">
+        <div style="font-weight:700;color:var(--accent2);margin-bottom:6px">📜 Perbadan No.12/2024</div>
+        <div style="color:var(--text2);font-size:12px">HAP Bawang, Cabai, Daging Sapi, Gula Konsumsi</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px">Bawang Merah: s.d. Rp 41.500/kg | Cabai Rawit Merah: s.d. Rp 57.000/kg</div>
+      </div>
+      <div style="background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:12px 16px;font-size:13px;flex:1;min-width:220px">
+        <div style="font-weight:700;color:var(--red2);margin-bottom:6px">📜 Permendag (Kemendag)</div>
+        <div style="color:var(--text2);font-size:12px">HET Minyak Goreng Curah & Minyakita</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:4px">HET Rp 15.700/liter (berlaku sejak Maret 2022)</div>
+      </div>
+    </div>
+    <!-- Detail HET/HAP table -->
+    <div id="het-hap-detail-toggle" style="margin-bottom:10px">
+      <button class="btn btn-secondary btn-sm" onclick="toggleHetHapDetail()">📊 Lihat Tabel Detail HET/HAP</button>
+    </div>
+    <div id="het-hap-detail-table" style="display:none">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Komoditas</th><th>Jenis</th><th>HET (Rp)</th><th>HAP (Rp)</th><th>Dasar Hukum</th><th>Keterangan</th></tr></thead>
+          <tbody id="het-hap-tbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap">
+        <span>⚠️ Komoditas tanpa regulasi HET/HAP resmi (Tahu, Tempe, Ikan, Mie Instan, Garam, Tepung, Susu) tidak ditampilkan indikator ini.</span>
+        <span>📅 Terakhir diperbarui: Perbadan No.12/2024 (berlaku 2024–sekarang)</span>
+        <a href="https://badanpangan.go.id/wiki/kebijakan" target="_blank" style="color:var(--blue2);text-decoration:none">🔗 Sumber: JDIH Bapanas →</a>
+        <a href="https://panelharga.badanpangan.go.id/harga-eceran" target="_blank" style="color:var(--blue2);text-decoration:none">🔗 Panel Harga Bapanas →</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -419,17 +465,14 @@ select:focus,input:focus{border-color:var(--blue2)}
     <p>Pola pergerakan harga komoditas di sekitar Idulfitri, Natal, dan Tahun Baru</p>
   </div>
 
+  <!-- FILTER BAR -->
   <div class="filter-bar">
-    <div class="filter-group">
-      <span>Tahun:</span>
-      <select id="hbk-year"></select>
-    </div>
     <div class="filter-group">
       <span>Komoditas:</span>
       <select id="hbk-komoditas"></select>
     </div>
     <div class="filter-group">
-      <span>Window (hari sebelum/sesudah):</span>
+      <span>Window:</span>
       <select id="hbk-window">
         <option value="14">±14 hari</option>
         <option value="21">±21 hari</option>
@@ -437,6 +480,10 @@ select:focus,input:focus{border-color:var(--blue2)}
         <option value="45">±45 hari</option>
         <option value="60">±60 hari</option>
       </select>
+    </div>
+    <div class="filter-group">
+      <span>Tahun Detail:</span>
+      <select id="hbk-year"></select>
     </div>
     <button class="btn btn-primary" onclick="renderHBK()">🔄 Analisis</button>
   </div>
@@ -448,37 +495,62 @@ select:focus,input:focus{border-color:var(--blue2)}
     <div class="hbk-tab" onclick="switchHBK(this,'tahunbaru')">🎆 Tahun Baru</div>
   </div>
 
+  <!-- IDUL TAB -->
   <div id="hbk-content-idul" class="hbk-content">
-    <div id="idul-info" class="info-box"><span class="ib-icon">ℹ️</span><span id="idul-info-text">Pilih tahun dan komoditas, lalu klik Analisis</span></div>
-    <div class="chart-card" style="margin-bottom:20px">
-      <h3 id="idul-chart-title">Pergerakan Harga — Sekitar Idulfitri</h3>
-      <p id="idul-chart-sub">Harga harian sebelum dan sesudah Idulfitri</p>
-      <div class="chart-wrap" style="height:300px"><canvas id="chartIdul"></canvas></div>
+    <!-- INFOGRAFIS HISTORY SEMUA TAHUN -->
+    <div class="section-title" style="margin-top:0">📊 Infografis Historis — Semua Tahun Idulfitri</div>
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>Perbandingan Kenaikan Harga Pra-Pasca Idulfitri (H-30 → H-1 vs H+1 → H+30)</h3>
+      <p>Multi-tahun — rata-rata harga per periode untuk komoditas yang dipilih</p>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartIdulHistory"></canvas></div>
     </div>
-    <div id="idul-stats" class="cards-grid cards-4"></div>
-    <div class="section-gap"></div>
+    <div id="idul-history-cards" class="cards-grid cards-4" style="margin-bottom:20px"></div>
+
+    <!-- DETAIL TAHUN TERTENTU -->
+    <div class="section-title">🔍 Detail Tahun Terpilih</div>
+    <div id="idul-info" class="info-box"><span class="ib-icon">ℹ️</span><span id="idul-info-text">Klik Analisis untuk memuat data</span></div>
+    <div class="chart-card" style="margin-bottom:20px">
+      <h3 id="idul-chart-title">Pergerakan Harga Harian — Sekitar Idulfitri</h3>
+      <p id="idul-chart-sub">Harga harian sebelum dan sesudah Idulfitri</p>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartIdul"></canvas></div>
+    </div>
+    <div id="idul-stats" class="cards-grid cards-4" style="margin-bottom:16px"></div>
     <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>H- / H+</th><th>Harga (Rp)</th><th>Δ vs H-1</th><th>Keterangan</th></tr></thead><tbody id="idul-table-body"></tbody></table></div>
   </div>
 
+  <!-- NATAL TAB -->
   <div id="hbk-content-natal" class="hbk-content" style="display:none">
-    <div id="natal-info" class="info-box"><span class="ib-icon">ℹ️</span><span>Pilih tahun dan komoditas, lalu klik Analisis</span></div>
-    <div class="chart-card" style="margin-bottom:20px">
-      <h3>Pergerakan Harga — Sekitar Natal</h3>
-      <div class="chart-wrap" style="height:300px"><canvas id="chartNatal"></canvas></div>
+    <div class="section-title" style="margin-top:0">📊 Infografis Historis — Semua Tahun Natal</div>
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>Perbandingan Kenaikan Harga Pra-Pasca Natal (Multi-Tahun)</h3>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartNatalHistory"></canvas></div>
     </div>
-    <div id="natal-stats" class="cards-grid cards-4"></div>
-    <div class="section-gap"></div>
+    <div id="natal-history-cards" class="cards-grid cards-4" style="margin-bottom:20px"></div>
+    <div class="section-title">🔍 Detail Tahun Terpilih</div>
+    <div id="natal-info" class="info-box"><span class="ib-icon">ℹ️</span><span>Klik Analisis untuk memuat data</span></div>
+    <div class="chart-card" style="margin-bottom:20px">
+      <h3>Pergerakan Harga Harian — Sekitar Natal</h3>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartNatal"></canvas></div>
+    </div>
+    <div id="natal-stats" class="cards-grid cards-4" style="margin-bottom:16px"></div>
     <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>H- / H+</th><th>Harga (Rp)</th><th>Δ vs H-1</th><th>Keterangan</th></tr></thead><tbody id="natal-table-body"></tbody></table></div>
   </div>
 
+  <!-- TAHUN BARU TAB -->
   <div id="hbk-content-tahunbaru" class="hbk-content" style="display:none">
-    <div id="tahunbaru-info" class="info-box"><span class="ib-icon">ℹ️</span><span>Pilih tahun dan komoditas, lalu klik Analisis</span></div>
-    <div class="chart-card" style="margin-bottom:20px">
-      <h3>Pergerakan Harga — Sekitar Tahun Baru</h3>
-      <div class="chart-wrap" style="height:300px"><canvas id="chartTahunBaru"></canvas></div>
+    <div class="section-title" style="margin-top:0">📊 Infografis Historis — Semua Tahun Baru</div>
+    <div class="chart-card" style="margin-bottom:16px">
+      <h3>Perbandingan Kenaikan Harga Pra-Pasca Tahun Baru (Multi-Tahun)</h3>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartTahunBaruHistory"></canvas></div>
     </div>
-    <div id="tahunbaru-stats" class="cards-grid cards-4"></div>
-    <div class="section-gap"></div>
+    <div id="tahunbaru-history-cards" class="cards-grid cards-4" style="margin-bottom:20px"></div>
+    <div class="section-title">🔍 Detail Tahun Terpilih</div>
+    <div id="tahunbaru-info" class="info-box"><span class="ib-icon">ℹ️</span><span>Klik Analisis untuk memuat data</span></div>
+    <div class="chart-card" style="margin-bottom:20px">
+      <h3>Pergerakan Harga Harian — Sekitar Tahun Baru</h3>
+      <div class="chart-wrap" style="height:280px"><canvas id="chartTahunBaru"></canvas></div>
+    </div>
+    <div id="tahunbaru-stats" class="cards-grid cards-4" style="margin-bottom:16px"></div>
     <div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>H- / H+</th><th>Harga (Rp)</th><th>Δ vs H-1</th><th>Keterangan</th></tr></thead><tbody id="tahunbaru-table-body"></tbody></table></div>
   </div>
 </section>
@@ -518,8 +590,21 @@ select:focus,input:focus{border-color:var(--blue2)}
       <div class="chart-wrap"><canvas id="chartTriwulan"></canvas></div>
     </div>
     <div class="chart-card">
-      <h3>IPH Mingguan (%)</h3>
-      <p>Indeks Perkembangan Harga — perubahan harga rata-rata mingguan</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <h3 style="margin:0">IPH Mingguan (%)</h3>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="iph-bulan" onchange="renderIPHFiltered()" style="font-size:11px;padding:4px 8px">
+            <option value="">Semua Bulan</option>
+            <option value="1">Januari</option><option value="2">Februari</option>
+            <option value="3">Maret</option><option value="4">April</option>
+            <option value="5">Mei</option><option value="6">Juni</option>
+            <option value="7">Juli</option><option value="8">Agustus</option>
+            <option value="9">September</option><option value="10">Oktober</option>
+            <option value="11">November</option><option value="12">Desember</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px">Indeks Perkembangan Harga — filter per bulan atau semua bulan</p>
       <div class="chart-wrap"><canvas id="chartIPH"></canvas></div>
     </div>
   </div>
@@ -728,39 +813,115 @@ let hargaData = [];
 let kursHistory = [];
 let currentKurs = null;
 
-// HET & HAP reference (Permendag 2024)
-const HET_HAP = {
-  'Beras Medium':         {het:12500, hap:9000},
-  'Beras Premium':        {het:14900, hap:11000},
-  'Gula Pasir Curah':     {het:17500, hap:13500},
-  'Gula Pasir Kemasan':   {het:19500, hap:13500},
-  'Minyak Goreng Sawit Curah':      {het:15700, hap:11500},
-  'Minyak Goreng Sawit Kemasan Premium':{het:17500, hap:11500},
-  'Minyakita':            {het:15700, hap:11500},
-  'Daging Sapi Paha Belakang':{het:150000, hap:100000},
-  'Daging Sapi Paha Depan':{het:145000, hap:98000},
-  'Daging Sapi Sandung Lamur':{het:120000, hap:85000},
-  'Daging Sapi Tetelan':  {het:110000, hap:75000},
-  'Daging Ayam Ras':      {het:36750, hap:22000},
-  'Daging Ayam Kampung':  {het:80000, hap:55000},
-  'Telur Ayam Ras':       {het:27000, hap:22000},
-  'Telur Ayam Kampung':   {het:45000, hap:35000},
-  'Cabai Merah Keriting': {het:57000, hap:30000},
-  'Cabai Merah Besar':    {het:55000, hap:28000},
-  'Cabai Rawit Merah':    {het:57000, hap:35000},
-  'Cabai Rawit Hijau':    {het:50000, hap:28000},
-  'Bawang Merah':         {het:36500, hap:22000},
-  'Bawang Putih Honan':   {het:42000, hap:28000},
-  'Bawang Putih Kating':  {het:40000, hap:26000},
-  'Ikan Bandeng':         {het:35000, hap:20000},
-  'Ikan Tongkol':         {het:32000, hap:18000},
-  'Tepung Terigu':        {het:12000, hap:8500},
-  'Garam Halus':          {het:8000, hap:4000},
-  'Mie Instan':           {het:4000, hap:2500},
-  'Susu Kental Manis':    {het:15000, hap:9000},
-  'Tahu Putih':           {het:700, hap:400},
-  'Tempe Bungkus':        {het:3000, hap:1800},
+// =============================================
+// HET & HAP — Sumber Regulasi Resmi Bapanas
+// =============================================
+// Komoditas TANPA regulasi HET/HAP resmi tidak ditampilkan indikator ini.
+// Referensi:
+//   • Beras    : Perbadan No.5/2024 (perubahan No.7/2023) → HET
+//   • Jagung, Telur Ayam Ras, Daging Ayam Ras : Perbadan No.6/2024 → HAP
+//   • Bawang, Cabai, Daging Sapi/Kerbau, Gula : Perbadan No.12/2024 → HAP
+//   • Minyak Goreng Curah & Minyakita         : Permendag (Kemendag) → HET
+//   • Gula Konsumsi                           : Perbadan No.12/2024 → HAP
+
+let HET_HAP = {
+  // ── BERAS (Perbadan No.5/2024, perubahan No.7/2023) ──
+  'Beras Medium': {
+    het:12500, hap:null,
+    dasar_het:'Perbadan No.5/2024', dasar_hap:null,
+    ket:'HET berlaku nasional untuk beras medium kualitas standar'
+  },
+  'Beras Premium': {
+    het:14900, hap:null,
+    dasar_het:'Perbadan No.5/2024', dasar_hap:null,
+    ket:'HET berlaku nasional untuk beras premium'
+  },
+  // ── MINYAK GORENG (Permendag/Kemendag) ──
+  'Minyak Goreng Sawit Curah': {
+    het:15700, hap:null,
+    dasar_het:'Permendag (per liter)', dasar_hap:null,
+    ket:'HET minyak goreng curah Rp15.700/liter ≈ per kg', satuan:'liter'
+  },
+  'Minyakita': {
+    het:15700, hap:null,
+    dasar_het:'Permendag', dasar_hap:null,
+    ket:'HET Minyakita Rp15.700/liter (berlaku sejak Mar 2022, belum diubah)', satuan:'liter'
+  },
+  // ── GULA (Perbadan No.12/2024) ──
+  'Gula Pasir Curah': {
+    het:null, hap:17500,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP Gula Konsumsi (curah) di tingkat konsumen'
+  },
+  'Gula Pasir Kemasan': {
+    het:null, hap:17500,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP Gula Konsumsi (kemasan) di tingkat konsumen'
+  },
+  // ── DAGING SAPI (Perbadan No.12/2024) ──
+  'Daging Sapi Paha Belakang': {
+    het:null, hap:140000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP daging sapi/kerbau di tingkat konsumen Rp130.000–140.000/kg'
+  },
+  'Daging Sapi Paha Depan': {
+    het:null, hap:130000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP daging sapi/kerbau di tingkat konsumen'
+  },
+  'Daging Sapi Sandung Lamur': {
+    het:null, hap:130000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP daging sapi/kerbau di tingkat konsumen'
+  },
+  // ── DAGING AYAM RAS (Perbadan No.6/2024) ──
+  'Daging Ayam Ras': {
+    het:null, hap:40000,
+    dasar_het:null, dasar_hap:'Perbadan No.6/2024',
+    ket:'HAP daging ayam ras di tingkat konsumen'
+  },
+  // ── TELUR AYAM RAS (Perbadan No.6/2024) ──
+  'Telur Ayam Ras': {
+    het:null, hap:27000,
+    dasar_het:null, dasar_hap:'Perbadan No.6/2024',
+    ket:'HAP telur ayam ras di tingkat konsumen; HAP produsen Rp22.000/kg'
+  },
+  // ── CABAI (Perbadan No.12/2024) ──
+  'Cabai Merah Keriting': {
+    het:null, hap:55000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP cabai merah keriting di tingkat konsumen Rp37.000–55.000/kg'
+  },
+  'Cabai Merah Besar': {
+    het:null, hap:55000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP cabai merah besar mengacu Perbadan No.12/2024'
+  },
+  'Cabai Rawit Merah': {
+    het:null, hap:57000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP cabai rawit merah di tingkat konsumen Rp40.000–57.000/kg'
+  },
+  // ── BAWANG (Perbadan No.12/2024) ──
+  'Bawang Merah': {
+    het:null, hap:41500,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP bawang merah di tingkat konsumen Rp36.000–41.500/kg'
+  },
+  'Bawang Putih Honan': {
+    het:null, hap:40000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP bawang putih di tingkat konsumen Rp38.000–40.000/kg'
+  },
+  'Bawang Putih Kating': {
+    het:null, hap:38000,
+    dasar_het:null, dasar_hap:'Perbadan No.12/2024',
+    ket:'HAP bawang putih di tingkat konsumen'
+  },
 };
+
+// Komoditas tanpa regulasi HET/HAP resmi — tidak ditampilkan indikator
+// (Tahu, Tempe, Ikan, Mie Instan, Garam, Tepung, Susu, Daging Ayam Kampung, Telur Kampung, dll)
 
 // Idulfitri dates (automate via known schedule)
 const IDUL_FITRI = {
@@ -993,50 +1154,87 @@ function getLatestHargaDate() {
 function renderHargaHarian() {
   const latestDate = getLatestHargaDate();
   if (!latestDate) return;
-  let rows = hargaData.filter(r => r.tanggal === latestDate && r.harga > 0);
-  // Fallback: find last non-zero date per commodity
-  if (rows.length === 0) {
-    const komoditas = [...new Set(hargaData.map(r => r.nama_komoditas))];
-    komoditas.forEach(k => {
-      const sorted = hargaData.filter(r => r.nama_komoditas===k && r.harga>0).sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
-      if (sorted[0]) rows.push(sorted[0]);
-    });
-  }
   const showHET = document.getElementById('toggleHET').checked;
   const search = (document.getElementById('searchKomoditas')?.value || '').toLowerCase();
-  const filtered = rows.filter(r => r.nama_komoditas.toLowerCase().includes(search));
-  setText('tanggal-harga', 'Per: ' + formatDate(latestDate));
-  const grid = document.getElementById('hargaHarianGrid');
-  // Get previous date for change
-  const allDates = [...new Set(hargaData.map(r=>r.tanggal))].sort();
+
+  // Get last known price per commodity (not necessarily same date)
+  const allKomoditas = [...new Set(hargaData.map(r => r.nama_komoditas))].filter(Boolean).sort();
+  const allDates = [...new Set(hargaData.map(r=>r.tanggal))].filter(Boolean).sort();
   const latestIdx = allDates.indexOf(latestDate);
   const prevDate = latestIdx > 0 ? allDates[latestIdx - 1] : null;
-  grid.innerHTML = filtered.map(r => {
+
+  // For each commodity: get today's price (may be 0 = libur)
+  let rows = allKomoditas
+    .filter(k => k.toLowerCase().includes(search))
+    .map(k => {
+      const todayRow = hargaData.find(r => r.tanggal === latestDate && r.nama_komoditas === k);
+      const isLibur = todayRow && (+todayRow.harga === 0 || !todayRow.harga);
+      // For price display: use last non-zero price
+      const lastValid = hargaData.filter(r => r.nama_komoditas === k && r.harga > 0)
+        .sort((a,b) => b.tanggal.localeCompare(a.tanggal))[0];
+      return {
+        nama_komoditas: k,
+        harga: todayRow ? +todayRow.harga : null,
+        hargaDisplay: isLibur ? (lastValid?.harga || 0) : (todayRow?.harga || lastValid?.harga || 0),
+        satuan: todayRow?.satuan || lastValid?.satuan || 'kg',
+        isLibur,
+        hasTodayData: !!todayRow,
+      };
+    })
+    .filter(r => r.hargaDisplay > 0 || r.isLibur);
+
+  setText('tanggal-harga', 'Per: ' + formatDate(latestDate));
+  const grid = document.getElementById('hargaHarianGrid');
+
+  grid.innerHTML = rows.map(r => {
     const het = HET_HAP[r.nama_komoditas];
+
+    // Libur card
+    if (r.isLibur) {
+      return `<div class="harga-item" style="opacity:.6;border-style:dashed">
+        <div class="komoditas">${r.nama_komoditas}</div>
+        <div style="font-size:13px;color:var(--text3);font-weight:600;margin:8px 0">🏖️ Libur / Data Kosong</div>
+        <div class="satuan">Harga terakhir valid: Rp ${fmtNum(r.hargaDisplay)} / ${r.satuan}</div>
+      </div>`;
+    }
+
+    // Perubahan vs kemarin
     let perubahan = '', perubahanClass = '';
     if (prevDate) {
-      const prev = hargaData.find(p => p.tanggal===prevDate && p.nama_komoditas===r.nama_komoditas);
-      if (prev && prev.harga > 0 && r.harga > 0) {
-        const delta = r.harga - prev.harga;
-        const pct = (delta/prev.harga*100).toFixed(1);
-        perubahan = (delta>=0?'▲ ':'▼ ') + 'Rp '+Math.abs(delta).toLocaleString('id-ID') + ' ('+pct+'%)';
+      const prev = hargaData.find(p => p.tanggal===prevDate && p.nama_komoditas===r.nama_komoditas && p.harga > 0);
+      if (prev && r.hargaDisplay > 0) {
+        const delta = r.hargaDisplay - +prev.harga;
+        const pct = (delta / +prev.harga * 100).toFixed(1);
+        perubahan = (delta>=0?'▲ ':'▼ ') + 'Rp ' + Math.abs(delta).toLocaleString('id-ID') + ' (' + pct + '%)';
         perubahanClass = delta > 0 ? 'color:var(--red2)' : (delta < 0 ? 'color:var(--primary2)' : 'color:var(--text3)');
       }
     }
-    let hetBar = '';
-    if (showHET && het && het.het > 0 && r.harga > 0) {
-      const pct = Math.min((r.harga / het.het) * 100, 120);
-      const cls = pct <= 90 ? 'het-normal' : (pct <= 100 ? 'het-warning' : 'het-danger');
-      const lbl = pct > 100 ? '⚠️ Melebihi HET' : (pct > 90 ? '⚡ Mendekati HET' : '✅ Normal');
-      hetBar = `<div class="het-bar"><span style="font-size:10px;color:var(--text3)">HET</span><div class="het-line"><div class="het-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><span style="font-size:10px;color:var(--text3)">${lbl}</span></div>`;
+
+    // HET/HAP bar — hanya jika ada regulasi resmi
+    let hetBar = '', hetLabel = '';
+    if (showHET && het) {
+      const refPrice = het.het || het.hap;
+      const refType  = het.het ? 'HET' : 'HAP';
+      const refDasar = het.het ? het.dasar_het : het.dasar_hap;
+      if (refPrice && r.hargaDisplay > 0) {
+        const pct = Math.min((r.hargaDisplay / refPrice) * 100, 130);
+        const cls = pct <= 90 ? 'het-normal' : (pct <= 100 ? 'het-warning' : 'het-danger');
+        const lbl = pct > 100 ? '⚠️ Melebihi ' + refType : (pct > 90 ? '⚡ Mendekati ' + refType : '✅ Normal');
+        hetBar = `<div class="het-bar"><span style="font-size:10px;color:var(--text3)">${refType}</span><div class="het-line"><div class="het-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><span style="font-size:10px;color:var(--text3)">${lbl}</span></div>`;
+        hetLabel = `<div style="font-size:10px;color:var(--text3);margin-top:4px">
+          ${het.het ? 'HET: Rp '+het.het.toLocaleString('id-ID') : ''}
+          ${het.hap ? ' | HAP: Rp '+het.hap.toLocaleString('id-ID') : ''}
+          <br><span style="font-size:9px;opacity:.7">${refDasar||''}</span>
+        </div>`;
+      }
     }
+
     return `<div class="harga-item">
       <div class="komoditas">${r.nama_komoditas}</div>
-      <div class="harga">Rp ${(r.harga||0).toLocaleString('id-ID')}</div>
-      <div class="satuan">per ${r.satuan||'kg'}</div>
+      <div class="harga">Rp ${fmtNum(r.hargaDisplay)}</div>
+      <div class="satuan">per ${r.satuan}</div>
       ${perubahan ? `<div class="perubahan" style="${perubahanClass}">${perubahan}</div>` : ''}
-      ${showHET && het ? `<div style="font-size:10px;color:var(--text3);margin-top:4px">HET: Rp ${het.het.toLocaleString('id-ID')} | HAP: Rp ${het.hap.toLocaleString('id-ID')}</div>` : ''}
-      ${hetBar}
+      ${hetLabel}${hetBar}
     </div>`;
   }).join('');
 }
@@ -1064,8 +1262,8 @@ function initHBK() {
   const komoditas = [...new Set(hargaData.map(r=>r.nama_komoditas))].filter(Boolean).sort();
   setSelectOptions('hbk-year', years);
   setSelectOptions('hbk-komoditas', komoditas, 'Beras Medium');
-  const latestYear = years[years.length-1];
-  setSelectValue('hbk-year', latestYear);
+  setSelectValue('hbk-year', years[years.length-1]);
+  renderHBK();
 }
 
 function switchHBK(el, type) {
@@ -1077,11 +1275,14 @@ function switchHBK(el, type) {
 }
 
 function renderHBK() {
-  renderHBKSingle('idul', IDUL_FITRI);
-  renderHBKNatal();
-  renderHBKTahunBaru();
+  const komoditas = document.getElementById('hbk-komoditas').value;
+  if (!komoditas) return;
+  renderHBKFull('idul',       IDUL_FITRI,  y => IDUL_FITRI[y] || null, false);
+  renderHBKFull('natal',      null,        y => y + '-12-25',           true);
+  renderHBKFull('tahunbaru',  null,        y => y + '-01-01',           true);
 }
 
+// Get HBK data for a given date, filtering out 0-price days (mark as libur)
 function getHBKData(dateStr, windowDays, komoditas) {
   if (!dateStr) return [];
   const center = new Date(dateStr);
@@ -1090,138 +1291,210 @@ function getHBKData(dateStr, windowDays, komoditas) {
     const dt = new Date(center); dt.setDate(dt.getDate()+d);
     const ds = dt.toISOString().slice(0,10);
     const row = hargaData.find(r => r.tanggal===ds && r.nama_komoditas===komoditas);
-    result.push({tanggal:ds, hPlus:d, harga: row ? +row.harga : null});
+    const isLibur = row && (+row.harga === 0 || !row.harga);
+    result.push({
+      tanggal: ds, hPlus: d,
+      harga: (row && !isLibur) ? +row.harga : null,
+      isLibur: isLibur || false,
+      hasData: !!row
+    });
   }
   return result;
 }
 
-function renderHBKSingle(type, datesMap) {
-  const year = +document.getElementById('hbk-year').value;
+// Build multi-year summary for history chart
+function getHBKYearSummary(getDateFn, komoditas, win) {
+  const years = [...new Set(hargaData.map(r=>r.tanggal?.slice(0,4)))].filter(Boolean).sort().map(Number);
+  const summaries = [];
+  years.forEach(y => {
+    const dateStr = getDateFn(y);
+    const data = getHBKData(dateStr, win, komoditas);
+    const pre  = data.filter(d => d.hPlus < 0  && d.harga > 0).map(d=>d.harga);
+    const post = data.filter(d => d.hPlus > 0  && d.harga > 0).map(d=>d.harga);
+    const h0   = data.find(d => d.hPlus === 0);
+    if (pre.length > 0 || post.length > 0) {
+      summaries.push({year: y, avgPre: avg(pre), avgPost: avg(post),
+        hargaH0: h0?.harga || null,
+        maxPre: pre.length ? Math.max(...pre) : null,
+        maxPost: post.length ? Math.max(...post) : null,
+        kenaikan: (pre.length && post.length) ? ((avg(post) - avg(pre)) / avg(pre) * 100) : null
+      });
+    }
+  });
+  return summaries;
+}
+
+function renderHBKHistoryChart(prefix, summaries) {
+  const ctxId = 'chart' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'History';
+  const ctx = document.getElementById(ctxId)?.getContext('2d');
+  if (!ctx) return;
+  if (activeHBKCharts[prefix+'History']) activeHBKCharts[prefix+'History'].destroy();
+  const labels = summaries.map(s => s.year);
+  activeHBKCharts[prefix+'History'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'Rata Pra-HBK', data: summaries.map(s=>s.avgPre ? Math.round(s.avgPre) : null), backgroundColor:'rgba(56,139,253,.7)', borderRadius:6, borderSkipped:false},
+        {label:'Rata Pasca-HBK', data: summaries.map(s=>s.avgPost ? Math.round(s.avgPost) : null), backgroundColor:'rgba(248,81,73,.7)', borderRadius:6, borderSkipped:false},
+        {label:'Kenaikan %', data: summaries.map(s=>s.kenaikan ? +s.kenaikan.toFixed(2) : null), type:'line', yAxisID:'y1', borderColor:'#e3b341', backgroundColor:'rgba(227,179,65,.15)', fill:true, tension:.4, pointRadius:5, pointBackgroundColor:'#e3b341'},
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8b949e',font:{size:11}}},tooltip:{callbacks:{label:c=>{
+        if(c.dataset.label==='Kenaikan %') return c.dataset.label+': '+(c.raw>=0?'+':'')+c.raw+'%';
+        return c.dataset.label+': Rp '+fmtNum(c.raw);
+      }}}},
+      scales:{
+        x:{ticks:{color:'#8b949e'},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ticks:{color:'#8b949e',callback:v=>'Rp '+fmtNum(v)},grid:{color:'rgba(255,255,255,.06)'},position:'left'},
+        y1:{ticks:{color:'#e3b341',callback:v=>v+'%'},position:'right',grid:{display:false},title:{display:true,text:'Kenaikan (%)',color:'#e3b341',font:{size:10}}}
+      }
+    }
+  });
+
+  // History summary cards
+  const cardsEl = document.getElementById(prefix+'-history-cards');
+  if (cardsEl && summaries.length) {
+    const avgKenaikan = avg(summaries.filter(s=>s.kenaikan!=null).map(s=>s.kenaikan));
+    const maxKenaikan = summaries.reduce((a,b)=>(!b.kenaikan||(a.kenaikan||0)>b.kenaikan)?a:b, {});
+    const minKenaikan = summaries.reduce((a,b)=>(!b.kenaikan||(a.kenaikan||999)<b.kenaikan)?a:b, {});
+    cardsEl.innerHTML = [
+      {label:'Rata-rata Kenaikan',val:(avgKenaikan>=0?'+':'')+avgKenaikan.toFixed(1)+'%',icon:'📊',color:'var(--accent2)'},
+      {label:'Kenaikan Tertinggi',val:(maxKenaikan.kenaikan>=0?'+':'')+maxKenaikan.kenaikan?.toFixed(1)+'% ('+maxKenaikan.year+')',icon:'⬆️',color:'var(--red2)'},
+      {label:'Kenaikan Terendah',val:(minKenaikan.kenaikan>=0?'+':'')+minKenaikan.kenaikan?.toFixed(1)+'% ('+minKenaikan.year+')',icon:'⬇️',color:'var(--primary2)'},
+      {label:'Tahun Data',val:summaries.length+' tahun',icon:'📅',color:'var(--blue2)'},
+    ].map(c=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${c.label}</div><span style="font-size:20px">${c.icon}</span></div><div class="card-value" style="font-size:18px;color:${c.color}">${c.val}</div></div>`).join('');
+  }
+}
+
+function renderHBKFull(prefix, datesMap, getDateFn, useYearFn) {
+  const year      = +document.getElementById('hbk-year').value;
   const komoditas = document.getElementById('hbk-komoditas').value;
-  const win = +document.getElementById('hbk-window').value;
-  const dateStr = datesMap[year];
-  const prefix = type;
-  const infoEl = document.getElementById(prefix+'-info');
+  const win       = +document.getElementById('hbk-window').value;
+
+  // Multi-year history infografis
+  const summaries = getHBKYearSummary(getDateFn, komoditas, win);
+  renderHBKHistoryChart(prefix, summaries);
+
+  // Detail for selected year
+  const dateStr = getDateFn(year);
+  const infoEl  = document.getElementById(prefix + '-info');
 
   if (!dateStr) {
-    if (infoEl) infoEl.querySelector('span:last-child').textContent = `Data tanggal Idulfitri ${year} tidak tersedia`;
+    if (infoEl) infoEl.querySelector('span:last-child').textContent =
+      `Tidak ada data tanggal HBK untuk tahun ${year}`;
     return;
   }
-  const data = getHBKData(dateStr, win, komoditas);
-  const valid = data.filter(d => d.harga !== null && d.harga > 0);
-  if (valid.length === 0) {
-    if (infoEl) infoEl.querySelector('span:last-child').textContent = `Tidak ada data harga ${komoditas} di periode ini`;
-    return;
-  }
-  if (infoEl) infoEl.querySelector('span:last-child').textContent = `Hari Besar: ${formatDate(dateStr)} | Komoditas: ${komoditas} | ${valid.length} data tersedia`;
 
-  // Chart
-  const labels = data.map(d => d.hPlus === 0 ? 'H-Hari' : (d.hPlus < 0 ? 'H'+d.hPlus : 'H+'+d.hPlus));
-  const values = data.map(d => d.harga);
+  const data  = getHBKData(dateStr, win, komoditas);
+  const valid = data.filter(d => d.harga && d.harga > 0);
+
+  if (infoEl) infoEl.querySelector('span:last-child').textContent =
+    `Hari H: ${formatDate(dateStr)} | Komoditas: ${komoditas} | ${valid.length} hari valid | ` +
+    `${data.filter(d => d.isLibur).length} hari libur/kosong`;
+
+  // Chart labels & values — null for libur agar garis terputus
+  const labels = data.map(d =>
+    d.hPlus === 0 ? '★ Hari H' : (d.hPlus < 0 ? 'H' + d.hPlus : 'H+' + d.hPlus)
+  );
+  const values = data.map(d => (d.harga && d.harga > 0) ? d.harga : null);
   renderHBKChart(prefix, labels, values, dateStr, komoditas);
 
-  // Stats
-  const hargaH0 = valid.find(d=>d.hPlus===0)?.harga || valid[Math.floor(valid.length/2)]?.harga;
-  const maxHarga = Math.max(...valid.map(d=>d.harga));
-  const minHarga = Math.min(...valid.map(d=>d.harga));
-  const avgPre  = avg(valid.filter(d=>d.hPlus<0).map(d=>d.harga));
-  const avgPost = avg(valid.filter(d=>d.hPlus>0).map(d=>d.harga));
-  const statsEl = document.getElementById(prefix+'-stats');
-  if (statsEl) statsEl.innerHTML = [
-    {label:'Harga H-0',val:'Rp '+fmtNum(hargaH0),icon:'📅'},
-    {label:'Harga Tertinggi',val:'Rp '+fmtNum(maxHarga),icon:'📈'},
-    {label:'Rata Pra-HBK',val:'Rp '+fmtNum(avgPre),icon:'⬅️'},
-    {label:'Rata Pasca-HBK',val:'Rp '+fmtNum(avgPost),icon:'➡️'},
-  ].map(s=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${s.label}</div><span style="font-size:20px">${s.icon}</span></div><div class="card-value" style="font-size:22px">${s.val}</div></div>`).join('');
+  // Summary stat cards
+  const avgPre  = avg(valid.filter(d => d.hPlus < 0).map(d => d.harga));
+  const avgPost = avg(valid.filter(d => d.hPlus > 0).map(d => d.harga));
+  const h0      = valid.find(d => d.hPlus === 0);
+  const maxH    = valid.length ? Math.max(...valid.map(d => d.harga)) : 0;
+  const pctChange = avgPre > 0 ? ((avgPost - avgPre) / avgPre * 100).toFixed(1) : null;
 
-  // Table
-  const tbody = document.getElementById(prefix+'-table-body');
+  const statsEl = document.getElementById(prefix + '-stats');
+  if (statsEl) statsEl.innerHTML = [
+    {label:'Harga Hari H',      val: 'Rp ' + fmtNum(h0?.harga || 0),               icon:'📅'},
+    {label:'Harga Tertinggi',   val: 'Rp ' + fmtNum(maxH),                          icon:'📈'},
+    {label:'Rata Pra-HBK',      val: 'Rp ' + fmtNum(Math.round(avgPre)),            icon:'⬅️'},
+    {label:'Perubahan Pra→Pasca',val: pctChange !== null ? (pctChange >= 0 ? '+' : '') + pctChange + '%' : '—', icon:'📊'},
+  ].map(s => `<div class="card card-sm">
+    <div class="card-header"><div class="card-title">${s.label}</div><span style="font-size:20px">${s.icon}</span></div>
+    <div class="card-value" style="font-size:20px">${s.val}</div>
+  </div>`).join('');
+
+  // Detail table — zero = Libur, null = tidak ada data
+  const tbody = document.getElementById(prefix + '-table-body');
   if (tbody) {
     let prevH = null;
     tbody.innerHTML = data.map(d => {
-      if (!d.harga || d.harga === 0) return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus===0?'Hari H':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus)}</td><td colspan="3" style="color:var(--text3)">— Tidak ada data —</td></tr>`;
-      const delta = prevH ? d.harga - prevH : 0;
-      const pctDelta = prevH ? (delta/prevH*100).toFixed(2) : '—';
-      const deltaTxt = prevH ? (delta>=0?'+':'')+delta.toLocaleString('id-ID')+' ('+pctDelta+'%)' : '—';
-      const ket = d.hPlus===0?'🎉 Hari Besar':(d.hPlus>0&&delta>0?'⬆️ Kenaikan':'');
+      const hLabel = d.hPlus === 0
+        ? '<b>★ Hari H</b>'
+        : (d.hPlus < 0 ? 'H' + d.hPlus : 'H+' + d.hPlus);
+
+      if (d.isLibur) {
+        return `<tr style="opacity:.55;background:rgba(255,255,255,.02)">
+          <td>${formatDate(d.tanggal)}</td><td>${hLabel}</td>
+          <td colspan="3" style="color:var(--text3);font-style:italic">🏖️ Libur / Data Kosong</td></tr>`;
+      }
+      if (!d.harga || d.harga === 0) {
+        return `<tr style="opacity:.4">
+          <td>${formatDate(d.tanggal)}</td><td>${hLabel}</td>
+          <td colspan="3" style="color:var(--text3)">— Tidak ada data —</td></tr>`;
+      }
+      const delta    = prevH ? d.harga - prevH : 0;
+      const pct      = prevH ? (delta / prevH * 100).toFixed(2) : null;
+      const deltaTxt = prevH
+        ? (delta >= 0 ? '+' : '') + delta.toLocaleString('id-ID') + ' (' + pct + '%)'
+        : '—';
+      const ket = d.hPlus === 0 ? '🎉 Hari Besar' : (delta > 500 ? '⬆️ Naik' : (delta < -500 ? '⬇️ Turun' : ''));
       prevH = d.harga;
-      return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus===0?'<b>Hari H</b>':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus)}</td><td>Rp ${fmtNum(d.harga)}</td><td class="${delta>0?'td-pos':(delta<0?'td-neg':'')}">${deltaTxt}</td><td>${ket}</td></tr>`;
+      return `<tr>
+        <td>${formatDate(d.tanggal)}</td><td>${hLabel}</td>
+        <td>Rp ${fmtNum(d.harga)}</td>
+        <td class="${delta > 0 ? 'td-pos' : (delta < 0 ? 'td-neg' : '')}">${deltaTxt}</td>
+        <td>${ket}</td></tr>`;
     }).join('');
   }
-}
-
-function renderHBKNatal() {
-  const year = +document.getElementById('hbk-year').value;
-  const komoditas = document.getElementById('hbk-komoditas').value;
-  const win = +document.getElementById('hbk-window').value;
-  const dateStr = year + '-12-25';
-  const data = getHBKData(dateStr, win, komoditas);
-  const valid = data.filter(d=>d.harga&&d.harga>0);
-  const infoEl = document.getElementById('natal-info');
-  if (infoEl) infoEl.querySelector('span:last-child').textContent = `Natal ${year}: ${formatDate(dateStr)} | ${valid.length} data tersedia`;
-  const labels = data.map(d => d.hPlus===0?'Natal':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus));
-  renderHBKChart('natal', labels, data.map(d=>d.harga), dateStr, komoditas);
-  renderHBKStatsTable('natal', data, valid);
-}
-
-function renderHBKTahunBaru() {
-  const year = +document.getElementById('hbk-year').value;
-  const komoditas = document.getElementById('hbk-komoditas').value;
-  const win = +document.getElementById('hbk-window').value;
-  const dateStr = year + '-01-01';
-  const data = getHBKData(dateStr, win, komoditas);
-  const valid = data.filter(d=>d.harga&&d.harga>0);
-  const infoEl = document.getElementById('tahunbaru-info');
-  if (infoEl) infoEl.querySelector('span:last-child').textContent = `Tahun Baru ${year}: ${formatDate(dateStr)} | ${valid.length} data tersedia`;
-  const labels = data.map(d => d.hPlus===0?'Jan 1':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus));
-  renderHBKChart('tahunbaru', labels, data.map(d=>d.harga), dateStr, komoditas);
-  renderHBKStatsTable('tahunbaru', data, valid);
 }
 
 function renderHBKChart(prefix, labels, values, dateStr, komoditas) {
   const ctx = document.getElementById('chart'+prefix.charAt(0).toUpperCase()+prefix.slice(1))?.getContext('2d');
   if (!ctx) return;
   if (activeHBKCharts[prefix]) activeHBKCharts[prefix].destroy();
-  const center = values.findIndex((v,i) => labels[i]==='H-Hari'||labels[i]==='Natal'||labels[i]==='Jan 1'||labels[i]==='Hari H');
-  const pointColors = values.map((_,i) => i===center ? '#e3b341' : 'transparent');
-  const pointRadius = values.map((_,i) => i===center ? 8 : 2);
-  const grad = ctx.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(31,111,235,.3)');
+  const centerIdx = labels.findIndex(l => l.startsWith('★'));
+  const pointColors = values.map((_,i) => i===centerIdx ? '#e3b341' : 'rgba(56,139,253,.7)');
+  const pointRadius = values.map((v,i) => i===centerIdx ? 10 : (v ? 2 : 0));
+  const grad = ctx.createLinearGradient(0,0,0,280);
+  grad.addColorStop(0,'rgba(31,111,235,.2)');
   grad.addColorStop(1,'rgba(31,111,235,0)');
   activeHBKCharts[prefix] = new Chart(ctx, {
     type:'line',
-    data:{labels, datasets:[{label:'Harga '+komoditas, data:values, borderColor:'#388bfd', backgroundColor:grad, tension:.4, fill:true, pointBackgroundColor:pointColors, pointRadius, spanGaps:true}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Rp '+fmtNum(c.raw)}}},scales:{x:{ticks:{color:'#6e7681',maxTicksLimit:20,font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#6e7681',callback:v=>'Rp '+fmtNum(v),font:{size:10}},grid:{color:'rgba(255,255,255,.06)'}}}}
+    data:{labels, datasets:[{
+      label:'Harga '+komoditas, data:values,
+      borderColor:'#388bfd', backgroundColor:grad,
+      tension:.35, fill:true,
+      pointBackgroundColor:pointColors, pointRadius, pointHoverRadius:6, spanGaps:true
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:c => c.raw ? 'Rp '+fmtNum(c.raw) : '🏖️ Libur/Kosong',
+          title:ts => ts[0].label.replace('★','')
+        }}
+      },
+      scales:{
+        x:{ticks:{color:'#6e7681',maxTicksLimit:18,font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ticks:{color:'#6e7681',callback:v=>'Rp '+fmtNum(v),font:{size:9}},grid:{color:'rgba(255,255,255,.06)'}}
+      }
+    }
   });
-}
-
-function renderHBKStatsTable(prefix, data, valid) {
-  const statsEl = document.getElementById(prefix+'-stats');
-  const maxH = valid.length ? Math.max(...valid.map(d=>d.harga)) : 0;
-  const minH = valid.length ? Math.min(...valid.map(d=>d.harga)) : 0;
-  const avgPre = avg(valid.filter(d=>d.hPlus<0).map(d=>d.harga));
-  const avgPost = avg(valid.filter(d=>d.hPlus>0).map(d=>d.harga));
-  if (statsEl) statsEl.innerHTML = [
-    {label:'Harga Tertinggi',val:'Rp '+fmtNum(maxH),icon:'📈'},
-    {label:'Harga Terendah', val:'Rp '+fmtNum(minH),icon:'📉'},
-    {label:'Rata Pra-HBK',  val:'Rp '+fmtNum(avgPre),icon:'⬅️'},
-    {label:'Rata Pasca-HBK',val:'Rp '+fmtNum(avgPost),icon:'➡️'},
-  ].map(s=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${s.label}</div><span style="font-size:20px">${s.icon}</span></div><div class="card-value" style="font-size:22px">${s.val}</div></div>`).join('');
-  const tbody = document.getElementById(prefix+'-table-body');
-  if (tbody) {
-    let prevH = null;
-    tbody.innerHTML = data.map(d => {
-      if (!d.harga||d.harga===0) return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus===0?'Hari H':(d.hPlus<0?'H'+d.hPlus:'H+'+d.hPlus)}</td><td colspan="3" style="color:var(--text3)">—</td></tr>`;
-      const delta = prevH ? d.harga-prevH : 0;
-      prevH = d.harga;
-      return `<tr><td>${formatDate(d.tanggal)}</td><td>${d.hPlus<0?'H'+d.hPlus:(d.hPlus===0?'<b>Hari H</b>':'H+'+d.hPlus)}</td><td>Rp ${fmtNum(d.harga)}</td><td class="${delta>0?'td-pos':(delta<0?'td-neg':'')}">${prevH?(delta>=0?'+':'')+delta.toLocaleString('id-ID'):'—'}</td><td>${d.hPlus===0?'🎉 Hari H':''}</td></tr>`;
-    }).join('');
-  }
 }
 
 // =============================================
 // DETAIL ANALYSIS
 // =============================================
+let currentDetailRows = []; // store for IPH filter
+
 function initDetail() {
   const years = [...new Set(hargaData.map(r=>r.tanggal?.slice(0,4)))].filter(Boolean).sort();
   const komoditas = [...new Set(hargaData.map(r=>r.nama_komoditas))].filter(Boolean).sort();
@@ -1236,13 +1509,15 @@ function renderDetail() {
   const year = document.getElementById('detail-year').value;
   const showHET = document.getElementById('detail-show-het').checked;
 
-  const rows = hargaData.filter(r => r.nama_komoditas===komoditas && r.tanggal?.startsWith(year) && r.harga>0)
+  // Only valid harga (> 0), label libur di weekly table
+  const allRows = hargaData.filter(r => r.nama_komoditas===komoditas && r.tanggal?.startsWith(year))
     .sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+  const rows = allRows.filter(r => +r.harga > 0);
+  currentDetailRows = allRows; // simpan semua (termasuk 0 untuk deteksi libur)
 
-  if (rows.length === 0) { toast('Tidak ada data untuk komoditas ini di tahun '+year,'info'); return; }
+  if (rows.length === 0) { toast('Tidak ada data valid untuk komoditas ini di tahun '+year,'info'); return; }
 
   const het = HET_HAP[komoditas];
-  // Summary cards
   const prices = rows.map(r=>+r.harga);
   const avgPrice = avg(prices);
   const maxPrice = Math.max(...prices);
@@ -1256,7 +1531,7 @@ function renderDetail() {
     {label:'Harga Terakhir',val:'Rp '+fmtNum(lastPrice),icon:'🏷️',color:'var(--accent2)'},
   ].map(c=>`<div class="card card-sm"><div class="card-header"><div class="card-title">${c.label}</div><span style="font-size:20px">${c.icon}</span></div><div class="card-value" style="font-size:22px;color:${c.color}">${c.val}</div></div>`).join('');
 
-  // Quarterly averages
+  // Quarterly
   const quarterly = [1,2,3,4].map(q => {
     const months = [1,2,3].map(m=>(q-1)*3+m);
     const qRows = rows.filter(r => months.includes(+r.tanggal.slice(5,7)));
@@ -1264,7 +1539,6 @@ function renderDetail() {
     return {q, avg:a, min: qRows.length?Math.min(...qRows.map(r=>+r.harga)):null, max: qRows.length?Math.max(...qRows.map(r=>+r.harga)):null};
   });
   renderTriwulanChart(quarterly);
-  // Quarterly table
   const qtbody = document.getElementById('quarterly-tbody');
   if (qtbody) {
     let prevAvg = null;
@@ -1279,28 +1553,91 @@ function renderDetail() {
     }).join('');
   }
 
-  // Weekly IPH
+  // IPH Mingguan (semua bulan by default)
+  renderIPHFiltered();
+
+  // Daily chart
+  renderHarianChart(rows, het, showHET);
+
+  // HET info
+  const hetBox = document.getElementById('het-info-text');
+  if (het && hetBox) {
+    const refVal = het.het || het.hap;
+    const refType = het.het ? 'HET' : 'HAP';
+    const dasar = het.het ? het.dasar_het : het.dasar_hap;
+    hetBox.innerHTML = `<b>${komoditas}</b> — ${refType}: <b>Rp ${fmtNum(refVal)}</b>/${het.satuan||'kg'} | Dasar: ${dasar} | Rata-rata ${year}: Rp ${fmtNum(Math.round(avgPrice))} <span style="color:${avgPrice/refVal>1?'var(--red2)':'var(--primary2)'}">(${avgPrice/refVal>1?'⚠️ Melebihi '+refType:'✅ Di bawah '+refType})</span>${het.ket ? '<br><span style="font-size:11px;color:var(--text3)">'+het.ket+'</span>' : ''}`;
+  } else if (hetBox) hetBox.textContent = `${komoditas}: Tidak ada regulasi HET/HAP resmi dari Bapanas untuk komoditas ini.`;
+}
+
+function renderIPHFiltered() {
+  const year      = document.getElementById('detail-year')?.value;
+  const komoditas = document.getElementById('detail-komoditas')?.value;
+  const bulan     = document.getElementById('iph-bulan')?.value; // '' = semua
+
+  // Filter valid rows sesuai bulan
+  let rows = hargaData.filter(r =>
+    r.nama_komoditas===komoditas && r.tanggal?.startsWith(year) && +r.harga > 0
+  ).sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+
+  if (bulan) rows = rows.filter(r => +r.tanggal.slice(5,7) === +bulan);
+
   const weeks = groupByWeek(rows);
-  renderIPHChart(weeks);
+  renderIPHChart(weeks, bulan);
+
+  // Weekly table
   const wtbody = document.getElementById('weekly-tbody');
+  // Include libur days in table from allRows
+  const allRowsInScope = (currentDetailRows || []).filter(r =>
+    r.tanggal?.startsWith(year) && (!bulan || +r.tanggal.slice(5,7) === +bulan)
+  );
   if (wtbody) {
     let prevAvgW = null;
     wtbody.innerHTML = weeks.map((w,i) => {
       const iph = prevAvgW && prevAvgW > 0 ? ((w.avg - prevAvgW) / prevAvgW * 100) : null;
       const iphTxt = iph !== null ? (iph>=0?'+':'')+iph.toFixed(2)+'%' : '—';
-      const status = iph !== null ? (Math.abs(iph) > 5 ? `<span class="badge-up card-badge">⚠️ Volatil</span>` : `<span class="badge-down card-badge">✓ Stabil</span>`) : '';
+      // Count libur days in this week
+      const liburDays = allRowsInScope.filter(r => r.tanggal >= w.start && r.tanggal <= w.end && +r.harga === 0).length;
+      const status = iph !== null
+        ? (Math.abs(iph) > 5 ? `<span class="badge-up card-badge">⚠️ Volatil</span>` : `<span class="badge-down card-badge">✓ Stabil</span>`)
+        : '';
+      const liburBadge = liburDays > 0 ? `<span class="badge-neutral card-badge">🏖️ ${liburDays} libur</span>` : '';
       prevAvgW = w.avg;
-      return `<tr><td>Minggu ${i+1}</td><td>${formatDate(w.start)} – ${formatDate(w.end)}</td><td>Rp ${fmtNum(Math.round(w.avg))}</td><td class="${iph>0?'td-pos':(iph<0?'td-neg':'')}">${iphTxt}</td><td>${status}</td></tr>`;
+      return `<tr><td>Minggu ${i+1}</td><td>${formatDate(w.start)} – ${formatDate(w.end)}</td>
+        <td>Rp ${fmtNum(Math.round(w.avg))}</td>
+        <td class="${iph>0?'td-pos':(iph<0?'td-neg':'')}">${iphTxt}</td>
+        <td>${status}${liburBadge}</td></tr>`;
     }).join('');
+    if (weeks.length === 0) wtbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text3)">Tidak ada data pada periode ini</td></tr>`;
   }
+}
 
-  // Daily chart with HET/HAP
-  renderHarianChart(rows, het, showHET);
+// HET/HAP reference table (Beranda)
+function renderHetHapTable() {
+  const tbody = document.getElementById('het-hap-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = Object.entries(HET_HAP).map(([k,v]) => {
+    return `<tr>
+      <td><b>${k}</b></td>
+      <td>${v.het ? 'HET' : 'HAP'}</td>
+      <td>${v.het ? 'Rp '+v.het.toLocaleString('id-ID') : '—'}</td>
+      <td>${v.hap ? 'Rp '+v.hap.toLocaleString('id-ID') : '—'}</td>
+      <td style="font-size:11px">${(v.dasar_het||v.dasar_hap)||'—'}</td>
+      <td style="font-size:11px;color:var(--text3)">${v.ket||'—'}</td>
+    </tr>`;
+  }).join('');
+}
 
-  // HET info box
-  const hetBox = document.getElementById('het-info-text');
-  if (het && hetBox) hetBox.textContent = `${komoditas} — HET: Rp ${het.het.toLocaleString('id-ID')}/kg | HAP: Rp ${het.hap.toLocaleString('id-ID')}/kg (Permendag 2024). Harga rata-rata ${year}: Rp ${fmtNum(Math.round(avgPrice))} (${avgPrice/het.het>1?'⚠️ Rata-rata melebihi HET':'✅ Di bawah HET'})`;
-  else if (hetBox) hetBox.textContent = 'HET/HAP tidak tersedia untuk komoditas ini.';
+function toggleHetHapDetail() {
+  const el = document.getElementById('het-hap-detail-table');
+  const btn = document.getElementById('het-hap-detail-toggle').querySelector('button');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.textContent = '▲ Sembunyikan Tabel';
+    renderHetHapTable();
+  } else {
+    el.style.display = 'none';
+    btn.textContent = '📊 Lihat Tabel Detail HET/HAP';
+  }
 }
 
 function groupByWeek(rows) {
@@ -1333,10 +1670,11 @@ function renderTriwulanChart(quarterly) {
   });
 }
 
-function renderIPHChart(weeks) {
+function renderIPHChart(weeks, bulan) {
   const ctx = document.getElementById('chartIPH').getContext('2d');
   if (chartInstances.iph) chartInstances.iph.destroy();
-  const labels = weeks.map((_,i)=>'Mg '+(i+1));
+  if (!weeks.length) return;
+  const labels = weeks.map((w,i)=>'Mg '+(i+1)+(bulan?' '+MONTHS_ID[+bulan-1]:''));
   const iph = weeks.map((w,i) => {
     if (i===0 || !weeks[i-1].avg) return 0;
     return +((w.avg - weeks[i-1].avg)/weeks[i-1].avg*100).toFixed(2);
@@ -1344,7 +1682,7 @@ function renderIPHChart(weeks) {
   chartInstances.iph = new Chart(ctx, {
     type:'bar',
     data:{labels,datasets:[{label:'IPH (%)',data:iph,backgroundColor:iph.map(v=>v>0?'rgba(248,81,73,.6)':'rgba(63,185,80,.6)'),borderColor:iph.map(v=>v>0?'#f85149':'#3fb950'),borderWidth:1,borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:20}},y:{ticks:{color:'#8b949e',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.06)'},title:{display:true,text:'IPH (%)',color:'#6e7681'}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.raw>=0?'+':'')+c.raw+'%'}}},scales:{x:{ticks:{color:'#8b949e',maxTicksLimit:24}},y:{ticks:{color:'#8b949e',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.06)'},title:{display:true,text:'IPH (%)',color:'#6e7681'}}}}
   });
 }
 
