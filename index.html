@@ -413,7 +413,7 @@ select:focus,input:focus{border-color:var(--blue2)}
 
     <!-- KOTA TEGAL -->
     <div class="inflasi-card kota" style="border-color:rgba(210,153,34,.3)">
-      <div class="inflasi-region">🏙️ Kota Tegal</div>
+      <div class="inflasi-region">🏙️ Kab. Pekalongan</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Year-on-Year</div>
       <div class="inflasi-big" id="infl-kota-yoy" style="color:var(--accent2)">—</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px">% YoY · <span id="infl-ko-per" style="font-weight:600"></span></div>
@@ -435,7 +435,7 @@ select:focus,input:focus{border-color:var(--blue2)}
   <div class="cards-grid cards-2" style="margin-bottom:24px">
     <div class="chart-card">
       <h3>Tren Inflasi YoY — 3 Wilayah</h3>
-      <p>Perbandingan inflasi tahunan Nasional, Jawa Tengah, dan Kota Tegal</p>
+      <p>Perbandingan inflasi tahunan Nasional, Jawa Tengah, dan Kab. Pekalongan</p>
       <div class="chart-wrap"><canvas id="chartInflasiYoy"></canvas></div>
     </div>
     <div class="chart-card">
@@ -1670,24 +1670,46 @@ function getMonthWeeks(year, month) {
 }
 
 // IPH Minggu-m = (avg harga Senin Mg1 s.d. Jumat Mgm / avg harga bulan sebelumnya − 1) × 100
+// Syarat: minggu ke-m HARUS punya minimal 1 hari data valid (harga > 0, bukan libur).
+// Jika minggu ke-m kosong/semua libur/harga 0 → return null (tampil kosong, tidak dihitung).
 function calcIPH(komoditas, year, month, weeks, weekIdx) {
   const pad = n => String(n).padStart(2,'0');
+
+  // Cek apakah minggu ke-m sendiri punya hari valid
+  let currentWeekHasData = false;
+  weeks[weekIdx].days.forEach(day => {
+    const ds = `${year}-${pad(month)}-${pad(day)}`;
+    if (LIBUR_NASIONAL.has(ds)) return;          // libur nasional → skip
+    const r = hargaData.find(x => x.tanggal===ds && x.nama_komoditas===komoditas);
+    if (r && +r.harga > 0) currentWeekHasData = true; // ada data valid
+  });
+  if (!currentWeekHasData) return null;           // minggu ini kosong → blank
+
+  // Kumulatif: ambil semua harga dari Mg1 s.d. Mgm (hanya hari valid)
   let prices = [];
-  for (let w=0; w<=weekIdx; w++) {
+  for (let w = 0; w <= weekIdx; w++) {
     weeks[w].days.forEach(day => {
       const ds = `${year}-${pad(month)}-${pad(day)}`;
       if (LIBUR_NASIONAL.has(ds)) return;
       const r = hargaData.find(x => x.tanggal===ds && x.nama_komoditas===komoditas);
-      if (r && +r.harga>0) prices.push(+r.harga);
+      if (r && +r.harga > 0) prices.push(+r.harga);
     });
   }
   if (!prices.length) return null;
-  const avgCur = avg(prices);
-  const prevM  = month===1?12:month-1, prevY=month===1?year-1:year;
-  const prevRows = hargaData.filter(r=>r.nama_komoditas===komoditas&&r.tanggal?.startsWith(`${prevY}-${pad(prevM)}`)&&+r.harga>0);
+
+  // Rata-rata bulan sebelumnya (penyebut)
+  const prevM   = month===1 ? 12 : month-1;
+  const prevY   = month===1 ? year-1 : year;
+  const prevRows = hargaData.filter(r =>
+    r.nama_komoditas === komoditas &&
+    r.tanggal?.startsWith(`${prevY}-${pad(prevM)}`) &&
+    +r.harga > 0
+  );
   if (!prevRows.length) return null;
-  const avgPrev = avg(prevRows.map(r=>+r.harga));
-  return (avgCur/avgPrev-1)*100;
+
+  const avgCur  = avg(prices);
+  const avgPrev = avg(prevRows.map(r => +r.harga));
+  return (avgCur / avgPrev - 1) * 100;
 }
 
 // ── MULTISELECT ──
@@ -1799,7 +1821,28 @@ function renderDetail() {
   // ── IPH TABLE ──
   const weeks=getMonthWeeks(year,month);
   const infoCards=document.getElementById('iph-info-cards');
-  if (infoCards) infoCards.innerHTML=weeks.map(w=>`<div class="card card-sm"><div class="card-header"><div class="card-title">Minggu ${w.weekNum}</div></div><div style="font-size:12px;color:var(--text2)">${formatDate(w.startDate)} – ${formatDate(w.endDate)}</div><div style="font-size:11px;color:var(--text3);margin-top:4px">${w.days.length} hari (Sen–Jum)</div></div>`).join('');
+  if (infoCards) {
+    infoCards.innerHTML = weeks.map(w => {
+      // Hitung apakah minggu ini punya data valid (untuk status card)
+      const pad2 = n => String(n).padStart(2,'0');
+      let hasData = false;
+      w.days.forEach(day => {
+        const ds = `${year}-${pad(month)}-${pad2(day)}`;
+        if (!LIBUR_NASIONAL.has(ds)) {
+          const found = hargaData.find(r => r.tanggal===ds && aktif.includes(r.nama_komoditas) && +r.harga>0);
+          if (found) hasData = true;
+        }
+      });
+      const statusColor = hasData ? 'var(--primary2)' : 'var(--text3)';
+      const statusText  = hasData ? '✓ Ada data' : '— Kosong';
+      return `<div class="card card-sm">
+        <div class="card-header"><div class="card-title">Minggu ${w.weekNum}</div></div>
+        <div style="font-size:12px;color:var(--text2)">${formatDate(w.startDate)} – ${formatDate(w.endDate)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${w.days.length} hari (Sen–Jum)</div>
+        <div style="font-size:11px;font-weight:600;margin-top:4px;color:${statusColor}">${statusText}</div>
+      </div>`;
+    }).join('');
+  }
 
   const iphThead=document.getElementById('iph-thead'), iphTbody=document.getElementById('iph-tbody');
   if (iphThead&&iphTbody) {
@@ -1815,19 +1858,30 @@ function renderDetail() {
       ib+=`<tr><td class="pt-name">${k}</td><td style="text-align:center;color:var(--text2)">${avgPrev?'Rp '+fmtNum(Math.round(avgPrev)):'<span style=\'color:var(--text3)\'>—</span>'}</td>`;
       weeks.forEach((_,wi)=>{
         const v=calcIPH(k,year,month,weeks,wi);
-        if (v===null){ib+=`<td class="iph-na" style="text-align:center">—</td>`;}
-        else{const cls=v>0?'iph-positive':v<0?'iph-negative':'iph-neutral';ib+=`<td class="${cls}" style="text-align:center">${v>=0?'+':''}${v.toFixed(2)}%</td>`;}
+        if (v===null) {
+          // Kosong — tidak ada data minggu ini, tidak dihitung
+          ib+=`<td style="text-align:center;color:var(--text3);font-size:11px"></td>`;
+        } else {
+          const cls=v>0?'iph-positive':v<0?'iph-negative':'iph-neutral';
+          ib+=`<td class="${cls}" style="text-align:center">${v>=0?'+':''}${v.toFixed(2)}%</td>`;
+        }
       });
       ib+=`</tr>`;
     });
     iphTbody.innerHTML=ib||`<tr><td colspan="${weeks.length+2}" style="text-align:center;color:var(--text3);padding:20px">Tidak ada data</td></tr>`;
   }
 
-  // IPH chart
+  // IPH chart — hanya tampilkan minggu yang punya data valid
   const chartKom=document.getElementById('chart-komoditas-select')?.value;
   if (chartKom) {
-    const vals=weeks.map((_,wi)=>{const v=calcIPH(chartKom,year,month,weeks,wi);return v!==null?+v.toFixed(2):null;});
-    renderIPHChart(weeks.map(w=>'Mg '+w.weekNum), vals);
+    const iphVals = weeks.map((_,wi) => {
+      const v = calcIPH(chartKom, year, month, weeks, wi);
+      return v !== null ? +v.toFixed(2) : null;
+    });
+    // Hanya render jika ada minimal 1 nilai
+    if (iphVals.some(v => v !== null)) {
+      renderIPHChart(weeks.map(w => 'Mg ' + w.weekNum), iphVals);
+    }
   }
   renderSingleChart();
 }
@@ -2140,7 +2194,7 @@ function buildContext() {
     const a = avg(ps), sd = stddev(ps, a);
     return {k, cv: a>0?sd/a*100:0};
   }).sort((a,b)=>b.cv-a.cv).slice(0,5);
-  return `DATA TPID KOTA TEGAL (Real-time):
+  return `DATA TPID KAB. PEKALONGAN (Real-time):
 Inflasi Terkini (${latestNas?.bulan||''}/${latestNas?.tahun||''}):
 - Nasional: MtM ${latestNas?.inflasi_mtm||'—'}%, YtD ${latestNas?.inflasi_ytd||'—'}%, YoY ${latestNas?.inflasi_yoy||'—'}%
 - Jawa Tengah: MtM ${latestJT?.inflasi_mtm||'—'}%, YtD ${latestJT?.inflasi_ytd||'—'}%, YoY ${latestJT?.inflasi_yoy||'—'}%
