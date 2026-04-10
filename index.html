@@ -2144,7 +2144,7 @@ function buildContext() {
 Inflasi Terkini (${latestNas?.bulan||''}/${latestNas?.tahun||''}):
 - Nasional: MtM ${latestNas?.inflasi_mtm||'—'}%, YtD ${latestNas?.inflasi_ytd||'—'}%, YoY ${latestNas?.inflasi_yoy||'—'}%
 - Jawa Tengah: MtM ${latestJT?.inflasi_mtm||'—'}%, YtD ${latestJT?.inflasi_ytd||'—'}%, YoY ${latestJT?.inflasi_yoy||'—'}%
-- Kab. Pekalongan: MtM ${latestKot?.inflasi_mtm||'—'}%, YtD ${latestKot?.inflasi_ytd||'—'}%, YoY ${latestKot?.inflasi_yoy||'—'}%
+- Kota Tegal: MtM ${latestKot?.inflasi_mtm||'—'}%, YtD ${latestKot?.inflasi_ytd||'—'}%, YoY ${latestKot?.inflasi_yoy||'—'}%
 Harga Komoditas Terkini (${latestDate}): ${latestPrices}
 Komoditas Paling Volatile (30 hari terakhir, CV%): ${komoditasCV.map(c=>`${c.k}: ${c.cv.toFixed(1)}%`).join(', ')}
 Referensi HET: ${Object.entries(HET_HAP).slice(0,8).map(([k,v])=>`${k} HET:${v.het}`).join(', ')}
