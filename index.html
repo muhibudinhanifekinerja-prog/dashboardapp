@@ -218,19 +218,67 @@ select:focus,input:focus{border-color:var(--blue2)}
 .toggle input:checked+.toggle-slider{background:var(--primary)}
 .toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
 
-/* RESPONSIVE tweaks */
+/* TOPBAR MOBILE */
+#topbar{display:none;position:fixed;top:0;left:0;right:0;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);z-index:150;align-items:center;padding:0 16px;gap:12px}
+#topbar .topbar-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:800;color:var(--accent2);flex:1}
+#hamburger{background:none;border:none;cursor:pointer;color:var(--text);font-size:22px;padding:4px 6px;line-height:1}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:110;backdrop-filter:blur(2px)}
+#sidebar-overlay.open{display:block}
+
+/* RESPONSIVE — Tablet & Mobile */
 @media(max-width:900px){
-  #sidebar{width:60px}
-  .nav-item span{display:none}
-  .nav-section{display:none}
-  .sidebar-logo .logo-title,.sidebar-logo .logo-sub,.sidebar-logo .logo-badge{display:none}
-  #main{margin-left:60px}
-  .cards-3,.cards-4{grid-template-columns:1fr 1fr}
-  .page{padding:16px}
+  body{flex-direction:column}
+  #topbar{display:flex}
+  #sidebar{
+    width:260px;transform:translateX(-100%);transition:transform .25s ease;
+    top:0;z-index:120;box-shadow:4px 0 24px rgba(0,0,0,.5);
+  }
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0;padding-top:52px;width:100%}
+  .page{padding:14px 12px}
+  .page-header h1{font-size:20px}
+  .cards-3{grid-template-columns:1fr}
+  .cards-4{grid-template-columns:1fr 1fr}
+  .cards-2{grid-template-columns:1fr}
+  .chart-wrap{height:200px}
+  .filter-bar{flex-direction:column;align-items:stretch;gap:10px;padding:12px}
+  .filter-group{flex-wrap:wrap}
+  .filter-group select,.filter-group input{width:100%}
+  .harga-grid{grid-template-columns:repeat(2,1fr)}
+  .inflasi-big{font-size:36px}
+  .metric-row{gap:8px}
+  .hbk-tabs{flex-wrap:wrap}
+  .ai-chat{height:420px}
+  .modal{width:95vw;padding:20px}
+  .form-grid{grid-template-columns:1fr}
+  .kurs-ticker{flex-wrap:wrap;gap:8px}
+  .crud-tabs{overflow-x:auto;white-space:nowrap}
+  #crud-inflasi-pagination,#crud-harga-pagination{flex-wrap:wrap}
+  th,td{padding:7px 10px;font-size:12px}
+}
+@media(max-width:480px){
+  .cards-4{grid-template-columns:1fr}
+  .harga-grid{grid-template-columns:1fr}
+  .page-header h1{font-size:17px}
+  .inflasi-big{font-size:30px}
+  .ai-messages{padding:12px}
+  .msg{max-width:90%}
+  .quick-prompts{gap:6px}
+  .qp-btn{font-size:11px;padding:4px 10px}
+  .chart-wrap{height:180px}
+  .section-title{font-size:11px}
 }
 </style>
 </head>
 <body>
+
+<!-- TOPBAR (mobile only) -->
+<div id="topbar">
+  <button id="hamburger" onclick="toggleSidebar()">☰</button>
+  <div class="topbar-title">TPID Dashboard</div>
+  <span style="font-size:11px;color:var(--text3)" id="topbar-date"></span>
+</div>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- SIDEBAR -->
 <aside id="sidebar">
@@ -789,35 +837,69 @@ function saveToLS() {
 }
 
 // =============================================
-// KURS API
+// KURS API — Fawaz Ahmed Currency API (gratis, tanpa key)
 // =============================================
 async function fetchKurs() {
   try {
-    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=IDR');
+    // Fetch current rate
+    const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
     const data = await res.json();
-    const rate = data.rates.IDR;
+    const rate = data.usd.idr;
     currentKurs = rate;
-    document.getElementById('kurs-usd').textContent = 'Rp ' + rate.toLocaleString('id-ID');
+    document.getElementById('kurs-usd').textContent = 'Rp ' + Math.round(rate).toLocaleString('id-ID');
     document.getElementById('kurs-time').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
-    // Generate mock 30-day history for chart
-    buildKursChart(rate);
+    // Fetch real 14-day historical
+    await buildKursChartReal(rate);
   } catch(e) {
-    document.getElementById('kurs-usd').textContent = 'Tidak tersedia';
-    document.getElementById('kurs-time').textContent = 'Periksa koneksi internet';
+    // Fallback: try v6.frankfurter.dev (another free API)
+    try {
+      const r2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const d2 = await r2.json();
+      const rate2 = d2.rates.IDR;
+      currentKurs = rate2;
+      document.getElementById('kurs-usd').textContent = 'Rp ' + Math.round(rate2).toLocaleString('id-ID');
+      document.getElementById('kurs-time').textContent = 'Sumber: ExchangeRate-API';
+      buildKursChartSimulated(rate2);
+    } catch(e2) {
+      document.getElementById('kurs-usd').textContent = 'Tidak tersedia';
+      document.getElementById('kurs-time').textContent = 'Periksa koneksi internet';
+    }
   }
 }
 
-function buildKursChart(currentRate) {
-  // Generate simulated 30-day history with slight variation around current rate
-  const labels = [], data30 = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    labels.push(d.toLocaleDateString('id-ID', {month:'short',day:'numeric'}));
-    const variation = (Math.random() - 0.5) * 800;
-    data30.push(Math.round(currentRate + variation));
+async function buildKursChartReal(currentRate) {
+  const labels = [], data14 = [];
+  const today = new Date();
+  // Fetch last 14 days in parallel
+  const promises = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    labels.push(d.toLocaleDateString('id-ID',{day:'numeric',month:'short'}));
+    promises.push(
+      fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${ds}/v1/currencies/usd.json`)
+        .then(r => r.json())
+        .then(j => j.usd?.idr || currentRate)
+        .catch(() => currentRate)
+    );
   }
-  data30[data30.length - 1] = Math.round(currentRate);
-  kursHistory = {labels, data: data30};
+  const rates = await Promise.all(promises);
+  rates.forEach(r => data14.push(Math.round(r)));
+  data14[data14.length - 1] = Math.round(currentRate);
+  kursHistory = {labels, data: data14};
+  renderKursChart();
+}
+
+function buildKursChartSimulated(currentRate) {
+  const labels = [], data14 = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('id-ID',{day:'numeric',month:'short'}));
+    const variation = (Math.random() - 0.5) * 600;
+    data14.push(Math.round(currentRate + variation * ((14-i)/14)));
+  }
+  data14[data14.length - 1] = Math.round(currentRate);
+  kursHistory = {labels, data: data14};
   renderKursChart();
 }
 
@@ -1603,13 +1685,40 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 });
 
+// Close sidebar when nav item clicked on mobile - delegated
+document.getElementById('sidebar')?.addEventListener('click', e => {
+  if (e.target.closest('.nav-item') && window.innerWidth <= 900) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+});
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+
+// Close sidebar on nav click (mobile)
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 900) {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+  });
+});
+
 // =============================================
 // INIT
 // =============================================
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
-  // Set today's date as default for form
   document.getElementById('f-h-tanggal').value = new Date().toISOString().slice(0,10);
+  // Topbar date
+  const tb = document.getElementById('topbar-date');
+  if (tb) tb.textContent = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
 });
 </script>
 </body>
