@@ -1648,83 +1648,94 @@ const LIBUR_NASIONAL = new Set([
 
 function isWeekend(ds) { const d=new Date(ds).getDay(); return d===0||d===6; }
 
-// Minggu ke-1: jika tgl 1 = Sen–Kam → mulai tgl 1; jika Jum–Min → mulai Senin berikutnya.
-// Setiap minggu = hari SENIN–JUMAT saja dari blok 7 hari (Sabtu–Minggu tidak masuk).
+// ─── Pembagian Minggu ──────────────────────────────────────────────────────
+// Aturan:
+//   • 1 minggu = Senin–Jumat (hari libur nasional tetap ada di days[], disaring saat hitung IPH)
+//   • Mg-1: jika tgl 1 = Sen–Kam → minggu kalender yang MENGANDUNG tgl 1 dihitung Mg-1
+//           jika tgl 1 = Jum–Min → Mg-1 dimulai Senin berikutnya
+//   • Setiap Senin berikutnya = awal minggu baru, ambil Mon(+0)..Fri(+4) yang masuk bulan ini
 function getMonthWeeks(year, month) {
-  const firstDay  = new Date(year, month-1, 1);
-  const dow       = firstDay.getDay();        // 0=Min,1=Sen..6=Sab
-  const dowMon    = dow===0 ? 6 : dow-1;     // konversi ke Sen=0..Min=6
   const daysInMon = new Date(year, month, 0).getDate();
-  const pad       = n => String(n).padStart(2,'0');
-  const fmt       = d => `${year}-${pad(month)}-${pad(d)}`;
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${year}-${pad(month)}-${pad(d)}`;
 
-  // Senin pertama: jika tgl 1 jatuh Sen–Kam mulai tgl 1, jika Jum–Min mulai Senin berikutnya
-  let w1start = dowMon <= 3 ? 1 : 1 + (7 - dowMon);
+  const firstDay = new Date(year, month-1, 1);
+  const dow = firstDay.getDay();           // JS: 0=Min,1=Sen…6=Sab
+  const dowMon = dow === 0 ? 6 : dow - 1; // Mon=0,Tue=1…Sun=6
+
+  // Senin dari minggu kalender yang mengandung tgl 1 (bisa negatif = bulan lalu)
+  // Jika tgl 1 = Jum–Min (dowMon ≥ 4) → Mg-1 dimulai Senin berikutnya
+  const mondayW1 = dowMon <= 3 ? 1 - dowMon : 1 + (7 - dowMon);
 
   const weeks = [];
-  let d = w1start;           // d selalu = Senin awal minggu tsb
-  while (d <= daysInMon) {
+  let mon = mondayW1;
+  while (mon <= daysInMon) {
     const days = [];
-    for (let i = 0; i < 7; i++) {           // iterasi 7 hari (Senin s.d. Minggu)
-      const dayNum = d + i;
-      if (dayNum > daysInMon) break;
-      const wd = new Date(year, month-1, dayNum).getDay(); // 0=Min,6=Sab
-      if (wd >= 1 && wd <= 5) days.push(dayNum);           // hanya Sen–Jum
+    for (let i = 0; i < 5; i++) {        // Mon(+0)..Fri(+4)
+      const d = mon + i;
+      if (d >= 1 && d <= daysInMon) days.push(d);
     }
     if (days.length > 0) {
       weeks.push({
         weekNum:   weeks.length + 1,
-        days,
+        days,                             // hanya hari kalender Mon–Fri yg ada di bulan ini
         startDate: fmt(days[0]),
-        endDate:   fmt(days[days.length-1])
+        endDate:   fmt(days[days.length - 1])
       });
     }
-    d += 7;
+    mon += 7;
   }
   return weeks;
 }
 
-// IPH Minggu-m = (avg harga Senin Mg1 s.d. Jumat Mgm / avg harga bulan sebelumnya − 1) × 100
-// Syarat: minggu ke-m HARUS punya minimal 1 hari data valid (harga > 0, bukan libur).
-// Jika minggu ke-m kosong/semua libur/harga 0 → return null (tampil kosong, tidak dihitung).
+// ─── IPH & Rata-rata Per Minggu ───────────────────────────────────────────
+// IPH Mg-m = (avg harga hari-1-Mg1 s.d. Jum-Mgm) / (avg harga bln lalu) − 1) × 100
+// Syarat: Mg-m harus punya ≥1 hari valid (harga>0, bukan libur nasional).
+// Jika tidak ada → null (kosong, tidak dihitung).
+//
+// Juga kembalikan rata-rata harga KHUSUS minggu ke-m (hanya hari di minggu itu).
 function calcIPH(komoditas, year, month, weeks, weekIdx) {
   const pad = n => String(n).padStart(2,'0');
+  const getPrice = ds => {
+    if (LIBUR_NASIONAL.has(ds)) return null;
+    const r = hargaData.find(x => x.tanggal === ds && x.nama_komoditas === komoditas);
+    return (r && +r.harga > 0) ? +r.harga : null;
+  };
 
-  // Cek apakah minggu ke-m sendiri punya hari valid
-  let currentWeekHasData = false;
+  // Rata-rata harga MINGGU ke-m saja (untuk kolom rata per minggu)
+  let weekPrices = [];
   weeks[weekIdx].days.forEach(day => {
-    const ds = `${year}-${pad(month)}-${pad(day)}`;
-    if (LIBUR_NASIONAL.has(ds)) return;          // libur nasional → skip
-    const r = hargaData.find(x => x.tanggal===ds && x.nama_komoditas===komoditas);
-    if (r && +r.harga > 0) currentWeekHasData = true; // ada data valid
+    const v = getPrice(`${year}-${pad(month)}-${pad(day)}`);
+    if (v !== null) weekPrices.push(v);
   });
-  if (!currentWeekHasData) return null;           // minggu ini kosong → blank
+  const weekAvg = weekPrices.length ? avg(weekPrices) : null;
 
-  // Kumulatif: ambil semua harga dari Mg1 s.d. Mgm (hanya hari valid)
-  let prices = [];
+  // Cek: minggu ke-m harus punya ≥1 hari valid → jika tidak, IPH = null
+  if (!weekAvg) return { iph: null, weekAvg: null };
+
+  // Kumulatif: semua harga dari Mg-1 s.d. Mg-m (hari valid)
+  let cumPrices = [];
   for (let w = 0; w <= weekIdx; w++) {
     weeks[w].days.forEach(day => {
-      const ds = `${year}-${pad(month)}-${pad(day)}`;
-      if (LIBUR_NASIONAL.has(ds)) return;
-      const r = hargaData.find(x => x.tanggal===ds && x.nama_komoditas===komoditas);
-      if (r && +r.harga > 0) prices.push(+r.harga);
+      const v = getPrice(`${year}-${pad(month)}-${pad(day)}`);
+      if (v !== null) cumPrices.push(v);
     });
   }
-  if (!prices.length) return null;
+  if (!cumPrices.length) return { iph: null, weekAvg };
 
-  // Rata-rata bulan sebelumnya (penyebut)
-  const prevM   = month===1 ? 12 : month-1;
-  const prevY   = month===1 ? year-1 : year;
+  // Rata-rata bulan sebelumnya
+  const prevM = month === 1 ? 12 : month - 1;
+  const prevY = month === 1 ? year - 1 : year;
   const prevRows = hargaData.filter(r =>
     r.nama_komoditas === komoditas &&
     r.tanggal?.startsWith(`${prevY}-${pad(prevM)}`) &&
     +r.harga > 0
   );
-  if (!prevRows.length) return null;
+  if (!prevRows.length) return { iph: null, weekAvg };
 
-  const avgCur  = avg(prices);
+  const avgCur  = avg(cumPrices);
   const avgPrev = avg(prevRows.map(r => +r.harga));
-  return (avgCur / avgPrev - 1) * 100;
+  return { iph: (avgCur / avgPrev - 1) * 100, weekAvg };
 }
 
 // ── MULTISELECT ──
@@ -1861,39 +1872,64 @@ function renderDetail() {
 
   const iphThead=document.getElementById('iph-thead'), iphTbody=document.getElementById('iph-tbody');
   if (iphThead&&iphTbody) {
-    let ih=`<tr><th class="pt-sticky" style="position:sticky;left:0;top:0;z-index:5;min-width:160px">Komoditas</th><th style="min-width:120px;text-align:center">Rata Bln Lalu (Rp)</th>`;
-    weeks.forEach(w=>{ih+=`<th style="min-width:110px;text-align:center">Mg ${w.weekNum}<br><span style="font-size:10px;font-weight:400;color:var(--text3)">${w.startDate.slice(8)}–${w.endDate.slice(8)}</span></th>`;});
-    ih+=`</tr>`; iphThead.innerHTML=ih;
-
-    let ib='';
-    aktif.forEach(k=>{
-      const pm=month===1?12:month-1,py=month===1?year-1:year,pp=n=>String(n).padStart(2,'0');
-      const pr=hargaData.filter(r=>r.nama_komoditas===k&&r.tanggal?.startsWith(`${py}-${pp(pm)}`)&&+r.harga>0);
-      const avgPrev=pr.length?avg(pr.map(r=>+r.harga)):null;
-      ib+=`<tr><td class="pt-name">${k}</td><td style="text-align:center;color:var(--text2)">${avgPrev?'Rp '+fmtNum(Math.round(avgPrev)):'<span style=\'color:var(--text3)\'>—</span>'}</td>`;
-      weeks.forEach((_,wi)=>{
-        const v=calcIPH(k,year,month,weeks,wi);
-        if (v===null) {
-          // Kosong — tidak ada data minggu ini, tidak dihitung
-          ib+=`<td style="text-align:center;color:var(--text3);font-size:11px"></td>`;
-        } else {
-          const cls=v>0?'iph-positive':v<0?'iph-negative':'iph-neutral';
-          ib+=`<td class="${cls}" style="text-align:center">${v>=0?'+':''}${v.toFixed(2)}%</td>`;
-        }
-      });
-      ib+=`</tr>`;
+    // Header: Komoditas | Rata Bln Lalu | [per minggu: Rata Mg-m | IPH Mg-m]
+    let ih = `<tr>
+      <th class="pt-sticky" rowspan="2" style="position:sticky;left:0;top:0;z-index:5;min-width:160px;vertical-align:middle">Komoditas</th>
+      <th rowspan="2" style="min-width:120px;text-align:center;vertical-align:middle">Rata Bln Lalu<br>(Rp)</th>`;
+    weeks.forEach(w => {
+      ih += `<th colspan="2" style="text-align:center;border-bottom:1px solid var(--border2)">
+        Mg ${w.weekNum}
+        <div style="font-size:10px;font-weight:400;color:var(--text3)">${w.startDate.slice(8)}–${w.endDate.slice(8)}</div>
+      </th>`;
     });
-    iphTbody.innerHTML=ib||`<tr><td colspan="${weeks.length+2}" style="text-align:center;color:var(--text3);padding:20px">Tidak ada data</td></tr>`;
+    ih += `</tr><tr>`;
+    weeks.forEach(() => {
+      ih += `<th style="min-width:96px;text-align:center;font-size:10px;background:var(--bg3)">Rata Harga (Rp)</th>
+             <th style="min-width:80px;text-align:center;font-size:10px;background:var(--bg3)">IPH (%)</th>`;
+    });
+    ih += `</tr>`;
+    iphThead.innerHTML = ih;
+
+    let ib = '';
+    aktif.forEach(k => {
+      const pm  = month===1 ? 12 : month-1;
+      const py  = month===1 ? year-1 : year;
+      const pp  = n => String(n).padStart(2,'0');
+      const pr  = hargaData.filter(r =>
+        r.nama_komoditas===k && r.tanggal?.startsWith(`${py}-${pp(pm)}`) && +r.harga>0
+      );
+      const avgPrev = pr.length ? avg(pr.map(r => +r.harga)) : null;
+      const prevCell = avgPrev
+        ? `Rp ${fmtNum(Math.round(avgPrev))}`
+        : `<span style='color:var(--text3)'>—</span>`;
+
+      ib += `<tr><td class="pt-name">${k}</td>
+        <td style="text-align:center;color:var(--text2);font-size:12px">${prevCell}</td>`;
+
+      weeks.forEach((_, wi) => {
+        const res = calcIPH(k, year, month, weeks, wi);
+        const weekAvgCell = res.weekAvg
+          ? `<span style="font-size:11px">Rp ${fmtNum(Math.round(res.weekAvg))}</span>`
+          : `<span style="color:var(--text3);font-size:11px">—</span>`;
+        const iphCell = res.iph === null
+          ? `<span style="color:var(--text3);font-size:11px"></span>`
+          : (() => {
+              const cls = res.iph > 0 ? 'iph-positive' : res.iph < 0 ? 'iph-negative' : 'iph-neutral';
+              return `<span class="${cls}">${res.iph >= 0 ? '+' : ''}${res.iph.toFixed(2)}%</span>`;
+            })();
+        ib += `<td style="text-align:center">${weekAvgCell}</td>
+               <td style="text-align:center">${iphCell}</td>`;
+      });
+      ib += `</tr>`;
+    });
+    iphTbody.innerHTML = ib || `<tr><td colspan="${weeks.length*2+2}" style="text-align:center;color:var(--text3);padding:20px">Tidak ada data</td></tr>`;
   }
 
   // IPH chart — hanya tampilkan minggu yang punya data valid
   const chartKom=document.getElementById('chart-komoditas-select')?.value;
   if (chartKom) {
-    const iphVals = weeks.map((_,wi) => {
-      const v = calcIPH(chartKom, year, month, weeks, wi);
-      return v !== null ? +v.toFixed(2) : null;
-    });
-    // Hanya render jika ada minimal 1 nilai
+    const iphResults = weeks.map((_,wi) => calcIPH(chartKom, year, month, weeks, wi));
+    const iphVals = iphResults.map(r => r.iph !== null ? +r.iph.toFixed(2) : null);
     if (iphVals.some(v => v !== null)) {
       renderIPHChart(weeks.map(w => 'Mg ' + w.weekNum), iphVals);
     }
