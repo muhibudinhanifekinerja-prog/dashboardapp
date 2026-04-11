@@ -305,6 +305,12 @@ select:focus,input:focus{border-color:var(--blue2)}
   .chart-wrap{height:180px}
   .section-title{font-size:11px}
 }
+/* ── TREN HARGA PERIOD BUTTONS ─────────────── */
+.tren-period-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.tren-period-btn:hover{background:var(--bg4);color:var(--text);border-color:var(--text3)}
+.tren-period-btn.active{background:var(--blue);color:#fff;border-color:var(--blue2)}
+.tren-period-btn.year-btn{background:rgba(137,87,229,.1);border-color:rgba(137,87,229,.3);color:var(--purple)}
+.tren-period-btn.year-btn.active{background:var(--purple);color:#fff;border-color:var(--purple)}
 /* ── LAPORAN ───────────────────────────────── */
 .laporan-filter{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
 .laporan-filter label{font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:4px}
@@ -500,7 +506,75 @@ select:focus,input:focus{border-color:var(--blue2)}
   </div>
   <div class="harga-grid" id="hargaHarianGrid"></div>
 
-  <!-- STATISTIK INFLASI TABLE -->
+  <!-- TREN HARGA KOMODITAS — FILTER WAKTU -->
+  <div class="section-gap"></div>
+  <div class="section-title">📈 Tren Harga Komoditas — Berdasarkan Rentang Waktu</div>
+  <div class="filter-bar" style="margin-bottom:16px;align-items:flex-end;flex-wrap:wrap;gap:12px">
+    <div class="filter-group" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Komoditas</span>
+      <div class="multiselect-wrap" id="tren-kom-wrap">
+        <div class="multiselect-trigger" onclick="toggleTrenKomDropdown()" style="min-width:220px">
+          <span id="tren-kom-label">Pilih komoditas...</span>
+          <span style="color:var(--text3)">▾</span>
+        </div>
+        <div class="multiselect-dropdown" id="tren-kom-dropdown" style="min-width:260px">
+          <div class="ms-search"><input type="text" placeholder="Cari..." oninput="filterTrenKom(this.value)"/></div>
+          <div id="tren-ms-items"></div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Rentang Waktu</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center" id="tren-period-btns">
+        <button class="tren-period-btn active" data-days="30"  onclick="setTrenPeriod(this,30)">30 Hari</button>
+        <button class="tren-period-btn"         data-days="90"  onclick="setTrenPeriod(this,90)">90 Hari</button>
+        <button class="tren-period-btn"         data-days="120" onclick="setTrenPeriod(this,120)">120 Hari</button>
+        <button class="tren-period-btn"         data-days="-2"  onclick="setTrenPeriod(this,-2)" id="btn-all-days">Semua Data</button>
+        <div style="display:inline-flex;align-items:center;gap:4px;margin-left:4px">
+          <input type="number" id="tren-custom-days" placeholder="N hari" min="1"
+            style="width:72px;padding:5px 8px;font-size:12px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:inherit"
+            onkeydown="if(event.key==='Enter')applyCustomDays()"/>
+          <button class="tren-period-btn" onclick="applyCustomDays()" style="padding:5px 10px">→</button>
+        </div>
+        <div id="tren-year-btns" style="display:inline-flex;align-items:center;gap:6px;margin-left:4px">
+          <label style="font-size:11px;color:var(--text3);white-space:nowrap">Filter Tahun:</label>
+          <select id="tren-year-select" onchange="setTrenYearSelect(this)"
+            style="padding:5px 10px;font-size:12px;border-radius:6px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:inherit">
+            <option value="">— Pilih Tahun —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group" style="flex-direction:column;align-items:flex-start;gap:4px">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">Tampilkan HET/HAP</span>
+      <label class="toggle"><input type="checkbox" id="tren-show-het" checked onchange="renderTrenChart()"/><span class="toggle-slider"></span></label>
+    </div>
+    <div style="display:flex;gap:8px;flex-direction:column;font-size:11px;color:var(--text3)" id="tren-stat-info"></div>
+  </div>
+  <!-- CHART AREA -->
+  <div class="chart-card" style="margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <h3 id="tren-chart-title" style="margin:0">Tren Harga Komoditas</h3>
+        <p id="tren-chart-sub" style="font-size:11px;color:var(--text3);margin:2px 0 0">Pilih komoditas dan periode</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text3)">
+        <span id="tren-data-count"></span>
+      </div>
+    </div>
+    <div class="chart-wrap" style="height:300px"><canvas id="chartTrenHarga"></canvas></div>
+  </div>
+  <!-- STAT CARDS DAN MINI TABLE -->
+  <div id="tren-stat-cards" class="cards-grid cards-4" style="margin-bottom:16px"></div>
+  <div id="tren-table-wrap" style="display:none">
+    <div class="section-title" style="margin-bottom:8px">Ringkasan Per Komoditas — Periode Terpilih</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Komoditas</th><th>Awal Periode</th><th>Akhir Periode</th><th>Tertinggi</th><th>Terendah</th><th>Rata-rata</th><th>Perubahan</th><th>HET/HAP</th></tr></thead>
+        <tbody id="tren-summary-tbody"></tbody>
+      </table>
+    </div>
+  </div>
   <div class="section-gap"></div>
   <div class="section-title">Riwayat Data Inflasi (Semua Wilayah)</div>
   <div class="table-wrap" style="margin-bottom:0">
@@ -1304,6 +1378,326 @@ function renderBeranda() {
   renderHargaHarian();
   renderInflasiTable();
   updateSidebarDate();
+  initTrenHarga();
+}
+
+// =============================================
+// TREN HARGA — FILTER WAKTU BERANDA
+// =============================================
+let trenSelectedKom = [];   // komoditas yang dipilih ([] = belum pilih)
+let trenActiveDays  = 30;   // rentang aktif dalam hari (atau -1 = full year)
+let trenActiveYear  = null; // jika pilih berdasarkan tahun penuh
+let chartTrenInstance = null;
+
+// Warna palette untuk multi-komoditas
+const TREN_COLORS = [
+  '#388bfd','#3fb950','#e3b341','#f85149','#14b8a6',
+  '#8957e5','#db6d28','#58a6ff','#56d364','#d29922',
+];
+
+function initTrenHarga() {
+  const komoditas = [...new Set(hargaData.map(r => r.nama_komoditas))].filter(Boolean).sort();
+  const years     = [...new Set(hargaData.map(r => r.tanggal?.slice(0,4)))].filter(Boolean).sort();
+
+  // Init multiselect komoditas
+  const ms = document.getElementById('tren-ms-items');
+  if (ms) {
+    ms.innerHTML = komoditas.map(k =>
+      `<label class="ms-item"><input type="checkbox" value="${k}" class="tren-ms-cb" onchange="onTrenKomChange()"/> ${k}</label>`
+    ).join('');
+  }
+
+  // Populate year dropdown
+  const yearSel = document.getElementById('tren-year-select');
+  if (yearSel) {
+    yearSel.innerHTML = '<option value="">— Pilih Tahun —</option>' +
+      years.map(y => `<option value="${y}">${y}</option>`).join('');
+  }
+
+  // Update "Semua Data" button label with total days
+  const allDates = [...new Set(hargaData.map(r => r.tanggal))].filter(Boolean).sort();
+  const totalDays = allDates.length;
+  const btnAll = document.getElementById('btn-all-days');
+  if (btnAll && totalDays > 0) {
+    const firstDate = allDates[0], lastDate = allDates[allDates.length-1];
+    const diffDays = Math.round((new Date(lastDate) - new Date(firstDate)) / 86400000) + 1;
+    btnAll.textContent = `Semua (±${diffDays} hari)`;
+  }
+
+  // Default: pilih Beras Medium jika ada, else 3 komoditas pertama
+  const defaults = komoditas.includes('Beras Medium')
+    ? ['Beras Medium','Cabai Merah Keriting','Bawang Merah'].filter(k => komoditas.includes(k))
+    : komoditas.slice(0, 3);
+  trenSelectedKom = defaults;
+  updateTrenLabel();
+  // Centang default
+  document.querySelectorAll('.tren-ms-cb').forEach(cb => {
+    cb.checked = trenSelectedKom.includes(cb.value);
+  });
+  trenActiveDays = 30; trenActiveYear = null;
+  renderTrenChart();
+}
+
+function toggleTrenKomDropdown() {
+  document.getElementById('tren-kom-dropdown').classList.toggle('open');
+}
+function filterTrenKom(v) {
+  document.querySelectorAll('.tren-ms-cb').forEach(cb => {
+    cb.closest('.ms-item').style.display = cb.value.toLowerCase().includes(v.toLowerCase()) ? '' : 'none';
+  });
+}
+function onTrenKomChange() {
+  trenSelectedKom = [...document.querySelectorAll('.tren-ms-cb:checked')].map(cb => cb.value);
+  updateTrenLabel();
+  renderTrenChart();
+}
+function updateTrenLabel() {
+  const lbl = trenSelectedKom.length === 0 ? 'Pilih komoditas...'
+    : trenSelectedKom.length === 1 ? trenSelectedKom[0]
+    : trenSelectedKom.length + ' komoditas dipilih';
+  setText('tren-kom-label', lbl);
+}
+document.addEventListener('click', e => {
+  const w = document.getElementById('tren-kom-wrap');
+  if (w && !w.contains(e.target)) document.getElementById('tren-kom-dropdown')?.classList.remove('open');
+});
+
+function setTrenPeriod(btn, days) {
+  trenActiveDays = days; trenActiveYear = null;
+  document.querySelectorAll('.tren-period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const ci = document.getElementById('tren-custom-days'); if (ci) ci.value = '';
+  const ys = document.getElementById('tren-year-select'); if (ys) ys.value = '';
+  renderTrenChart();
+}
+function setTrenYearSelect(sel) {
+  const year = sel.value; if (!year) return;
+  trenActiveYear = +year; trenActiveDays = -1;
+  document.querySelectorAll('.tren-period-btn').forEach(b => b.classList.remove('active'));
+  const ci = document.getElementById('tren-custom-days'); if (ci) ci.value = '';
+  renderTrenChart();
+}
+function applyCustomDays() {
+  const ci = document.getElementById('tren-custom-days');
+  const n  = parseInt(ci?.value);
+  if (!n || n < 1) { toast('Masukkan jumlah hari yang valid (≥1)', 'error'); return; }
+  trenActiveDays = n; trenActiveYear = null;
+  document.querySelectorAll('.tren-period-btn').forEach(b => b.classList.remove('active'));
+  const ys = document.getElementById('tren-year-select'); if (ys) ys.value = '';
+  renderTrenChart();
+  toast(`Menampilkan ${n} hari terakhir`, 'info');
+}
+
+function getTrenDateRange() {
+  const latest = getLatestHargaDate();
+  if (!latest) return { start: null, end: null };
+  if (trenActiveYear !== null) {
+    return { start: `${trenActiveYear}-01-01`, end: `${trenActiveYear}-12-31` };
+  }
+  // -2 = semua data
+  if (trenActiveDays === -2) {
+    const allDates = hargaData.map(r => r.tanggal).filter(Boolean).sort();
+    return { start: allDates[0] || latest, end: latest };
+  }
+  const end   = new Date(latest);
+  const start = new Date(end);
+  start.setDate(start.getDate() - trenActiveDays + 1);
+  return {
+    start: start.toISOString().slice(0,10),
+    end:   end.toISOString().slice(0,10),
+  };
+}
+
+function renderTrenChart() {
+  if (!trenSelectedKom.length) {
+    setText('tren-chart-title','Pilih komoditas untuk melihat tren harga');
+    setText('tren-chart-sub','');
+    setText('tren-data-count','');
+    document.getElementById('tren-stat-cards').innerHTML = '';
+    document.getElementById('tren-table-wrap').style.display = 'none';
+    return;
+  }
+
+  const { start, end } = getTrenDateRange();
+  if (!start || !end) return;
+
+  const showHET = document.getElementById('tren-show-het')?.checked ?? true;
+
+  // Kumpulkan semua tanggal dalam range (hanya yang punya data minimal 1 komoditas)
+  const allDatesInRange = [...new Set(
+    hargaData
+      .filter(r => r.tanggal >= start && r.tanggal <= end && +r.harga > 0
+                   && trenSelectedKom.includes(r.nama_komoditas))
+      .map(r => r.tanggal)
+  )].sort();
+
+  if (!allDatesInRange.length) {
+    setText('tren-chart-title', 'Tidak ada data pada periode ini');
+    return;
+  }
+
+  // Build datasets per komoditas
+  const datasets = trenSelectedKom.map((k, i) => {
+    const color = TREN_COLORS[i % TREN_COLORS.length];
+    const data  = allDatesInRange.map(d => {
+      const row = hargaData.find(r => r.tanggal === d && r.nama_komoditas === k);
+      return (row && +row.harga > 0) ? +row.harga : null;
+    });
+    return {
+      label: k,
+      data,
+      borderColor: color,
+      backgroundColor: color + '18',
+      tension: .35,
+      fill: trenSelectedKom.length === 1,
+      pointRadius: allDatesInRange.length > 90 ? 0 : 2,
+      pointHoverRadius: 5,
+      borderWidth: 2,
+      spanGaps: true,
+    };
+  });
+
+  // HET/HAP lines (hanya jika 1 komoditas)
+  if (showHET && trenSelectedKom.length === 1) {
+    const het = HET_HAP[trenSelectedKom[0]];
+    if (het) {
+      if (het.het) datasets.push({label:'HET',  data:allDatesInRange.map(()=>het.het), borderColor:'#f85149', borderDash:[6,4], pointRadius:0, borderWidth:1.5, fill:false});
+      if (het.hap) datasets.push({label:'HAP',  data:allDatesInRange.map(()=>het.hap), borderColor:'#3fb950', borderDash:[4,4], pointRadius:0, borderWidth:1.5, fill:false});
+    }
+  }
+
+  // Label sumbu X — adaptif sesuai jumlah data
+  const total = allDatesInRange.length;
+  const xLabels = allDatesInRange.map(d => {
+    if (total > 300) return d.slice(0,7);         // YYYY-MM
+    if (total > 60)  return d.slice(5);           // MM-DD
+    return d.slice(5);
+  });
+
+  // Render chart
+  const ctx = document.getElementById('chartTrenHarga')?.getContext('2d');
+  if (!ctx) return;
+  if (chartTrenInstance) chartTrenInstance.destroy();
+  chartTrenInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: xLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#8b949e', font: { size: 11 }, boxWidth: 14 } },
+        tooltip: {
+          callbacks: {
+            label: c => c.raw !== null ? `${c.dataset.label}: Rp ${fmtNum(c.raw)}` : `${c.dataset.label}: —`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#6e7681', maxTicksLimit: total > 120 ? 12 : 20, font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,.04)' }
+        },
+        y: {
+          ticks: { color: '#6e7681', callback: v => 'Rp ' + fmtNum(v), font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,.06)' }
+        }
+      }
+    }
+  });
+
+  // Update judul & info
+  const periodLabel = trenActiveYear !== null
+    ? `Tahun ${trenActiveYear}`
+    : trenActiveDays === -2
+      ? 'Semua Data'
+      : `${trenActiveDays} Hari Terakhir`;
+  setText('tren-chart-title', `Tren Harga ${trenSelectedKom.length === 1 ? trenSelectedKom[0] : trenSelectedKom.length + ' Komoditas'}`);
+  setText('tren-chart-sub', `${periodLabel} · ${formatDate(start)} — ${formatDate(end)}`);
+  setText('tren-data-count', `${total} titik data`);
+
+  // Stat cards & summary table
+  renderTrenStatCards(start, end);
+}
+
+function renderTrenStatCards(start, end) {
+  const cards   = document.getElementById('tren-stat-cards');
+  const tbody   = document.getElementById('tren-summary-tbody');
+  const tblWrap = document.getElementById('tren-table-wrap');
+
+  const summaries = trenSelectedKom.map((k, i) => {
+    const rows = hargaData.filter(r =>
+      r.nama_komoditas === k && r.tanggal >= start && r.tanggal <= end && +r.harga > 0
+    ).sort((a,b) => a.tanggal.localeCompare(b.tanggal));
+    if (!rows.length) return null;
+    const prices  = rows.map(r => +r.harga);
+    const first   = prices[0], last = prices[prices.length-1];
+    const maxP    = Math.max(...prices), minP = Math.min(...prices);
+    const avgP    = avg(prices);
+    const change  = first > 0 ? (last - first) / first * 100 : null;
+    const het     = HET_HAP[k];
+    const refVal  = het ? (het.het || het.hap) : null;
+    const refType = het ? (het.het ? 'HET' : 'HAP') : null;
+    const color   = TREN_COLORS[i % TREN_COLORS.length];
+    return { k, first, last, maxP, minP, avgP, change, refVal, refType, color, count: rows.length };
+  }).filter(Boolean);
+
+  if (!summaries.length) { if(cards) cards.innerHTML=''; if(tblWrap) tblWrap.style.display='none'; return; }
+
+  // Stat cards — hanya tampilkan 4 metric utama saat 1 komoditas, atau ringkasan multi
+  if (summaries.length === 1) {
+    const s = summaries[0];
+    const changeColor = s.change > 0 ? 'var(--red2)' : s.change < 0 ? 'var(--primary2)' : 'var(--text2)';
+    if (cards) cards.innerHTML = [
+      { label:'Harga Awal Periode', val:'Rp '+fmtNum(s.first),   icon:'📅', color:'var(--text)' },
+      { label:'Harga Akhir Periode',val:'Rp '+fmtNum(s.last),    icon:'🏷️', color:changeColor },
+      { label:'Perubahan Periode',  val:(s.change>=0?'+':'')+s.change?.toFixed(2)+'%', icon: s.change>=0?'📈':'📉', color:changeColor },
+      { label:'Rata-rata',          val:'Rp '+fmtNum(Math.round(s.avgP)), icon:'📊', color:'var(--blue2)' },
+      { label:'Tertinggi',          val:'Rp '+fmtNum(s.maxP),    icon:'⬆️', color:'var(--red2)' },
+      { label:'Terendah',           val:'Rp '+fmtNum(s.minP),    icon:'⬇️', color:'var(--primary2)' },
+      { label:'Jumlah Data',        val:s.count+' hari',          icon:'📋', color:'var(--text2)' },
+      { label: s.refType ? s.refType+' (Regulasi)' : 'HET/HAP',
+        val: s.refVal ? 'Rp '+fmtNum(s.refVal) : 'Tidak ada',
+        icon:'⚖️',
+        color: s.refVal && s.last ? (s.last > s.refVal ? 'var(--red2)' : 'var(--primary2)') : 'var(--text3)' },
+    ].map(c => `<div class="card card-sm">
+      <div class="card-header"><div class="card-title">${c.label}</div><span style="font-size:18px">${c.icon}</span></div>
+      <div class="card-value" style="font-size:18px;color:${c.color}">${c.val}</div>
+    </div>`).join('');
+  } else {
+    // Multi komoditas: 4 summary cards
+    const avgChange = avg(summaries.filter(s=>s.change!==null).map(s=>s.change));
+    const topRiser  = [...summaries].filter(s=>s.change!==null).sort((a,b)=>b.change-a.change)[0];
+    const topFaller = [...summaries].filter(s=>s.change!==null).sort((a,b)=>a.change-b.change)[0];
+    if (cards) cards.innerHTML = [
+      { label:'Rata-rata Perubahan',  val:(avgChange>=0?'+':'')+avgChange.toFixed(2)+'%',      icon:'📊',color:avgChange>=0?'var(--red2)':'var(--primary2)'},
+      { label:'Naik Tertinggi',       val:topRiser?topRiser.k+' (+'+topRiser.change?.toFixed(1)+'%)':'—', icon:'📈',color:'var(--red2)'},
+      { label:'Turun Terbesar',       val:topFaller&&topFaller.change<0?topFaller.k+' ('+topFaller.change?.toFixed(1)+'%)':'—', icon:'📉',color:'var(--primary2)'},
+      { label:'Komoditas Dipantau',   val:summaries.length+' komoditas',                        icon:'🏷️',color:'var(--accent2)'},
+    ].map(c => `<div class="card card-sm">
+      <div class="card-header"><div class="card-title">${c.label}</div><span style="font-size:18px">${c.icon}</span></div>
+      <div class="card-value" style="font-size:16px;color:${c.color}">${c.val}</div>
+    </div>`).join('');
+  }
+
+  // Summary table
+  if (tbody) tbody.innerHTML = summaries.map(s => {
+    const ch = s.change !== null ? (s.change>=0?'+':'')+s.change.toFixed(2)+'%' : '—';
+    const chCls = s.change > 0 ? 'td-pos' : s.change < 0 ? 'td-neg' : '';
+    const refCell = s.refVal
+      ? `Rp ${fmtNum(s.refVal)} (${s.refType})${s.last > s.refVal ? ' ⚠️' : ' ✅'}`
+      : '—';
+    return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.color};margin-right:6px"></span>${s.k}</td>
+      <td>Rp ${fmtNum(s.first)}</td>
+      <td>Rp ${fmtNum(s.last)}</td>
+      <td>Rp ${fmtNum(s.maxP)}</td>
+      <td>Rp ${fmtNum(s.minP)}</td>
+      <td>Rp ${fmtNum(Math.round(s.avgP))}</td>
+      <td class="${chCls}" style="font-weight:700">${ch}</td>
+      <td style="font-size:11px">${refCell}</td>
+    </tr>`;
+  }).join('');
+  if (tblWrap) tblWrap.style.display = 'block';
 }
 
 function updateSidebarDate() {
