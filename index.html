@@ -413,7 +413,7 @@ select:focus,input:focus{border-color:var(--blue2)}
 
     <!-- KOTA TEGAL -->
     <div class="inflasi-card kota" style="border-color:rgba(210,153,34,.3)">
-      <div class="inflasi-region">🏙️ Kota Tegal</div>
+      <div class="inflasi-region">🏙️ Kab. Pekalongan</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Year-on-Year</div>
       <div class="inflasi-big" id="infl-kota-yoy" style="color:var(--accent2)">—</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px">% YoY · <span id="infl-ko-per" style="font-weight:600"></span></div>
@@ -1648,22 +1648,37 @@ const LIBUR_NASIONAL = new Set([
 
 function isWeekend(ds) { const d=new Date(ds).getDay(); return d===0||d===6; }
 
-// Minggu ke-1: jika tgl 1 = Sen–Kam → mulai tgl 1; jika Jum–Min → mulai Senin berikutnya
+// Minggu ke-1: jika tgl 1 = Sen–Kam → mulai tgl 1; jika Jum–Min → mulai Senin berikutnya.
+// Setiap minggu = hari SENIN–JUMAT saja dari blok 7 hari (Sabtu–Minggu tidak masuk).
 function getMonthWeeks(year, month) {
   const firstDay  = new Date(year, month-1, 1);
-  const dow       = firstDay.getDay(); // 0=Min
-  const dowMon    = dow===0?6:dow-1;  // Sen=0..Min=6
+  const dow       = firstDay.getDay();        // 0=Min,1=Sen..6=Sab
+  const dowMon    = dow===0 ? 6 : dow-1;     // konversi ke Sen=0..Min=6
   const daysInMon = new Date(year, month, 0).getDate();
   const pad       = n => String(n).padStart(2,'0');
   const fmt       = d => `${year}-${pad(month)}-${pad(d)}`;
 
-  let w1start = dowMon<=3 ? 1 : 1+(7-dowMon);
+  // Senin pertama: jika tgl 1 jatuh Sen–Kam mulai tgl 1, jika Jum–Min mulai Senin berikutnya
+  let w1start = dowMon <= 3 ? 1 : 1 + (7 - dowMon);
+
   const weeks = [];
-  let d = w1start;
+  let d = w1start;           // d selalu = Senin awal minggu tsb
   while (d <= daysInMon) {
     const days = [];
-    for (let i=0; i<5 && (d+i)<=daysInMon; i++) days.push(d+i);
-    weeks.push({ weekNum:weeks.length+1, days, startDate:fmt(days[0]), endDate:fmt(days[days.length-1]) });
+    for (let i = 0; i < 7; i++) {           // iterasi 7 hari (Senin s.d. Minggu)
+      const dayNum = d + i;
+      if (dayNum > daysInMon) break;
+      const wd = new Date(year, month-1, dayNum).getDay(); // 0=Min,6=Sab
+      if (wd >= 1 && wd <= 5) days.push(dayNum);           // hanya Sen–Jum
+    }
+    if (days.length > 0) {
+      weeks.push({
+        weekNum:   weeks.length + 1,
+        days,
+        startDate: fmt(days[0]),
+        endDate:   fmt(days[days.length-1])
+      });
+    }
     d += 7;
   }
   return weeks;
@@ -2194,11 +2209,11 @@ function buildContext() {
     const a = avg(ps), sd = stddev(ps, a);
     return {k, cv: a>0?sd/a*100:0};
   }).sort((a,b)=>b.cv-a.cv).slice(0,5);
-  return `DATA TPID KAB. PEKALONGAN (Real-time):
+  return `DATA TPID KOTA TEGAL (Real-time):
 Inflasi Terkini (${latestNas?.bulan||''}/${latestNas?.tahun||''}):
 - Nasional: MtM ${latestNas?.inflasi_mtm||'—'}%, YtD ${latestNas?.inflasi_ytd||'—'}%, YoY ${latestNas?.inflasi_yoy||'—'}%
 - Jawa Tengah: MtM ${latestJT?.inflasi_mtm||'—'}%, YtD ${latestJT?.inflasi_ytd||'—'}%, YoY ${latestJT?.inflasi_yoy||'—'}%
-- Kota Tegal: MtM ${latestKot?.inflasi_mtm||'—'}%, YtD ${latestKot?.inflasi_ytd||'—'}%, YoY ${latestKot?.inflasi_yoy||'—'}%
+- Kab. Pekalongan: MtM ${latestKot?.inflasi_mtm||'—'}%, YtD ${latestKot?.inflasi_ytd||'—'}%, YoY ${latestKot?.inflasi_yoy||'—'}%
 Harga Komoditas Terkini (${latestDate}): ${latestPrices}
 Komoditas Paling Volatile (30 hari terakhir, CV%): ${komoditasCV.map(c=>`${c.k}: ${c.cv.toFixed(1)}%`).join(', ')}
 Referensi HET: ${Object.entries(HET_HAP).slice(0,8).map(([k,v])=>`${k} HET:${v.het}`).join(', ')}
