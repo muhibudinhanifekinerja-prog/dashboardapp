@@ -930,10 +930,21 @@ select:focus,input:focus{border-color:var(--blue2)}
         <option value="lengkap">Laporan Lengkap</option>
       </select>
     </div>
-    <div>
-      <label>Komoditas Sorotan</label>
-      <select id="lap-komoditas-focus" multiple style="height:80px;min-width:200px"></select>
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">Tahan Ctrl/Cmd untuk pilih banyak</div>
+    <div style="position:relative">
+      <label>Komoditas</label>
+      <div class="multiselect-wrap" id="lap-kom-wrap">
+        <div class="multiselect-trigger" onclick="toggleLapKomDropdown()">
+          <span id="lap-kom-label">Semua Komoditas</span>
+          <span style="color:var(--text3)">▾</span>
+        </div>
+        <div class="multiselect-dropdown" id="lap-kom-dropdown" style="min-width:260px">
+          <div class="ms-search"><input type="text" placeholder="Cari komoditas..." oninput="filterLapKom(this.value)"/></div>
+          <label class="ms-item ms-all">
+            <input type="checkbox" id="lap-ms-all" checked onchange="toggleAllLapKom(this)"/> Semua Komoditas
+          </label>
+          <div id="lap-ms-items"></div>
+        </div>
+      </div>
     </div>
     <div style="display:flex;gap:8px;align-self:flex-end">
       <button class="btn btn-primary" onclick="renderLaporan()">👁 Pratinjau</button>
@@ -2464,244 +2475,295 @@ document.getElementById('sidebar')?.addEventListener('click', e => {
 // =============================================
 // LAPORAN PERKEMBANGAN HARGA
 // =============================================
-function initLaporan() {
-  const years = [...new Set(hargaData.map(r => r.tanggal?.slice(0,4)))].filter(Boolean).sort();
-  const komoditas = [...new Set(hargaData.map(r => r.nama_komoditas))].filter(Boolean).sort();
+// =============================================
+// LAPORAN PERKEMBANGAN HARGA
+// =============================================
+let lapSelectedKom = []; // [] = semua
 
+function initLaporan() {
+  const years     = [...new Set(hargaData.map(r => r.tanggal?.slice(0,4)))].filter(Boolean).sort();
+  const komoditas = [...new Set(hargaData.map(r => r.nama_komoditas))].filter(Boolean).sort();
   setSelectOptions('lap-tahun', years);
   setSelectValue('lap-tahun', years[years.length-1]);
-
   const latestDate = getLatestHargaDate() || new Date().toISOString().slice(0,10);
   const lapBulan = document.getElementById('lap-bulan');
   if (lapBulan) lapBulan.value = +latestDate.slice(5,7);
-
-  const lapKom = document.getElementById('lap-komoditas-focus');
-  if (lapKom) {
-    lapKom.innerHTML = komoditas.map(k => `<option value="${k}" selected>${k}</option>`).join('');
+  lapSelectedKom = [];
+  const lapMsItems = document.getElementById('lap-ms-items');
+  if (lapMsItems) {
+    lapMsItems.innerHTML = komoditas.map(k =>
+      `<label class="ms-item"><input type="checkbox" value="${k}" class="lap-ms-cb" checked onchange="onLapKomChange()"/> ${k}</label>`
+    ).join('');
   }
+  const lapMsAll = document.getElementById('lap-ms-all');
+  if (lapMsAll) lapMsAll.checked = true;
+  setText('lap-kom-label','Semua Komoditas');
 }
 
+function toggleLapKomDropdown() { document.getElementById('lap-kom-dropdown').classList.toggle('open'); }
+function filterLapKom(v) {
+  document.querySelectorAll('.lap-ms-cb').forEach(cb => {
+    cb.closest('.ms-item').style.display = cb.value.toLowerCase().includes(v.toLowerCase()) ? '' : 'none';
+  });
+}
+function toggleAllLapKom(el) {
+  document.querySelectorAll('.lap-ms-cb').forEach(cb => { cb.checked = el.checked; });
+  onLapKomChange();
+}
+function onLapKomChange() {
+  const checked = [...document.querySelectorAll('.lap-ms-cb:checked')].map(cb => cb.value);
+  const total   = document.querySelectorAll('.lap-ms-cb').length;
+  const allCb   = document.getElementById('lap-ms-all');
+  if (checked.length === total) {
+    lapSelectedKom = []; if (allCb) allCb.checked = true; setText('lap-kom-label','Semua Komoditas');
+  } else {
+    lapSelectedKom = checked; if (allCb) allCb.checked = false;
+    setText('lap-kom-label', checked.length===0 ? 'Pilih...' : checked.length===1 ? checked[0] : checked.length+' komoditas dipilih');
+  }
+}
+document.addEventListener('click', e => {
+  const w = document.getElementById('lap-kom-wrap');
+  if (w && !w.contains(e.target)) document.getElementById('lap-kom-dropdown')?.classList.remove('open');
+});
+
 function buildLaporanData(year, month, focusKomoditas, jenis) {
-  const pad = n => String(n).padStart(2,'0');
-  const prefix = `${year}-${pad(month)}`;
-  const prevM  = month===1?12:month-1, prevY=month===1?year-1:year;
+  const pad     = n => String(n).padStart(2,'0');
+  const prefix  = `${year}-${pad(month)}`;
+  const prevM   = month===1 ? 12 : month-1;
+  const prevY   = month===1 ? year-1 : year;
   const prevPfx = `${prevY}-${pad(prevM)}`;
 
-  // Inflasi terkini
-  const infNas = getLatestInflasi('Nasional');
-  const infJT  = getLatestInflasi('Jawa Tengah');
-  const infKot = getLatestInflasi('Kota Tegal');
+  const getInflasiPeriod = wilayah => {
+    const exact = inflasData.find(r => r.nama_wilayah===wilayah && +r.tahun===+year && +r.bulan===+month);
+    if (exact) return exact;
+    return inflasData
+      .filter(r => r.nama_wilayah===wilayah && (+r.tahun<+year||(+r.tahun===+year&&+r.bulan<=+month)))
+      .sort((a,b)=>b.tahun-a.tahun||b.bulan-a.bulan)[0] || null;
+  };
+  const infNas = getInflasiPeriod('Nasional');
+  const infJT  = getInflasiPeriod('Jawa Tengah');
+  const infKot = getInflasiPeriod('Kota Tegal');
 
-  // Harga komoditas bulan ini (rata-rata)
-  const allKom = [...new Set(hargaData.map(r => r.nama_komoditas))].filter(Boolean).sort();
+  const allKom   = [...new Set(hargaData.map(r=>r.nama_komoditas))].filter(Boolean).sort();
   const aktifKom = focusKomoditas.length ? focusKomoditas : allKom;
 
   const komoditasStats = aktifKom.map(k => {
-    const rows    = hargaData.filter(r => r.nama_komoditas===k && r.tanggal?.startsWith(prefix) && +r.harga>0);
-    const rowPrev = hargaData.filter(r => r.nama_komoditas===k && r.tanggal?.startsWith(prevPfx) && +r.harga>0);
-    const latestRow = hargaData.filter(r => r.nama_komoditas===k && +r.harga>0).sort((a,b)=>b.tanggal.localeCompare(a.tanggal))[0];
-    const avgCur  = rows.length ? avg(rows.map(r=>+r.harga)) : null;
-    const avgPrev = rowPrev.length ? avg(rowPrev.map(r=>+r.harga)) : null;
-    const lastH   = latestRow ? +latestRow.harga : null;
-    const delta   = (avgCur&&avgPrev) ? ((avgCur-avgPrev)/avgPrev*100) : null;
+    const rows    = hargaData.filter(r=>r.nama_komoditas===k&&r.tanggal?.startsWith(prefix)&&+r.harga>0);
+    const rowsPrev= hargaData.filter(r=>r.nama_komoditas===k&&r.tanggal?.startsWith(prevPfx)&&+r.harga>0);
+    const avgCur  = rows.length     ? avg(rows.map(r=>+r.harga))     : null;
+    const avgPrev = rowsPrev.length ? avg(rowsPrev.map(r=>+r.harga)) : null;
+    const minCur  = rows.length     ? Math.min(...rows.map(r=>+r.harga)) : null;
+    const maxCur  = rows.length     ? Math.max(...rows.map(r=>+r.harga)) : null;
+    const lastRow = [...rows].sort((a,b)=>b.tanggal.localeCompare(a.tanggal))[0];
+    const lastH   = lastRow ? +lastRow.harga : null;
+    const delta   = (avgCur&&avgPrev) ? (avgCur-avgPrev)/avgPrev*100 : null;
     const het     = HET_HAP[k];
     const refVal  = het ? (het.het||het.hap) : null;
-    const status  = refVal && lastH ? (lastH/refVal>1 ? 'Melebihi' : lastH/refVal>0.9 ? 'Mendekati' : 'Normal') : '—';
-    return {k, avgCur, avgPrev, lastH, delta, refVal, refType: het?(het.het?'HET':'HAP'):null, status, dataCount:rows.length};
-  }).filter(r => r.avgCur || r.lastH);
+    const refType = het ? (het.het?'HET':'HAP') : null;
+    const status  = refVal&&lastH ? (lastH/refVal>1?'Melebihi':lastH/refVal>0.9?'Mendekati':'Normal') : null;
+    return {k,avgCur,avgPrev,minCur,maxCur,lastH,delta,refVal,refType,status,dataCount:rows.length};
+  }).filter(r=>r.avgCur!==null||r.lastH!==null);
 
-  // IPH Mingguan
-  const weeks = getMonthWeeks(year, month);
-  const iphData = aktifKom.map(k => {
-    return {
-      k,
-      iph: weeks.map((_,wi) => {
-        const res = calcIPH(k, year, month, weeks, wi);
-        return { weekNum: wi+1, iph: res.iph, weekAvg: res.weekAvg };
-      })
-    };
-  }).filter(r => r.iph.some(w => w.iph !== null));
+  const weeks   = getMonthWeeks(year, month);
+  const iphData = aktifKom.map(k => ({
+    k, iph: weeks.map((_,wi)=>{ const res=calcIPH(k,year,month,weeks,wi); return {weekNum:wi+1,iph:res.iph,weekAvg:res.weekAvg}; })
+  })).filter(r=>r.iph.some(w=>w.iph!==null||w.weekAvg!==null));
 
-  // Komoditas melebihi HET/HAP
-  const violators = komoditasStats.filter(r => r.status === 'Melebihi');
-  const risers    = komoditasStats.filter(r => r.delta > 5).sort((a,b)=>b.delta-a.delta);
-
-  return { infNas, infJT, infKot, komoditasStats, iphData, weeks, violators, risers, year, month, jenis };
+  const violators = komoditasStats.filter(r=>r.status==='Melebihi');
+  const nearLimit = komoditasStats.filter(r=>r.status==='Mendekati');
+  const risers    = komoditasStats.filter(r=>r.delta!==null&&r.delta>2).sort((a,b)=>b.delta-a.delta);
+  const fallers   = komoditasStats.filter(r=>r.delta!==null&&r.delta<-2).sort((a,b)=>a.delta-b.delta);
+  const stable    = komoditasStats.filter(r=>r.delta!==null&&Math.abs(r.delta)<=2);
+  return {infNas,infJT,infKot,komoditasStats,iphData,weeks,violators,nearLimit,risers,fallers,stable,aktifKom,year,month,jenis,prevM,prevY};
 }
 
 function renderLaporan() {
-  const year   = +document.getElementById('lap-tahun').value;
-  const month  = +document.getElementById('lap-bulan').value;
-  const jenis  = document.getElementById('lap-jenis').value;
-  const lapKomEl = document.getElementById('lap-komoditas-focus');
-  const focusKom = lapKomEl ? [...lapKomEl.selectedOptions].map(o=>o.value) : [];
-
-  setText('lap-status', 'Memuat…');
-  const data = buildLaporanData(year, month, focusKom, jenis);
-  const html = generateLaporanHTML(data);
-  document.getElementById('laporan-content').innerHTML = html;
-  setText('lap-status', `${MONTHS_FULL[month-1]} ${year} · Digenerate: ${new Date().toLocaleTimeString('id-ID')}`);
+  const year  = +document.getElementById('lap-tahun').value;
+  const month = +document.getElementById('lap-bulan').value;
+  const jenis = document.getElementById('lap-jenis').value;
+  setText('lap-status','Memuat…');
+  const data = buildLaporanData(year, month, lapSelectedKom, jenis);
+  document.getElementById('laporan-content').innerHTML = generateLaporanHTML(data);
+  setText('lap-status',`${MONTHS_FULL[month-1]} ${year} — ${data.aktifKom.length} komoditas · ${new Date().toLocaleTimeString('id-ID')}`);
   toast('Laporan berhasil digenerate','success');
 }
 
 function generateLaporanHTML(d) {
-  const {infNas,infJT,infKot,komoditasStats,iphData,weeks,violators,risers,year,month,jenis} = d;
-  const tanggalCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-  const periodStr = `${MONTHS_FULL[month-1]} ${year}`;
+  const {infNas,infJT,infKot,komoditasStats,iphData,weeks,violators,nearLimit,risers,fallers,stable,aktifKom,year,month,jenis,prevM,prevY} = d;
+  const pad      = n => String(n).padStart(2,'0');
+  const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+  const perStr   = `${MONTHS_FULL[month-1]} ${year}`;
+  const prevStr  = `${MONTHS_FULL[prevM-1]} ${prevY}`;
 
-  // ── Narasi Otomatis ──
-  const yoy = infKot ? parseFloat(infKot.inflasi_yoy) : null;
-  const mtm = infKot ? parseFloat(infKot.inflasi_mtm) : null;
-  const yoyNas = infNas ? parseFloat(infNas.inflasi_yoy) : null;
-  const narasiInflasi = infKot
-    ? `Pada ${periodStr}, inflasi Kota Tegal tercatat sebesar ${yoy>=0?'+':''}${yoy?.toFixed(2)}% (YoY), ` +
-      `${mtm>=0?'naik':'turun'} ${Math.abs(mtm||0).toFixed(2)}% dibandingkan bulan sebelumnya (MtM). ` +
-      (yoyNas !== null ? `Inflasi nasional pada periode yang sama berada di angka ${yoyNas>=0?'+':''}${yoyNas.toFixed(2)}% (YoY), ` +
-        (yoy > yoyNas ? `menunjukkan inflasi daerah yang lebih tinggi dari rata-rata nasional.` : `menunjukkan inflasi daerah masih berada di bawah rata-rata nasional.`) : '') 
-    : 'Data inflasi belum tersedia untuk periode ini.';
+  // ── Narasi Inflasi ──
+  const yoy=infKot?parseFloat(infKot.inflasi_yoy):null, mtm=infKot?parseFloat(infKot.inflasi_mtm):null;
+  const ytd=infKot?parseFloat(infKot.inflasi_ytd):null;
+  const yoyNas=infNas?parseFloat(infNas.inflasi_yoy):null, yoyJT=infJT?parseFloat(infJT.inflasi_yoy):null;
+  let narasiInfl = infKot
+    ? `Pada ${perStr}, inflasi Kota Tegal tercatat <b>${yoy>=0?'+':''}${yoy?.toFixed(2)}%</b> (YoY), `+
+      `<b>${mtm>=0?'+':''}${mtm?.toFixed(2)}%</b> (MtM), dan <b>${ytd?.toFixed(2)}%</b> (YtD). `
+    : `<i>Data inflasi belum tersedia untuk ${perStr}.</i> `;
+  if (yoy!==null&&yoyNas!==null) {
+    const gap=(yoy-yoyNas).toFixed(2);
+    narasiInfl += yoy>yoyNas
+      ? `Inflasi Kota Tegal <b>lebih tinggi</b> dari nasional (${yoyNas>=0?'+':''}${yoyNas.toFixed(2)}%) sebesar ${gap} poin persentase. `
+      : `Inflasi Kota Tegal <b>lebih rendah</b> dari nasional (${yoyNas>=0?'+':''}${yoyNas.toFixed(2)}%), selisih ${Math.abs(+gap).toFixed(2)} poin. `;
+  }
+  if (yoy!==null&&yoyJT!==null) {
+    narasiInfl += yoy>yoyJT
+      ? `Dibanding Jawa Tengah (${yoyJT>=0?'+':''}${yoyJT.toFixed(2)}%), inflasi daerah lebih tinggi ${(yoy-yoyJT).toFixed(2)} poin.`
+      : `Inflasi Kota Tegal di bawah Jawa Tengah (${yoyJT>=0?'+':''}${yoyJT.toFixed(2)}%), selisih ${(yoyJT-yoy).toFixed(2)} poin.`;
+  }
 
-  const narasiKomoditas = violators.length > 0
-    ? `Terdapat ${violators.length} komoditas yang harganya melampaui batas HET/HAP: ${violators.map(v=>v.k).join(', ')}. Kondisi ini memerlukan perhatian dan tindakan intervensi dari TPID.`
-    : `Seluruh komoditas yang terpantau masih berada dalam batas HET/HAP yang ditetapkan regulasi.`;
+  // ── Narasi Komoditas ──
+  let narasiKom = `Pada ${perStr}, dipantau <b>${komoditasStats.length} komoditas</b>${lapSelectedKom.length?' yang dipilih':''}. `;
+  if (violators.length>0) narasiKom += `⚠️ <b>${violators.length} komoditas melebihi HET/HAP:</b> ${violators.map(v=>`${v.k} (Rp ${fmtNum(Math.round(v.lastH||0))} vs ${v.refType} Rp ${fmtNum(v.refVal||0)})`).join(', ')}. `;
+  else narasiKom += `✅ Semua komoditas berregulasi masih dalam batas HET/HAP. `;
+  if (nearLimit.length>0) narasiKom += `⚡ ${nearLimit.length} komoditas mendekati batas (>90%): ${nearLimit.map(v=>v.k).join(', ')}. `;
+  if (risers.length>0) narasiKom += `📈 Naik >2% vs ${prevStr}: ${risers.slice(0,5).map(v=>`${v.k} (+${v.delta?.toFixed(1)}%)`).join(', ')}. `;
+  if (fallers.length>0) narasiKom += `📉 Turun >2% vs ${prevStr}: ${fallers.slice(0,5).map(v=>`${v.k} (${v.delta?.toFixed(1)}%)`).join(', ')}. `;
+  if (stable.length>0) narasiKom += `→ ${stable.length} komoditas stabil (±2%). `;
 
-  const narasiTren = risers.length > 0
-    ? `Komoditas dengan kenaikan rata-rata tertinggi dibanding bulan sebelumnya: ${risers.slice(0,3).map(v=>`${v.k} (+${v.delta?.toFixed(1)}%)`).join(', ')}.`
-    : `Pergerakan harga relatif stabil tanpa lonjakan signifikan dibanding bulan sebelumnya.`;
+  // ── Narasi IPH ──
+  let narasiIPH = '';
+  if (iphData.length&&weeks.length) {
+    const lastWk=weeks[weeks.length-1];
+    const iSums=iphData.map(({k,iph})=>({k,v:iph[iph.length-1]?.iph})).filter(x=>x.v!==null);
+    const avgIPH=iSums.length?avg(iSums.map(x=>x.v)):null;
+    const topR=[...iSums].sort((a,b)=>b.v-a.v)[0], topF=[...iSums].sort((a,b)=>a.v-b.v)[0];
+    narasiIPH=`Rata-rata IPH hingga Minggu ke-${lastWk.weekNum} (s.d. ${formatDate(lastWk.endDate)}) sebesar `+
+      `<b>${avgIPH!==null?(avgIPH>=0?'+':'')+avgIPH.toFixed(2)+'%':'N/A'}</b> vs rata-rata ${prevStr}. `;
+    if (topR) narasiIPH+=`IPH tertinggi: <b>${topR.k}</b> (+${topR.v.toFixed(2)}%). `;
+    if (topF&&topF.v<0) narasiIPH+=`Penurunan terbesar: <b>${topF.k}</b> (${topF.v.toFixed(2)}%). `;
+  }
 
-  // ── Bagian Inflasi Cards ──
-  const buildInflCard = (inf, label, color) => {
-    if (!inf) return `<div class="lap-infl-card"><div class="region">${label}</div><div style="color:var(--text3);font-size:13px">Data N/A</div></div>`;
-    const v = parseFloat(inf.inflasi_yoy);
-    const c = v > 0 ? '#f85149' : '#3fb950';
+  // ── Rekomendasi ──
+  const rekList=[];
+  if (violators.length>0) rekList.push(`Lakukan <b>operasi pasar / sidak</b> untuk ${violators.map(v=>v.k).join(', ')} yang melebihi HET/HAP.`);
+  if (risers.length>2) rekList.push(`Koordinasi dengan <b>distributor dan pedagang</b> terkait kenaikan ${risers.slice(0,3).map(v=>v.k).join(', ')}.`);
+  if (nearLimit.length>0) rekList.push(`Tingkatkan <b>frekuensi pantau</b> ${nearLimit.map(v=>v.k).join(', ')} yang mendekati batas HET/HAP.`);
+  if (rekList.length===0) {
+    rekList.push('Lanjutkan <b>pemantauan rutin</b> dan tingkatkan kewaspadaan menjelang hari besar keagamaan.');
+    rekList.push('Sinkronisasi data dengan TPID Provinsi Jawa Tengah dan Bapanas secara berkala.');
+  }
+  rekList.push('Dokumentasikan kondisi pasar dalam <b>notulen TPID</b> dan laporkan kepada pimpinan daerah.');
+
+  // ── Helper: inflasi card ──
+  const bIC=(inf,label)=>{
+    if(!inf) return `<div class="lap-infl-card"><div class="region">${label}</div><div style="color:var(--text3);font-size:12px;margin-top:8px">Data tidak tersedia</div></div>`;
+    const v=parseFloat(inf.inflasi_yoy),m=parseFloat(inf.inflasi_mtm);
+    const vc=v>0?'#f85149':'#3fb950';
     return `<div class="lap-infl-card">
       <div class="region">${label}</div>
-      <div class="yoy" style="color:${c}">${v>=0?'+':''}${v.toFixed(2)}</div>
-      <div class="sub">% YoY | ${MONTHS_ID[inf.bulan-1]} ${inf.tahun}</div>
-      <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
-        <span class="lap-badge ${parseFloat(inf.inflasi_mtm)>0?'lap-badge-red':'lap-badge-green'}">MtM ${formatPct(inf.inflasi_mtm)}</span>
+      <div class="yoy" style="color:${vc}">${v>=0?'+':''}${v.toFixed(2)}</div>
+      <div class="sub">% YoY · ${MONTHS_ID[inf.bulan-1]} ${inf.tahun}</div>
+      <div style="display:flex;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+        <span class="lap-badge ${m>0?'lap-badge-red':'lap-badge-green'}">MtM ${formatPct(inf.inflasi_mtm)}</span>
         <span class="lap-badge lap-badge-yellow">YtD ${formatPct(inf.inflasi_ytd)}</span>
-      </div>
-    </div>`;
+      </div></div>`;
   };
 
-  // ── Tabel Komoditas ──
-  const buildKomTable = (stats, title) => {
-    if (!stats.length) return '';
-    const rows = stats.map(r => {
-      const deltaCell = r.delta!==null
-        ? `<span class="${r.delta>5?'pos':r.delta<-5?'neg':''}">${r.delta>=0?'+':''}${r.delta?.toFixed(2)}%</span>` : '—';
-      const statusBadge = r.status==='Melebihi' ? `<span class="lap-badge lap-badge-red">⚠️ ${r.status}</span>`
-        : r.status==='Mendekati' ? `<span class="lap-badge lap-badge-yellow">⚡ ${r.status}</span>`
-        : r.status==='Normal' ? `<span class="lap-badge lap-badge-green">✓ ${r.status}</span>` : '—';
+  // ── Helper: komoditas table ──
+  const bKT=(stats,title)=>{
+    if(!stats.length) return '';
+    const rows=stats.map(r=>{
+      const dTxt=r.delta!==null?`${r.delta>=0?'+':''}${r.delta.toFixed(2)}%`:'—';
+      const dCls=r.delta>5?'pos':r.delta<-5?'neg':'';
+      const badge=r.status==='Melebihi'?`<span class="lap-badge lap-badge-red">⚠️ Melebihi</span>`
+        :r.status==='Mendekati'?`<span class="lap-badge lap-badge-yellow">⚡ Mendekati</span>`
+        :r.status==='Normal'?`<span class="lap-badge lap-badge-green">✓ Normal</span>`:'—';
       return `<tr>
         <td>${r.k}</td>
-        <td class="num">${r.avgCur ? 'Rp '+fmtNum(Math.round(r.avgCur)) : '—'}</td>
-        <td class="num">${r.avgPrev ? 'Rp '+fmtNum(Math.round(r.avgPrev)) : '—'}</td>
-        <td class="num">${deltaCell}</td>
-        <td class="num">${r.refVal ? 'Rp '+fmtNum(r.refVal)+' ('+r.refType+')' : '—'}</td>
-        <td style="text-align:center">${statusBadge}</td>
-      </tr>`;
+        <td class="num">${r.avgCur?'Rp '+fmtNum(Math.round(r.avgCur)):'—'}</td>
+        <td class="num">${r.avgPrev?'Rp '+fmtNum(Math.round(r.avgPrev)):'—'}</td>
+        <td class="num ${dCls}" style="font-weight:${r.delta&&Math.abs(r.delta)>2?700:400}">${dTxt}</td>
+        <td class="num">${r.minCur?'Rp '+fmtNum(r.minCur):'—'}</td>
+        <td class="num">${r.maxCur?'Rp '+fmtNum(r.maxCur):'—'}</td>
+        <td class="num">${r.refVal?'Rp '+fmtNum(r.refVal)+' ('+r.refType+')':'—'}</td>
+        <td style="text-align:center">${badge}</td></tr>`;
     }).join('');
-    return `<div class="lap-section">
-      <div class="lap-section-title">${title}</div>
-      <table class="lap-table">
-        <thead><tr><th>Komoditas</th><th class="num">Rata ${periodStr}</th><th class="num">Rata Bln Lalu</th><th class="num">Δ (%)</th><th class="num">HET/HAP</th><th style="text-align:center">Status</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+    return `<div class="lap-section"><div class="lap-section-title">${title}</div>
+      <table class="lap-table"><thead><tr>
+        <th>Komoditas</th><th class="num">Rata ${MONTHS_ID[month-1]}</th>
+        <th class="num">Rata ${MONTHS_ID[prevM-1]}</th><th class="num">Δ (%)</th>
+        <th class="num">Min</th><th class="num">Maks</th>
+        <th class="num">HET/HAP</th><th style="text-align:center">Status</th>
+      </tr></thead><tbody>${rows}</tbody></table></div>`;
   };
 
-  // ── Tabel IPH ──
-  const buildIPHTable = () => {
-    if (!iphData.length || !weeks.length) return '';
-    const wHeaders = weeks.map(w =>
-      `<th class="num" colspan="2">Mg ${w.weekNum}<br><span style="font-size:9px;font-weight:400">${w.startDate.slice(8)}–${w.endDate.slice(8)}</span></th>`
-    ).join('');
-    const subHeaders = weeks.map(() =>
-      `<th class="num" style="font-size:10px;background:rgba(0,0,0,.2)">Rata (Rp)</th><th class="num" style="font-size:10px;background:rgba(0,0,0,.2)">IPH (%)</th>`
-    ).join('');
-    const rows = iphData.map(({k, iph}) => {
-      const cells = iph.map(w => {
-        const avgCell = w.weekAvg ? fmtNum(Math.round(w.weekAvg)) : '';
-        const iphCell = w.iph!==null
-          ? `<span class="${w.iph>0?'pos':w.iph<0?'neg':''}">${w.iph>=0?'+':''}${w.iph.toFixed(2)}%</span>` : '';
-        return `<td class="num" style="font-size:11px">${avgCell}</td><td class="num" style="font-size:11px">${iphCell}</td>`;
+  // ── Helper: IPH table ──
+  const bIPH=()=>{
+    if(!iphData.length||!weeks.length) return '';
+    const wH=weeks.map(w=>`<th colspan="2" style="text-align:center">Mg ${w.weekNum}<br><span style="font-size:9px;font-weight:400;color:var(--text3)">${w.startDate.slice(8)}–${w.endDate.slice(8)}</span></th>`).join('');
+    const wS=weeks.map(()=>`<th class="num" style="font-size:10px">Rata (Rp)</th><th class="num" style="font-size:10px">IPH (%)</th>`).join('');
+    const rows=iphData.map(({k,iph})=>{
+      const cells=iph.map(w=>{
+        const av=w.weekAvg?fmtNum(Math.round(w.weekAvg)):'';
+        const ip=w.iph!==null?`<span class="${w.iph>0?'pos':w.iph<0?'neg':''}">${w.iph>=0?'+':''}${w.iph.toFixed(2)}%</span>`:'';
+        return `<td class="num" style="font-size:11px">${av}</td><td class="num" style="font-size:11px">${ip}</td>`;
       }).join('');
       return `<tr><td>${k}</td>${cells}</tr>`;
     }).join('');
-    return `<div class="lap-section">
-      <div class="lap-section-title">IPH Mingguan — ${periodStr}</div>
-      <table class="lap-table" style="font-size:11px">
-        <thead>
-          <tr><th rowspan="2">Komoditas</th>${wHeaders}</tr>
-          <tr>${subHeaders}</tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+    return `<div class="lap-section"><div class="lap-section-title">📈 IPH Mingguan — ${perStr}</div>
+      <div class="lap-narasi" style="border-color:var(--purple);margin-bottom:10px;font-size:12px">${narasiIPH||'Data IPH belum tersedia.'}</div>
+      <table class="lap-table" style="font-size:11px"><thead>
+        <tr><th rowspan="2">Komoditas</th>${wH}</tr><tr>${wS}</tr>
+      </thead><tbody>${rows}</tbody></table></div>`;
   };
 
-  // ── Rakit HTML ──
-  const sections = [];
-  if (jenis === 'bulanan' || jenis === 'lengkap') {
-    sections.push(buildKomTable(komoditasStats, '🏷️ Perkembangan Harga Komoditas'));
+  const sections=[];
+  if(jenis==='bulanan'||jenis==='lengkap'){
+    sections.push(bKT(komoditasStats,`🏷️ Perkembangan Harga Komoditas — ${perStr}`));
+    if(violators.length) sections.push(bKT(violators,'⚠️ Komoditas Melebihi HET/HAP'));
+    if(risers.length)    sections.push(bKT(risers.slice(0,8),`📈 Komoditas Naik Signifikan >2% vs ${prevStr}`));
+    if(fallers.length)   sections.push(bKT(fallers.slice(0,8),`📉 Komoditas Turun Signifikan >2% vs ${prevStr}`));
   }
-  if (jenis === 'mingguan' || jenis === 'lengkap') {
-    sections.push(buildIPHTable());
-  }
-  if (jenis === 'bulanan' && komoditasStats.length > 0) {
-    // juga show top risers table
-    if (risers.length) sections.push(buildKomTable(risers.slice(0,8), '📈 Komoditas dengan Kenaikan Tertinggi'));
-    if (violators.length) sections.push(buildKomTable(violators, '⚠️ Komoditas Melebihi HET/HAP'));
-  }
+  if(jenis==='mingguan'||jenis==='lengkap') sections.push(bIPH());
+
+  const filterInfo = lapSelectedKom.length
+    ? `Filter: ${lapSelectedKom.length} komoditas (${lapSelectedKom.slice(0,3).join(', ')}${lapSelectedKom.length>3?'…':''})`
+    : `Semua komoditas`;
 
   return `
   <div class="lap-header">
     <div class="lap-logo-area">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">PEMERINTAH DAERAH</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.8px">Pemerintah Daerah · TPID Kota Tegal</div>
       <h1>LAPORAN PERKEMBANGAN HARGA</h1>
-      <p>Tim Pengendalian Inflasi Daerah (TPID) — Kota Tegal</p>
-      <p style="font-weight:700;color:var(--text)">Periode: ${periodStr}</p>
+      <p>Tim Pengendalian Inflasi Daerah (TPID) — Kota Tegal, Jawa Tengah</p>
+      <p><b>Periode:</b> ${perStr} &nbsp;|&nbsp; <b>Jenis:</b> ${jenis==='bulanan'?'Bulanan':jenis==='mingguan'?'IPH Mingguan':'Lengkap'}</p>
+      <p style="font-size:11px;color:var(--text3)">${filterInfo}</p>
     </div>
     <div class="lap-meta">
-      <strong>${jenis==='bulanan'?'LAPORAN BULANAN':jenis==='mingguan'?'LAPORAN IPH MINGGUAN':'LAPORAN LENGKAP'}</strong>
-      Dicetak: ${tanggalCetak}<br>
-      Sumber: Data TPID Kota Tegal<br>
-      <span style="font-size:9px;opacity:.6">Dibuat otomatis oleh sistem</span>
+      <strong>No. Dok: TPID-${year}${pad(month)}</strong>
+      Tanggal: ${tglCetak}<br>Data per: ${getLatestHargaDate()||'—'}<br>
+      <span style="font-size:9px;opacity:.6">Dibuat otomatis oleh sistem TPID</span>
     </div>
   </div>
-
   <div class="lap-section">
-    <div class="lap-section-title">📊 Inflasi Terkini — 3 Wilayah</div>
+    <div class="lap-section-title">📊 Kondisi Inflasi — ${perStr}</div>
     <div class="lap-inflasi-grid">
-      ${buildInflCard(infNas,'🇮🇩 Nasional','var(--blue2)')}
-      ${buildInflCard(infJT, '🏛️ Jawa Tengah','var(--teal2)')}
-      ${buildInflCard(infKot,'🏙️ Kota Tegal','var(--accent2)')}
+      ${bIC(infNas,'🇮🇩 Nasional')}${bIC(infJT,'🏛️ Jawa Tengah')}${bIC(infKot,'🏙️ Kota Tegal')}
     </div>
-    <div class="lap-narasi">${narasiInflasi}</div>
+    <div class="lap-narasi">${narasiInfl}</div>
   </div>
-
-  ${sections.join('\n')}
-
   <div class="lap-section">
-    <div class="lap-section-title">📝 Ringkasan & Rekomendasi</div>
-    <div class="lap-narasi" style="border-color:var(--accent2)">
-      <b>Kondisi Harga:</b> ${narasiKomoditas}<br>
-      <b>Tren Kenaikan:</b> ${narasiTren}<br>
-      <b>Rekomendasi:</b> ${violators.length>0
-        ? `TPID perlu melakukan operasi pasar dan koordinasi dengan distributor untuk menstabilkan harga ${violators.map(v=>v.k).join(', ')}.`
-        : `Pemantauan harga dilanjutkan secara rutin. Kewaspadaan perlu ditingkatkan menjelang hari besar keagamaan.`}
+    <div class="lap-section-title">🔍 Analisis Harga Komoditas — ${perStr}</div>
+    <div class="lap-narasi" style="border-color:var(--accent2)">${narasiKom}</div>
+  </div>
+  ${sections.filter(Boolean).join('\n')}
+  <div class="lap-section">
+    <div class="lap-section-title">📝 Rekomendasi TPID</div>
+    <div class="lap-narasi" style="border-color:var(--primary2)">
+      <ol style="padding-left:18px;line-height:2.1">${rekList.map(r=>`<li>${r}</li>`).join('')}</ol>
     </div>
   </div>
-
   <div class="lap-footer">
-    <span>Laporan TPID Kota Tegal — ${periodStr}</span>
-    <span>Dicetak: ${tanggalCetak} | Data per: ${getLatestHargaDate()||'—'}</span>
-    <span>Sumber: inflasi_data.csv · harga_komoditas.csv</span>
+    <span>TPID Kota Tegal — ${perStr}</span>
+    <span>Dicetak: ${tglCetak}</span>
+    <span>Data: inflasi_data.csv · harga_komoditas.csv</span>
   </div>`;
 }
 
-// ── DOWNLOAD PDF ──
 async function downloadPDF() {
   const content = document.getElementById('laporan-content');
   if (!content || content.querySelector('.fa-placeholder, [style*="60px"]')) {
@@ -2747,8 +2809,13 @@ async function downloadPDF() {
   doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}`, pageW-marginR, 31, {align:'right'});
   y = 50;
 
-  // ── Inflasi Cards ──
-  section('INFLASI TERKINI — 3 WILAYAH', [31,111,235]);
+  doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
+  doc.text(`DATA INFLASI — ${MONTHS_FULL[month-1].toUpperCase()} ${year}`, marginL, y);
+  if (data.infKot && (+data.infKot.bulan !== +month || +data.infKot.tahun !== +year)) {
+    doc.setFontSize(7); doc.setTextColor(130,130,130);
+    doc.text(`(Data tersedia: ${MONTHS_FULL[data.infKot.bulan-1]} ${data.infKot.tahun})`, marginL+80, y);
+  }
+  y += 5;
   const cards = [
     {label:'Nasional', inf:data.infNas, c:[56,139,253]},
     {label:'Jawa Tengah', inf:data.infJT, c:[20,184,166]},
