@@ -1747,7 +1747,7 @@ function renderInflasiCards() {
 
 function renderInflasiYoyChart() {
   const regions  = ['Nasional','Jawa Tengah','Kota Tegal'];
-  const regLabels = ['Nasional','Jawa Tengah','Kab. Pekalongan'];
+  const regLabels = ['Nasional','Jawa Tengah','Kota Tegal'];
   const colors  = ['#388bfd','#14b8a6','#e3b341'];
   // Collect all periods sorted
   const periods = [...new Set(inflasData.map(r => r.tahun + '-' + String(r.bulan).padStart(2,'0')))].sort();
