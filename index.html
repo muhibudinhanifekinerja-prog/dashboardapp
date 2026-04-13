@@ -459,7 +459,7 @@ select:focus,input:focus{border-color:var(--blue2)}
 
     <!-- KOTA TEGAL -->
     <div class="inflasi-card kota" style="border-color:rgba(210,153,34,.3)">
-      <div class="inflasi-region">🏙️ Kab. Pekalongan</div>
+      <div class="inflasi-region">🏙️ Kota Tegal</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Year-on-Year</div>
       <div class="inflasi-big" id="infl-kota-yoy" style="color:var(--accent2)">—</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px;margin-bottom:14px">% YoY · <span id="infl-ko-per" style="font-weight:600"></span></div>
@@ -1112,7 +1112,7 @@ let currentKurs = null;
 let HET_HAP = {
   // ── BERAS (Perbadan No.5/2024, perubahan No.7/2023) ──
   'Beras Medium': {
-    het:12500, hap:null,
+    het:13500, hap:null,
     dasar_het:'Perbadan No.5/2024', dasar_hap:null,
     ket:'HET berlaku nasional untuk beras medium kualitas standar'
   },
@@ -3121,7 +3121,7 @@ function generateLaporanHTML(d) {
   return `
   <div class="lap-header">
     <div class="lap-logo-area">
-      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.8px">Pemerintah Daerah · TPID Kota Tegal</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.8px">Pemerintah Daerah · TPID Kab Pekalongan</div>
       <h1>LAPORAN PERKEMBANGAN HARGA</h1>
       <p>Tim Pengendalian Inflasi Daerah (TPID) — Kota Tegal, Jawa Tengah</p>
       <p><b>Periode:</b> ${perStr} &nbsp;|&nbsp; <b>Jenis:</b> ${jenis==='bulanan'?'Bulanan':jenis==='mingguan'?'IPH Mingguan':'Lengkap'}</p>
