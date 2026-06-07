@@ -83,3 +83,6 @@ tahun,bulan,level_wilayah,nama_wilayah,inflasi_mtm,inflasi_ytd,inflasi_yoy,creat
 2026,4,kota,Kota Tegal,-0.09,1.07,2.30,20:20.2
 2026,4,provinsi,Jawa Tengah,-0.03,0.95,2.11,20:20.2
 2026,4,nasional,Nasional,0.13,1.06,2.42,13:20.1
+2026,5,nasional,Nasional,0.28,1.35,3.08,17:01:20.2
+2026,5,provinsi,Jawa Tengah,0.23,1.35,2.85,17:02:1.3
+2026,5,kota,Kota Tegal,0.14,1.21,2.90,17:03:03.4
