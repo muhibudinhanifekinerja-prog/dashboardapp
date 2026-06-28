@@ -26542,3 +26542,153 @@ tanggal,id_komoditas,id_pasar,harga,nama_komoditas,satuan
 2026-06-19,28,1,10000,Tahu Putih,kg
 2026-06-19,29,1,80000,Daging Ayam Kampung,kg
 2026-06-19,30,1,65000,Telur Ayam Kampung,kg
+2026-06-22,1,1,13400,Beras Medium,kg
+2026-06-22,2,1,14500,Beras Premium,kg
+2026-06-22,3,1,35000,Cabai Merah Keriting,kg
+2026-06-22,4,1,33000,Cabai Merah Besar,kg
+2026-06-22,5,1,48000,Cabai Rawit Merah,kg
+2026-06-22,6,1,32000,Cabai Rawit Hijau,kg
+2026-06-22,7,1,45000,Bawang Merah,kg
+2026-06-22,8,1,17500,Gula Pasir Curah,kg
+2026-06-22,9,1,17500,Gula Pasir Kemasan,kg
+2026-06-22,10,1,18900,Minyak Goreng Sawit Curah,liter
+2026-06-22,11,1,22000,Minyak Goreng Sawit Kemasan Premium,liter
+2026-06-22,12,1,15700,Minyakita,liter
+2026-06-22,13,1,12000,Tepung Terigu,kg
+2026-06-22,14,1,38000,Daging Ayam Ras,kg
+2026-06-22,15,1,25500,Telur Ayam Ras,kg
+2026-06-22,16,1,140000,Daging Sapi Paha Belakang,kg
+2026-06-22,17,1,135000,Daging Sapi Paha Depan,kg
+2026-06-22,18,1,65000,Daging Sapi Sandung Lamur,kg
+2026-06-22,19,1,70000,Daging Sapi Tetelan,kg
+2026-06-22,20,1,35000,Ikan Bandeng,kg
+2026-06-22,21,1,37000,Ikan Tongkol,kg
+2026-06-22,22,1,3100,Mie Instan,bungkus
+2026-06-22,23,1,35000,Bawang Putih Honan,kg
+2026-06-22,24,1,38000,Bawang Putih Kating,kg
+2026-06-22,25,1,10000,Garam Halus,kg
+2026-06-22,26,1,12500,Susu Kental Manis,kg
+2026-06-22,27,1,10000,Tempe Bungkus,kg
+2026-06-22,28,1,10000,Tahu Putih,kg
+2026-06-22,29,1,80000,Daging Ayam Kampung,kg
+2026-06-22,30,1,65000,Telur Ayam Kampung,kg
+2026-06-23,1,1,13400,Beras Medium,kg
+2026-06-23,2,1,14500,Beras Premium,kg
+2026-06-23,3,1,35000,Cabai Merah Keriting,kg
+2026-06-23,4,1,33000,Cabai Merah Besar,kg
+2026-06-23,5,1,48000,Cabai Rawit Merah,kg
+2026-06-23,6,1,32000,Cabai Rawit Hijau,kg
+2026-06-23,7,1,45000,Bawang Merah,kg
+2026-06-23,8,1,17500,Gula Pasir Curah,kg
+2026-06-23,9,1,17500,Gula Pasir Kemasan,kg
+2026-06-23,10,1,18900,Minyak Goreng Sawit Curah,liter
+2026-06-23,11,1,22000,Minyak Goreng Sawit Kemasan Premium,liter
+2026-06-23,12,1,15700,Minyakita,liter
+2026-06-23,13,1,12000,Tepung Terigu,kg
+2026-06-23,14,1,38000,Daging Ayam Ras,kg
+2026-06-23,15,1,25000,Telur Ayam Ras,kg
+2026-06-23,16,1,140000,Daging Sapi Paha Belakang,kg
+2026-06-23,17,1,135000,Daging Sapi Paha Depan,kg
+2026-06-23,18,1,65000,Daging Sapi Sandung Lamur,kg
+2026-06-23,19,1,70000,Daging Sapi Tetelan,kg
+2026-06-23,20,1,35000,Ikan Bandeng,kg
+2026-06-23,21,1,37000,Ikan Tongkol,kg
+2026-06-23,22,1,3100,Mie Instan,bungkus
+2026-06-23,23,1,35000,Bawang Putih Honan,kg
+2026-06-23,24,1,38000,Bawang Putih Kating,kg
+2026-06-23,25,1,10000,Garam Halus,kg
+2026-06-23,26,1,12500,Susu Kental Manis,kg
+2026-06-23,27,1,10000,Tempe Bungkus,kg
+2026-06-23,28,1,10000,Tahu Putih,kg
+2026-06-23,29,1,80000,Daging Ayam Kampung,kg
+2026-06-23,30,1,65000,Telur Ayam Kampung,kg
+2026-06-24,1,1,13400,Beras Medium,kg
+2026-06-24,2,1,14500,Beras Premium,kg
+2026-06-24,3,1,35000,Cabai Merah Keriting,kg
+2026-06-24,4,1,32000,Cabai Merah Besar,kg
+2026-06-24,5,1,45000,Cabai Rawit Merah,kg
+2026-06-24,6,1,30000,Cabai Rawit Hijau,kg
+2026-06-24,7,1,45000,Bawang Merah,kg
+2026-06-24,8,1,17500,Gula Pasir Curah,kg
+2026-06-24,9,1,17500,Gula Pasir Kemasan,kg
+2026-06-24,10,1,18900,Minyak Goreng Sawit Curah,liter
+2026-06-24,11,1,22000,Minyak Goreng Sawit Kemasan Premium,liter
+2026-06-24,12,1,15700,Minyakita,liter
+2026-06-24,13,1,12000,Tepung Terigu,kg
+2026-06-24,14,1,38000,Daging Ayam Ras,kg
+2026-06-24,15,1,25000,Telur Ayam Ras,kg
+2026-06-24,16,1,140000,Daging Sapi Paha Belakang,kg
+2026-06-24,17,1,135000,Daging Sapi Paha Depan,kg
+2026-06-24,18,1,65000,Daging Sapi Sandung Lamur,kg
+2026-06-24,19,1,70000,Daging Sapi Tetelan,kg
+2026-06-24,20,1,35000,Ikan Bandeng,kg
+2026-06-24,21,1,37000,Ikan Tongkol,kg
+2026-06-24,22,1,3100,Mie Instan,bungkus
+2026-06-24,23,1,35000,Bawang Putih Honan,kg
+2026-06-24,24,1,38000,Bawang Putih Kating,kg
+2026-06-24,25,1,10000,Garam Halus,kg
+2026-06-24,26,1,12500,Susu Kental Manis,kg
+2026-06-24,27,1,10000,Tempe Bungkus,kg
+2026-06-24,28,1,10000,Tahu Putih,kg
+2026-06-24,29,1,80000,Daging Ayam Kampung,kg
+2026-06-24,30,1,65000,Telur Ayam Kampung,kg
+2026-06-25,1,1,13400,Beras Medium,kg
+2026-06-25,2,1,14500,Beras Premium,kg
+2026-06-25,3,1,35000,Cabai Merah Keriting,kg
+2026-06-25,4,1,32000,Cabai Merah Besar,kg
+2026-06-25,5,1,45000,Cabai Rawit Merah,kg
+2026-06-25,6,1,30000,Cabai Rawit Hijau,kg
+2026-06-25,7,1,45000,Bawang Merah,kg
+2026-06-25,8,1,17500,Gula Pasir Curah,kg
+2026-06-25,9,1,17500,Gula Pasir Kemasan,kg
+2026-06-25,10,1,18900,Minyak Goreng Sawit Curah,liter
+2026-06-25,11,1,22000,Minyak Goreng Sawit Kemasan Premium,liter
+2026-06-25,12,1,15700,Minyakita,liter
+2026-06-25,13,1,12000,Tepung Terigu,kg
+2026-06-25,14,1,38000,Daging Ayam Ras,kg
+2026-06-25,15,1,25000,Telur Ayam Ras,kg
+2026-06-25,16,1,140000,Daging Sapi Paha Belakang,kg
+2026-06-25,17,1,135000,Daging Sapi Paha Depan,kg
+2026-06-25,18,1,65000,Daging Sapi Sandung Lamur,kg
+2026-06-25,19,1,70000,Daging Sapi Tetelan,kg
+2026-06-25,20,1,35000,Ikan Bandeng,kg
+2026-06-25,21,1,37000,Ikan Tongkol,kg
+2026-06-25,22,1,3100,Mie Instan,bungkus
+2026-06-25,23,1,35000,Bawang Putih Honan,kg
+2026-06-25,24,1,38000,Bawang Putih Kating,kg
+2026-06-25,25,1,10000,Garam Halus,kg
+2026-06-25,26,1,12500,Susu Kental Manis,kg
+2026-06-25,27,1,10000,Tempe Bungkus,kg
+2026-06-25,28,1,10000,Tahu Putih,kg
+2026-06-25,29,1,80000,Daging Ayam Kampung,kg
+2026-06-25,30,1,65000,Telur Ayam Kampung,kg
+2026-06-26,1,1,13400,Beras Medium,kg
+2026-06-26,2,1,14500,Beras Premium,kg
+2026-06-26,3,1,35000,Cabai Merah Keriting,kg
+2026-06-26,4,1,30000,Cabai Merah Besar,kg
+2026-06-26,5,1,40000,Cabai Rawit Merah,kg
+2026-06-26,6,1,30000,Cabai Rawit Hijau,kg
+2026-06-26,7,1,45000,Bawang Merah,kg
+2026-06-26,8,1,17500,Gula Pasir Curah,kg
+2026-06-26,9,1,17500,Gula Pasir Kemasan,kg
+2026-06-26,10,1,18900,Minyak Goreng Sawit Curah,liter
+2026-06-26,11,1,22000,Minyak Goreng Sawit Kemasan Premium,liter
+2026-06-26,12,1,15700,Minyakita,liter
+2026-06-26,13,1,12000,Tepung Terigu,kg
+2026-06-26,14,1,38000,Daging Ayam Ras,kg
+2026-06-26,15,1,25000,Telur Ayam Ras,kg
+2026-06-26,16,1,140000,Daging Sapi Paha Belakang,kg
+2026-06-26,17,1,135000,Daging Sapi Paha Depan,kg
+2026-06-26,18,1,65000,Daging Sapi Sandung Lamur,kg
+2026-06-26,19,1,70000,Daging Sapi Tetelan,kg
+2026-06-26,20,1,35000,Ikan Bandeng,kg
+2026-06-26,21,1,37000,Ikan Tongkol,kg
+2026-06-26,22,1,3100,Mie Instan,bungkus
+2026-06-26,23,1,35000,Bawang Putih Honan,kg
+2026-06-26,24,1,38000,Bawang Putih Kating,kg
+2026-06-26,25,1,10000,Garam Halus,kg
+2026-06-26,26,1,12500,Susu Kental Manis,kg
+2026-06-26,27,1,10000,Tempe Bungkus,kg
+2026-06-26,28,1,10000,Tahu Putih,kg
+2026-06-26,29,1,80000,Daging Ayam Kampung,kg
+2026-06-26,30,1,65000,Telur Ayam Kampung,kg
